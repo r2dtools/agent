@@ -1,4 +1,4 @@
-module github.com/alexsibtihon/r2st-agent
+module github.com/r2st/agent.git
 
 go 1.13
 

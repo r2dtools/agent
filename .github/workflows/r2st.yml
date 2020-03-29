@@ -33,7 +33,7 @@ jobs:
       env:
         DEPLOY_KEY: ${{secrets.r2stDeploy}}
       with:
-        flags: '-avzr --delete'
+        flags: '-avzr --delete --delete-excluded'
         options: "--include='scripts/' --include='*.sh' --include='r2st' --exclude='*'"
         ssh_options: ''
         src: ''

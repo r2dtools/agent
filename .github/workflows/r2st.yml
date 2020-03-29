@@ -9,7 +9,7 @@ jobs:
       BUILD_ARCHIVE_NAME: "r2st-latest.tar.gz"
     steps:
 
-    - name: Set up Go 1.13
+    - name: Set up Go
       uses: actions/setup-go@v1
       with:
         go-version: 1.14

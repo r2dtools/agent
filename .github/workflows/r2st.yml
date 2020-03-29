@@ -27,12 +27,15 @@ jobs:
     - name: Build
       run: go build -v main.go
     
-    - name: rsync deployments
-      uses: contention/rsync-deployments@v1.0.0
+    - name: Deploy to server
+      id: deploy
+      uses: Pendect/action-rsyncer@v1.1.0
       env:
-        DEPLOY_KEY: ${{ secrets.r2stDeploy }}
+        DEPLOY_KEY: ${{secrets.r2stDeploy}}
       with:
-        flags: "-avzr --delete"
+        flags: '-avzr --delete'
         options: "--include='scripts/' --include='*.sh' --include='main' --exclude='*'"
-        dest: "root@kvm17474.hv9.ru:/var/r2st/build/"
+        ssh_options: ''
+        src: ''
+        dest: 'root@185.46.11.195:/var/r2st/build'
 

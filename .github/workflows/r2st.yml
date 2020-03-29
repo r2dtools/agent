@@ -29,7 +29,7 @@ jobs:
     - name: ssh deploy
       uses: easingthemes/ssh-deploy@v2.0.9
       with:    
-        SSH_PRIVATE_KEY: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDlyzq06Wrb3UfwtO6lLKesKvyrb60wPAWeTJoEnXnNny58VyR2NbLwxqMR1rhFcQcaaYMpenXGNoUL0lvIvNV+IQJbmy7nVgfJ5MzU3CEkRgA709lYQbgsPOVZh+EyUWQxVgNynLMZ0mO5jd8EPS4BlmX+kmg5emvoQBJvB1KK2E/T1yx6IP6Orn6dmnUFYm2aCOEkiNGzsm5M/FqFKa2YVghb9f0iogIhVdUq7KCSJen7dEuFWq9RKKK/V2efEDFcofompFszwd8rjhm9vi2tmILUd7RKxrr5k4FwF2Utszmg8c4NnPK9aIsrUF3hTMzyIe/Npuh7vbE2daND8LlL root@kvm17474"
+        SSH_PRIVATE_KEY: ${{ secrets.r2stDeploy }}
         REMOTE_HOST: "kvm17474.hv9.ru"
         REMOTE_USER: "root"
         SOURCE: .

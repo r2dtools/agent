@@ -35,7 +35,7 @@ jobs:
         mv r2st scripts/ build/
         
     - name: Create build archive
-      run: tar -czvf $BUILD_ARCHIVE_NAME /build
+      run: tar -czvf $BUILD_ARCHIVE_NAME build/
     
     - name: Deploy to server
       id: deploy

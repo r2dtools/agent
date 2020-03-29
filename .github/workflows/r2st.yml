@@ -32,5 +32,5 @@ jobs:
       env:
         DEPLOY_KEY: ${{ secrets.r2stDeploy }}
       with:
-        args: "-avzr --delete --include='*/' --include='r2st' --include='scripts/*.sh' --exclude='*' root@kvm17474.hv9.ru:/var/r2st/build/"
+        args: "-avzr --delete --include='scripts/' --include='r2st' --include='*.sh' --exclude='*' root@kvm17474.hv9.ru:/var/r2st/build/"
 

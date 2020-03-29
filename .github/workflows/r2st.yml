@@ -5,6 +5,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      build_archive_name: "r2st-latest"
     steps:
 
     - name: Set up Go 1.13
@@ -26,6 +28,14 @@ jobs:
 
     - name: Build
       run: go build -o r2st -v main.go
+        
+    - name: Prepare build directory
+      run: |
+        mkdir build
+        mv r2st scripts/ build/
+        
+    - name: Create build archive
+      run: tar -czvf $BUILD_ARCHIVE_NAME.tar.gz /build
     
     - name: Deploy to server
       id: deploy
@@ -33,9 +43,9 @@ jobs:
       env:
         DEPLOY_KEY: ${{secrets.r2stDeploy}}
       with:
-        flags: '-avzr --delete --delete-excluded'
-        options: "--include='scripts/' --include='*.sh' --include='r2st' --exclude='*'"
+        flags: '-avzr'
+        options: ''
         ssh_options: ''
-        src: ''
+        src: '$BUILD_ARCHIVE_NAME.tar.gz'
         dest: 'root@185.46.11.195:/var/r2st/build'
 

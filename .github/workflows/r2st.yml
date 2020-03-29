@@ -6,7 +6,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     env:
-      build_archive_name: "r2st-latest.tar.gz"
+      BUILD_ARCHIVE_NAME: "r2st-latest.tar.gz"
     steps:
 
     - name: Set up Go 1.13

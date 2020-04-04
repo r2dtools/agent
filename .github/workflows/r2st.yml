@@ -7,10 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUILD_ARCHIVE_NAME: "r2st-latest.tar.gz"
-    strategy:
-      matrix:
-        arch: [amd64, 386]
-        os: [linux]
     steps:
 
     - name: Set up Go
@@ -29,24 +25,14 @@ jobs:
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
         fi
-    
-    - name: Install and run gonative
-      run: |
-        go get github.com/inconshreveable/gonative
-        gonative
-      
-    - name: Install and prepare cross compilatoin tool GoX
-      run: |
-        go get github.com/mitchellh/gox
-        gox -build-toolchain
 
     - name: Build
-      run: gox -osarch='${{ matrix.os }}/${{ matrix.arch }}' -o 'r2st-${{ matrix.os }}-${{ matrix.arch }}' -v main.go
+      run: gox -o r2st -v main.go
         
     - name: Prepare build directory
       run: |
         mkdir build
-        mv 'r2st-${{ matrix.os }}-${{ matrix.arch }}' scripts/ build/
+        mv r2st scripts/ build/
         
     - name: Create build archive
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .

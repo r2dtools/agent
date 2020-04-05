@@ -47,5 +47,5 @@ jobs:
         options: ''
         ssh_options: ''
         src: $BUILD_ARCHIVE_NAME
-        dest: 'root@185.46.11.195:/var/r2st/build'
+        dest: 'root@134.0.115.60:/var/www/r2st.pro/builds'
 

@@ -27,7 +27,7 @@ jobs:
         fi
 
     - name: Build
-      run: gox -o r2st -v main.go
+      run: go build -o r2st -v main.go
         
     - name: Prepare build directory
       run: |

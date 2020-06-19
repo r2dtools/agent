@@ -1,4 +1,4 @@
-module github.com/r2st/agent.git
+module github.com/r2dtools/agent.git
 
 go 1.13
 

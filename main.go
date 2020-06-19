@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/r2st/agent.git/cmd"
+	"github.com/r2dtools/agent.git/cmd"
 )
 
 func main() {

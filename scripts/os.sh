@@ -17,6 +17,13 @@ detect_os ()
                 DIST_ID="${DISTRIB_ID}"
                 OS_VERSION="${DISTRIB_RELEASE}"
                 OS_CODENAME="${DISTRIB_CODENAME}"
+            elif [ -e /etc/os-release]; then
+                source /etc/os-release
+
+                DIST_ID="${ID}"
+                OS_VERSION="${VERSION_ID}"
+                OS_CODENAME="${VERSION_CODENAME}"
+
             elif [ $(which lsb_release 2>/dev/null) ]; then
                 DIST_ID="$(lsb_release -s -i)"
                 OS_VERSION="$(lsb_release -s -r)"
@@ -28,6 +35,8 @@ detect_os ()
             case "$DIST_ID" in
                 RedHat*)
                     OS_NAME="RedHat" ;;
+                debian)
+                    OS_NAME="Debian" ;;
                 *)
                     OS_NAME="${DIST_ID}" ;;
             esac

@@ -1,3 +1,4 @@
 Port: 60150
 LogFile: "var/log/r2dtools.log"
 LogLevel: 4
+Token: "dddfefc5b6cc87ced819d8b6"

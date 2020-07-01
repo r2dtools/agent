@@ -1,11 +1,10 @@
 package logger
 
 import (
+	"github.com/r2dtools/agent/config"
 	"log"
 	"os"
 	"path"
-
-	"github.com/r2dtools/agent/config"
 )
 
 type logType string

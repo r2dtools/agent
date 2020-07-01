@@ -4,7 +4,8 @@ import "github.com/spf13/viper"
 
 // Config stores agent configuration params
 type Config struct {
-	LogFile        string
+	LogFile,
+	Token string
 	LogLevel, Port int
 }
 
@@ -30,5 +31,6 @@ func init() {
 		Port:     vConfig.GetInt("Port"),
 		LogFile:  vConfig.GetString("LogFile"),
 		LogLevel: vConfig.GetInt("LogLevel"),
+		Token:    vConfig.GetString("Token"),
 	}
 }

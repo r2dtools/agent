@@ -13,7 +13,7 @@ type Request struct {
 	Data interface{}
 }
 
-func register(data interface{}) (interface{}, error) {
+func refresh(data interface{}) (interface{}, error) {
 	var respData struct {
 		OsCode,
 		OsVersion,
@@ -42,8 +42,8 @@ func HandleRequest(data []byte) (interface{}, error) {
 	var response interface{}
 
 	switch command := request.Command; command {
-	case "register":
-		response, err = register(request.Data)
+	case "refresh":
+		response, err = refresh(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("unsupported command: %s", request.Command)
 	}

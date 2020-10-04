@@ -20,6 +20,8 @@ jobs:
 
     - name: Get dependencies
       run: |
+        git config --global --add url."git@github.com:".insteadOf "https://github.com/"
+        export GOPRIVATE=github.com/r2dtools/agentintegration
         go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh

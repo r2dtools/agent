@@ -1,16 +1,31 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
-	// "github.com/r2dtools/agent/config"
+
+	"github.com/r2dtools/agent/logger"
+	"github.com/r2dtools/agent/webserver"
+	"github.com/r2dtools/agentintegration"
 )
 
-// Request is a request object from the main server
-type Request struct {
-	Command,
-	Token string
-	Data interface{}
+// MainHandler handles common agent requests
+type MainHandler struct{}
+
+// Handle handles request
+func (h *MainHandler) Handle(request Request) (interface{}, error) {
+	var response interface{}
+	var err error
+
+	switch action := request.GetAction(); action {
+	case "refresh":
+		response, err = getVhosts(request.Data)
+	case "getVhosts":
+		response, err = getVhosts(request.Data)
+	default:
+		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
+	}
+
+	return response, err
 }
 
 func refresh(data interface{}) (interface{}, error) {
@@ -19,6 +34,7 @@ func refresh(data interface{}) (interface{}, error) {
 		OsVersion,
 		AgentVersion string
 	}
+
 	respData.AgentVersion = "1.0.0"
 	respData.OsCode = "ubuntu"
 	respData.OsVersion = "18.04"
@@ -26,27 +42,27 @@ func refresh(data interface{}) (interface{}, error) {
 	return respData, nil
 }
 
-// HandleRequest handles requests from the main server
-func HandleRequest(data []byte) (interface{}, error) {
-	var request Request
-	err := json.Unmarshal(data, &request)
+func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
+	webServerCodes := webserver.GetSupportedWebServers()
+	var vhosts []agentintegration.VirtualHost
 
-	if err != nil {
-		return nil, fmt.Errorf("could not decode request data: %v", err)
+	for _, webServerCode := range webServerCodes {
+		webserver, err := webserver.GetWebServer(webServerCode, nil)
+
+		if err != nil {
+			logger.Error(err.Error())
+			continue
+		}
+
+		wVhosts, err := webserver.GetVhosts()
+
+		if err != nil {
+			logger.Error(err.Error())
+			continue
+		}
+
+		vhosts = append(vhosts, wVhosts...)
 	}
 
-	//if request.Token == "" || request.Token != config.GetConfig().Token {
-	//	return nil, fmt.Errorf("invalid token specified: %s", request.Token)
-	//}
-
-	var response interface{}
-
-	switch command := request.Command; command {
-	case "refresh":
-		response, err = refresh(request.Data)
-	default:
-		response, err = nil, fmt.Errorf("unsupported command: %s", request.Command)
-	}
-
-	return response, nil
+	return vhosts, nil
 }

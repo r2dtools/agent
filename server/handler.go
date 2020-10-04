@@ -18,7 +18,7 @@ func (h *MainHandler) Handle(request Request) (interface{}, error) {
 
 	switch action := request.GetAction(); action {
 	case "refresh":
-		response, err = getVhosts(request.Data)
+		response, err = refresh(request.Data)
 	case "getVhosts":
 		response, err = getVhosts(request.Data)
 	default:
@@ -28,18 +28,8 @@ func (h *MainHandler) Handle(request Request) (interface{}, error) {
 	return response, err
 }
 
-func refresh(data interface{}) (interface{}, error) {
-	var respData struct {
-		OsCode,
-		OsVersion,
-		AgentVersion string
-	}
-
-	respData.AgentVersion = "1.0.0"
-	respData.OsCode = "ubuntu"
-	respData.OsVersion = "18.04"
-
-	return respData, nil
+func refresh(data interface{}) (agentintegration.ServerData, error) {
+	return agentintegration.ServerData{AgentVersion: "1.0.0", OsCode: "ubuntu", OsVersion: "18.04"}, nil
 }
 
 func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {

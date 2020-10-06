@@ -14,7 +14,7 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/r2dtools/a2conf v0.0.0-20201003164319-ad5dd13a5e15
-	github.com/r2dtools/agentintegration v0.0.0-20201004161905-38367e3b3737
+	github.com/r2dtools/agentintegration v0.0.0-20201006155008-4373b0eb5fec
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/spf13/afero v1.4.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect

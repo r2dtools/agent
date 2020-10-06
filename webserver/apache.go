@@ -33,6 +33,7 @@ func (aws *ApacheWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) 
 			DocRoot:    aVhost.DocRoot,
 			Aliases:    aVhost.Aliases,
 			Ssl:        aVhost.Ssl,
+			WebServer:  "apache",
 		}
 		vhosts = append(vhosts, vhost)
 	}

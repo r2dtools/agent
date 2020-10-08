@@ -173,6 +173,10 @@ github.com/r2dtools/agentintegration v0.0.0-20201004161905-38367e3b3737 h1:NRbkf
 github.com/r2dtools/agentintegration v0.0.0-20201004161905-38367e3b3737/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/r2dtools/agentintegration v0.0.0-20201006155008-4373b0eb5fec h1:h7fQj+Gbxnh8CTEtQCLiHglSqXD1k18ur1HuvETGZ70=
 github.com/r2dtools/agentintegration v0.0.0-20201006155008-4373b0eb5fec/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
+github.com/r2dtools/agentintegration v0.0.0-20201009045022-75d127631fd3 h1:aA0Re8ow2xEHUoUN27usRWxmQwsgzsZmkfHcDBom9Mg=
+github.com/r2dtools/agentintegration v0.0.0-20201009045022-75d127631fd3/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
+github.com/r2dtools/agentintegration v0.0.0-20201009172313-a01a71c87dea h1:wsgpl86WevFmwv8dZa5SNcyedaE2rFy6+v3xJkVcpU4=
+github.com/r2dtools/agentintegration v0.0.0-20201009172313-a01a71c87dea/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=

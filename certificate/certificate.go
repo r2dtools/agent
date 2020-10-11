@@ -44,8 +44,19 @@ func GetX509CertificateFromHTTPRequest(domain string) ([]*x509.Certificate, erro
 }
 
 // ConvertX509CertificateToIntCert converts x509 certificate to agentintegration.Certificate
-func ConvertX509CertificateToIntCert(certificate *x509.Certificate) *agentintegration.Certificate {
-	return &agentintegration.Certificate{
+func ConvertX509CertificateToIntCert(certificate *x509.Certificate, roots []*x509.Certificate) *agentintegration.Certificate {
+	certPool := x509.NewCertPool()
+
+	for _, root := range roots {
+		certPool.AddCert(root)
+	}
+
+	opts := x509.VerifyOptions{
+		Roots: certPool,
+	}
+	_, err := certificate.Verify(opts)
+	isValid := err == nil
+	cert := agentintegration.Certificate{
 		DNSNames:       certificate.DNSNames,
 		CN:             certificate.Subject.CommonName,
 		EmailAddresses: certificate.EmailAddresses,
@@ -57,5 +68,8 @@ func ConvertX509CertificateToIntCert(certificate *x509.Certificate) *agentintegr
 			CN:           certificate.Issuer.CommonName,
 			Organization: certificate.Issuer.Organization,
 		},
+		IsValid: isValid,
 	}
+
+	return &cert
 }

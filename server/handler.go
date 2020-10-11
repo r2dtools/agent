@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/x509"
 	"errors"
 	"fmt"
 
@@ -90,5 +91,11 @@ func getVhostCertificate(data interface{}) (*agentintegration.Certificate, error
 		return nil, nil
 	}
 
-	return certificate.ConvertX509CertificateToIntCert(certs[0]), nil
+	var roots []*x509.Certificate
+
+	if len(certs) > 1 {
+		roots = certs[1:]
+	}
+
+	return certificate.ConvertX509CertificateToIntCert(certs[0], roots), nil
 }

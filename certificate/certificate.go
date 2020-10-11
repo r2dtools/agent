@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/r2dtools/agentintegration"
 )
@@ -50,8 +51,8 @@ func ConvertX509CertificateToIntCert(certificate *x509.Certificate) *agentintegr
 		EmailAddresses: certificate.EmailAddresses,
 		Organization:   certificate.Subject.Organization,
 		IsCA:           certificate.IsCA,
-		ValidFrom:      certificate.NotBefore.String(),
-		ValidTo:        certificate.NotAfter.String(),
+		ValidFrom:      certificate.NotBefore.Format(time.RFC822Z),
+		ValidTo:        certificate.NotAfter.Format(time.RFC822Z),
 		Issuer: agentintegration.Issuer{
 			CN:           certificate.Issuer.CommonName,
 			Organization: certificate.Issuer.Organization,

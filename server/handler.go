@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"os/exec"
 
 	"github.com/r2dtools/agent/certificate"
 	"github.com/r2dtools/agent/logger"
@@ -33,8 +34,15 @@ func (h *MainHandler) Handle(request Request) (interface{}, error) {
 	return response, err
 }
 
-func refresh(data interface{}) (agentintegration.ServerData, error) {
-	return agentintegration.ServerData{AgentVersion: "1.0.0", OsCode: "ubuntu", OsVersion: "18.04"}, nil
+func refresh(data interface{}) (*agentintegration.ServerData, error) {
+	cmd := exec.Command("bash", "../scripts/os.sh")
+	_, err := cmd.Output()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &agentintegration.ServerData{AgentVersion: "1.0.0", OsCode: "ubuntu", OsVersion: "18.04"}, nil
 }
 
 func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {

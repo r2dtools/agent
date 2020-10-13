@@ -16,9 +16,7 @@ jobs:
       id: go
       
     - name: Install augeas library
-      run: |
-        apt update
-        apt install augeas-tools
+      run: sudo apt install augeas-tools
 
     - name: Check out code
       uses: actions/checkout@v2

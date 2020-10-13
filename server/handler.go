@@ -1,8 +1,10 @@
 package server
 
 import (
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"os/exec"
 
 	"github.com/r2dtools/agent/certificate"
 	"github.com/r2dtools/agent/logger"
@@ -32,8 +34,15 @@ func (h *MainHandler) Handle(request Request) (interface{}, error) {
 	return response, err
 }
 
-func refresh(data interface{}) (agentintegration.ServerData, error) {
-	return agentintegration.ServerData{AgentVersion: "1.0.0", OsCode: "ubuntu", OsVersion: "18.04"}, nil
+func refresh(data interface{}) (*agentintegration.ServerData, error) {
+	cmd := exec.Command("bash", "../scripts/os.sh")
+	_, err := cmd.Output()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &agentintegration.ServerData{AgentVersion: "1.0.0", OsCode: "ubuntu", OsVersion: "18.04"}, nil
 }
 
 func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
@@ -61,24 +70,40 @@ func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
 	return vhosts, nil
 }
 
-func getVhostCertificate(data interface{}) (interface{}, error) {
-	mData, ok := data.(map[string]string)
+func getVhostCertificate(data interface{}) (*agentintegration.Certificate, error) {
+	mData, ok := data.(map[string]interface{})
 
 	if !ok {
 		return nil, errors.New("invalid request data format")
 	}
 
-	serverName, ok := mData["serverName"]
+	vhostNameRaw, ok := mData["vhostName"]
 
 	if !ok {
-		return nil, errors.New("invalid request data: server name is not specified")
+		return nil, errors.New("invalid request data: vhost name is not specified")
 	}
 
-	cert, err := certificate.GetDomainCertificateFromHTTPRequest(serverName)
+	vhostName, ok := vhostNameRaw.(string)
+
+	if !ok {
+		return nil, errors.New("invalid request data: vhost name is invalid")
+	}
+
+	certs, err := certificate.GetX509CertificateFromHTTPRequest(vhostName)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return cert, nil
+	if len(certs) == 0 {
+		return nil, nil
+	}
+
+	var roots []*x509.Certificate
+
+	if len(certs) > 1 {
+		roots = certs[1:]
+	}
+
+	return certificate.ConvertX509CertificateToIntCert(certs[0], roots), nil
 }

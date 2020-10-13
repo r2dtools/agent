@@ -48,3 +48,5 @@ detect_os ()
 
     echo "${OS}/${OS_NAME}/${OS_VERSION}/${OS_CODENAME}"
 }
+
+detect_os

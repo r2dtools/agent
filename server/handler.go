@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/r2dtools/agent/certificate"
 	"github.com/r2dtools/agent/logger"
+	"github.com/r2dtools/agent/utils"
 	"github.com/r2dtools/agent/webserver"
 	"github.com/r2dtools/agentintegration"
 )
@@ -35,14 +37,29 @@ func (h *MainHandler) Handle(request Request) (interface{}, error) {
 }
 
 func refresh(data interface{}) (*agentintegration.ServerData, error) {
-	cmd := exec.Command("bash", "../scripts/os.sh")
-	_, err := cmd.Output()
+	cmd := exec.Command("bash", "scripts/os.sh")
+	output, err := cmd.Output()
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &agentintegration.ServerData{AgentVersion: "1.0.0", OsCode: "ubuntu", OsVersion: "18.04"}, nil
+	parts := strings.Split(string(output), "/")
+
+	// Linux/Ubuntu/20.04/focal
+	if len(parts) < 4 {
+		logger.Debug(fmt.Sprintf("os.sh script output %s", string(output)))
+
+		return nil, fmt.Errorf("could not get OS data")
+	}
+
+	version, err := utils.GetAgentVersion()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &agentintegration.ServerData{AgentVersion: version, OsCode: strings.ToLower(parts[1]), OsVersion: parts[2]}, nil
 }
 
 func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
@@ -92,7 +109,8 @@ func getVhostCertificate(data interface{}) (*agentintegration.Certificate, error
 	certs, err := certificate.GetX509CertificateFromHTTPRequest(vhostName)
 
 	if err != nil {
-		return nil, err
+		logger.Info(fmt.Sprintf("could not get vhost '%s' certificate: %v", vhostName, err))
+		return nil, nil
 	}
 
 	if len(certs) == 0 {

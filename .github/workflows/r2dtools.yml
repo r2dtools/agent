@@ -35,7 +35,7 @@ jobs:
     - name: Prepare build directory
       run: |
         mkdir build
-        mv r2dtools scripts/ build/
+        mv r2dtools .version LICENSE config/ scripts/ build/
         
     - name: Create build archive
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .

@@ -1,10 +1,11 @@
 package logger
 
 import (
-	"github.com/r2dtools/agent/config"
 	"log"
 	"os"
 	"path"
+
+	"github.com/r2dtools/agent/config"
 )
 
 type logType string
@@ -32,7 +33,7 @@ var logTypeLevelMap = map[logType]logLevel{
 
 func init() {
 	config := config.GetConfig()
-	logDir := path.Dir(config.LogFile)
+	logDir := path.Dir(config.GetLoggerFileAbsPath())
 
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		os.MkdirAll(logDir, 0755)
@@ -48,7 +49,7 @@ func write(message string, lType logType) {
 		return
 	}
 
-	logFile, err := os.OpenFile(iConfig.LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(iConfig.GetLoggerFileAbsPath(), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
 	if err != nil {
 		log.Fatalf("could not open log file: %v", err)

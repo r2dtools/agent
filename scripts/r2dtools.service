@@ -1,0 +1,14 @@
+[Unit]
+Description=R2DTools agent service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=R2DTOOLS_USER
+ExecStart=R2DTOOLS_SERVE
+
+[Install]
+WantedBy=multi-user.target

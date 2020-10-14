@@ -37,7 +37,7 @@ func (h *MainHandler) Handle(request Request) (interface{}, error) {
 }
 
 func refresh(data interface{}) (*agentintegration.ServerData, error) {
-	cmd := exec.Command("bash", "scripts/os.sh")
+	cmd := exec.Command("bash", "scripts/detect_os.sh")
 	output, err := cmd.Output()
 
 	if err != nil {

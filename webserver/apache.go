@@ -23,7 +23,7 @@ func (aws *ApacheWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) 
 	}
 
 	for _, aVhost := range aVhosts {
-		if !aVhost.Enabled || aVhost.ModMacro {
+		if !aVhost.Enabled || aVhost.ModMacro || aVhost.ServerName == "" {
 			continue
 		}
 

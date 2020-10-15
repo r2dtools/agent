@@ -19,7 +19,7 @@ check_arch()
         die "Unsupported platform: ${ARCH}"
     fi
 
-    echo "OK. The current platform is supported."
+    echo "OK. The current platform ${ARCH} is supported."
 }
 
 # Check that the current OS is supported
@@ -40,7 +40,7 @@ check_os()
             die "Unsupported OS: ${OS_NAME}." ;;
     esac
 
-    echo "OK. The current OS is supported."
+    echo "OK. The current OS ${OS_NAME} is supported."
 
 }
 
@@ -68,6 +68,20 @@ create_user_group()
     fi
 }
 
+# set correct owner for agent directory
+set_agent_dir_owner()
+{
+    local PWD=$(pwd)
+    
+    echo "Set owner $USER:$GROUP for agent directory ..."
+    
+    if chown -R $USER:$GROUP $PWD; then
+        echo "Agent directory owner is successfully changed to $USER:$GROUP"
+    else
+        die "Could not change $USER:$GROUP owner for agent directory."
+    fi
+}
+
 # create r2dtools agent systemd service
 create_systemd_service()
 {
@@ -91,6 +105,7 @@ install()
     check_arch
     check_os
     create_user_group
+    set_agent_dir_owner
     create_systemd_service
 }
 

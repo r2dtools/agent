@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/r2dtools/agent/certificate"
+	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/utils"
 	"github.com/r2dtools/agent/webserver"
@@ -37,7 +39,8 @@ func (h *MainHandler) Handle(request Request) (interface{}, error) {
 }
 
 func refresh(data interface{}) (*agentintegration.ServerData, error) {
-	cmd := exec.Command("bash", "scripts/detect_os.sh")
+	scriptsPath := config.GetConfig().GetScriptsDirAbsPath()
+	cmd := exec.Command("bash", filepath.Join(scriptsPath, "detect_os.sh"))
 	output, err := cmd.Output()
 
 	if err != nil {
@@ -48,7 +51,7 @@ func refresh(data interface{}) (*agentintegration.ServerData, error) {
 
 	// Linux/Ubuntu/20.04/focal
 	if len(parts) < 4 {
-		logger.Debug(fmt.Sprintf("os.sh script output %s", string(output)))
+		logger.Debug(fmt.Sprintf("detect_os.sh script output %s", string(output)))
 
 		return nil, fmt.Errorf("could not get OS data")
 	}

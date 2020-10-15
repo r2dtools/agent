@@ -53,3 +53,7 @@ func init() {
 func (c *Config) GetLoggerFileAbsPath() string {
 	return filepath.Join(c.ExecutablePath, c.LogFile)
 }
+
+func (c *Config) GetScriptsDirAbsPath() string {
+	return filepath.Join(c.ExecutablePath, "scripts")
+}

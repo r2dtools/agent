@@ -23,8 +23,18 @@ func (aws *ApacheWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) 
 	}
 
 	for _, aVhost := range aVhosts {
-		if !aVhost.Enabled || aVhost.ModMacro || aVhost.ServerName == "" {
+		if !aVhost.Enabled || aVhost.ModMacro {
 			continue
+		}
+
+		var addresses []agentintegration.VirtualHostAddress
+
+		for _, address := range aVhost.Addresses {
+			addresses = append(addresses, agentintegration.VirtualHostAddress{
+				IsIpv6: address.IsIpv6,
+				Host:   address.Host,
+				Port:   address.Port,
+			})
 		}
 
 		vhost := agentintegration.VirtualHost{
@@ -34,6 +44,7 @@ func (aws *ApacheWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) 
 			Aliases:    aVhost.Aliases,
 			Ssl:        aVhost.Ssl,
 			WebServer:  "apache",
+			Addresses:  addresses,
 		}
 		vhosts = append(vhosts, vhost)
 	}

@@ -85,6 +85,8 @@ func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
 		}
 
 		vhosts = append(vhosts, wVhosts...)
+		vhosts = utils.FilterVhosts(vhosts)
+		vhosts = utils.MergeVhosts(vhosts)
 	}
 
 	return vhosts, nil

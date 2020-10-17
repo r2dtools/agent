@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const prodMode = true
+
 // Config stores agent configuration params
 type Config struct {
 	LogFile,
@@ -23,13 +25,25 @@ func GetConfig() *Config {
 }
 
 func init() {
-	executable, err := os.Executable()
+	var executablePath string
+	var err error
 
-	if err != nil {
-		panic(err)
+	if prodMode {
+		executable, err := os.Executable()
+
+		if err != nil {
+			panic(err)
+		}
+
+		executablePath = filepath.Dir(executable)
+	} else {
+		executablePath, err = os.Getwd()
+
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	executablePath := filepath.Dir(executable)
 	vConfig := viper.New()
 	vConfig.SetConfigType("yaml")
 	vConfig.SetConfigName("params")
@@ -54,6 +68,7 @@ func (c *Config) GetLoggerFileAbsPath() string {
 	return filepath.Join(c.ExecutablePath, c.LogFile)
 }
 
+// GetScriptsDirAbsPath returns absolute path to scripts directory
 func (c *Config) GetScriptsDirAbsPath() string {
 	return filepath.Join(c.ExecutablePath, "scripts")
 }

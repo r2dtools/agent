@@ -167,6 +167,8 @@ github.com/prometheus/procfs v0.0.0-20190507164030-5867b95ac084/go.mod h1:TjEm7z
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/r2dtools/a2conf v0.0.0-20201003164319-ad5dd13a5e15 h1:aLahQug/fNHJnrYoMA3cKZU1y8CTVqho++4DOpX63SU=
 github.com/r2dtools/a2conf v0.0.0-20201003164319-ad5dd13a5e15/go.mod h1:is08+WkUCgd2VTueCvEh4fWheFjDkmmkeuxKUqaJS+4=
+github.com/r2dtools/a2conf v0.0.0-20201017073300-64f7b44d9498 h1:Yoo3r9PVj+acVeHTfyePkUqgvrTv/5Ij5p5aykqy2B0=
+github.com/r2dtools/a2conf v0.0.0-20201017073300-64f7b44d9498/go.mod h1:is08+WkUCgd2VTueCvEh4fWheFjDkmmkeuxKUqaJS+4=
 github.com/r2dtools/agentintegration v0.0.0-20201004152547-259b07bbe333 h1:Uzvrv1R4LufNBllCMPQWJPiLSLBMcnt8T7gAz+SWQW0=
 github.com/r2dtools/agentintegration v0.0.0-20201004152547-259b07bbe333/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/r2dtools/agentintegration v0.0.0-20201004161905-38367e3b3737 h1:NRbkfx8tWaJ7mDoG10sONYwDqJFXNmdQlnZsDI0HNOA=
@@ -179,6 +181,8 @@ github.com/r2dtools/agentintegration v0.0.0-20201009172313-a01a71c87dea h1:wsgpl
 github.com/r2dtools/agentintegration v0.0.0-20201009172313-a01a71c87dea/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/r2dtools/agentintegration v0.0.0-20201011174023-06b448747a35 h1:XaZSSM2vJ53WTukfDPhTTUBHu7CRtqu5zY21u9rQlBo=
 github.com/r2dtools/agentintegration v0.0.0-20201011174023-06b448747a35/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
+github.com/r2dtools/agentintegration v0.0.0-20201017080853-93d4c6052e1b h1:e7Je3BATSfffPb509a0ToDMVuzd0lSB+JxnReW320cY=
+github.com/r2dtools/agentintegration v0.0.0-20201017080853-93d4c6052e1b/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=

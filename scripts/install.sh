@@ -5,9 +5,6 @@ CURRENT_DIR="$(dirname "$0")"
 source "${CURRENT_DIR}/common.sh"
 source "${CURRENT_DIR}/os.sh"
 
-USER="r2dtools"
-GROUP="r2dtools"
-
 # Check that the current platform is supported
 check_arch()
 {
@@ -68,20 +65,6 @@ create_user_group()
     fi
 }
 
-# set correct owner for agent directory
-set_agent_dir_owner()
-{
-    local PWD=$(pwd)
-    
-    echo "Set owner $USER:$GROUP for agent directory ..."
-    
-    if chown -R $USER:$GROUP $PWD; then
-        echo "Agent directory owner is successfully changed to $USER:$GROUP"
-    else
-        die "Could not change $USER:$GROUP owner for agent directory."
-    fi
-}
-
 # create r2dtools agent systemd service
 create_systemd_service()
 {
@@ -90,14 +73,14 @@ create_systemd_service()
     cp "${CURRENT_DIR}/r2dtools.service" ${SERVICE_FILE}
     sed -i "s/R2DTOOLS_USER/${USER}/" ${SERVICE_FILE}
     sed -i "s#R2DTOOLS_SERVE#${PWD}/r2dtools serve#" ${SERVICE_FILE}
+    systemctl start "r2dtools"
     
-    if systemctl start "r2dtools"; then
+    if systemctl status "r2dtools"; then
+        systemctl enable "r2dtools"
         echo "R2DTools agent service successfully started."
     else
         die "Could not start R2DTools agent service."
     fi
-
-    systemctl enable "r2dtools"
 }
 
 install()

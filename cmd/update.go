@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
+
 	"github.com/r2dtools/agent/config"
 	"github.com/spf13/cobra"
 )
@@ -13,8 +17,8 @@ var updateCmd = &cobra.Command{
 		scriptsPath := aConfig.GetScriptsDirAbsPath()
 		command := exec.Command("bash", filepath.Join(scriptsPath, "update.sh"))
 		command.Stdout = os.Stdout
-		command.Stderr  = os.Stderr
-		output, err := command.Run()
+		command.Stderr = os.Stderr
+		err := command.Run()
 
 		if err != nil {
 			return err

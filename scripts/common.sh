@@ -23,3 +23,14 @@ die()
 	exit 1
 }
 
+# stop r2dtools agent service
+stop_systemd_service()
+{
+    echo "Stoping R2DTools agent service ..."
+
+    if systemctl stop "r2dtools"; then
+        echo "R2DTools agent service is successfully stoped."
+    else
+        die "Could not stop R2DTools agent service."
+    fi
+}

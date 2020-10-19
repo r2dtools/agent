@@ -55,7 +55,7 @@ create_user_group()
     fi
 
     if id $USER &> /dev/null; then
-        echo "User '${USER}' is already exists."
+        echo "User '${USER}' already exists."
     else
         if useradd -g $GROUP $USER; then
             echo "User '${USER}' successfully created."

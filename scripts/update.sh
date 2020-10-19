@@ -44,7 +44,7 @@ download_and_unpack_agent()
     local PWD=$(pwd)
     
     rm $filePath &> /dev/null
-    rm $unpackedDirPath &> /dev/null
+    rm -r $unpackedDirPath &> /dev/null
 
     echo "Downloading the latest version of R2DTools agent ..."
     
@@ -72,7 +72,7 @@ download_and_unpack_agent()
 
     echo "Copying files to ${PWD} ..."
 
-    if cp -a "${unpackedDirPath}/*" ${PWD}; then
+    if cp -a "${unpackedDirPath}/." ${PWD}; then
         echo "R2DTools agent files successfully copied."
     else
         die "Could not copy R2DTools agent files to ${PWD}."

@@ -24,12 +24,11 @@ start_systemd_service()
 stop_systemd_service()
 {
     echo "Stoping R2DTools agent service ..."
-    systemctl stop "r2dtools"
 
-    if systemctl status "r2dtools"; then
+    if systemctl stop "r2dtools"; then
         echo "R2DTools agent service is successfully stoped."
     else
-        echo "Could not stop R2DTools agent service."
+        die "Could not stop R2DTools agent service."
     fi
 }
 

@@ -7,7 +7,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-const prodMode = true
+const (
+	prodMode = true
+	port     = 60150
+	logFile  = "var/log/r2dtools.log"
+	logLevel = 4
+)
 
 // Config stores agent configuration params
 type Config struct {
@@ -47,6 +52,10 @@ func init() {
 	}
 
 	vConfig := viper.New()
+	vConfig.SetDefault("Port", port)
+	vConfig.SetDefault("LogFile", logFile)
+	vConfig.SetDefault("LogLevel", logLevel)
+
 	configPath := filepath.Join(executablePath, "config")
 	vConfig.SetConfigType("yaml")
 	vConfig.SetConfigName("params")

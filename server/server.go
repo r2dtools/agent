@@ -7,24 +7,14 @@ import (
 	"strconv"
 
 	"github.com/r2dtools/agent/logger"
+	"github.com/r2dtools/agent/modules"
+	"github.com/r2dtools/agent/router"
 )
 
 // Server structure
 type Server struct {
 	Port     int
 	listener net.Listener
-}
-
-// Response that will be sent to the mail server
-type Response struct {
-	Status,
-	Error string
-	Data interface{}
-}
-
-// Handler is an interface that must be implemented by any action handler
-type Handler interface {
-	Handle(request Request) (interface{}, error)
 }
 
 // Serve starts TCP server
@@ -60,8 +50,8 @@ func (s *Server) Serve() error {
 	}
 }
 
-func getResponse(data interface{}, err error) Response {
-	var response Response
+func getResponse(data interface{}, err error) router.Response {
+	var response router.Response
 
 	if err != nil {
 		response.Status = "error"
@@ -104,9 +94,9 @@ func handleConn(conn net.Conn) error {
 	return nil
 }
 
-// HandleRequest handles requests from the main server
+// handleRequest handles requests from the main server
 func handleRequest(data []byte) (interface{}, error) {
-	var request Request
+	var request router.Request
 	err := json.Unmarshal(data, &request)
 
 	if err != nil {
@@ -117,25 +107,9 @@ func handleRequest(data []byte) (interface{}, error) {
 	//	return nil, fmt.Errorf("invalid token specified: %s", request.Token)
 	//}
 
-	handler, err := getHadler(request)
+	router := &router.Router{}
+	router.RegisterHandler("main", &MainHandler{})
+	modules.RegisterHandlers(router)
 
-	if err != nil {
-		return nil, err
-	}
-
-	return handler.Handle(request)
-}
-
-func getHadler(request Request) (Handler, error) {
-	var handler Handler
-	var err error
-
-	switch module := request.GetModule(); module {
-	case "":
-		handler = &MainHandler{}
-	default:
-		err = fmt.Errorf("could not find handler for command '%s'", request.Command)
-	}
-
-	return handler, err
+	return router.HandleRequest(request)
 }

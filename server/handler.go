@@ -11,6 +11,7 @@ import (
 	"github.com/r2dtools/agent/certificate"
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
+	"github.com/r2dtools/agent/router"
 	"github.com/r2dtools/agent/utils"
 	"github.com/r2dtools/agent/webserver"
 	"github.com/r2dtools/agentintegration"
@@ -20,7 +21,7 @@ import (
 type MainHandler struct{}
 
 // Handle handles request
-func (h *MainHandler) Handle(request Request) (interface{}, error) {
+func (h *MainHandler) Handle(request router.Request) (interface{}, error) {
 	var response interface{}
 	var err error
 

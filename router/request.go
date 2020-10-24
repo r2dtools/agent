@@ -1,4 +1,4 @@
-package server
+package router
 
 import "strings"
 
@@ -17,7 +17,7 @@ func (r *Request) GetModule() string {
 		return parts[0]
 	}
 
-	return ""
+	return "main"
 }
 
 // GetAction returns action to handle

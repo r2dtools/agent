@@ -36,6 +36,13 @@ jobs:
       run: |
         mkdir build
         mv r2dtools .version LICENSE config/ scripts/ build/
+
+    - name: Build lego
+      run: |
+        go get github.com/go-acme/lego/v4/cmd/lego@v4.0.1
+        cd `go env GOPATH`/pkg/mod/github.com/go-acme/lego/v4@v4.0.1
+        sudo make build
+        sudo mv dist/lego $GITHUB_WORKSPACE/build/
         
     - name: Create build archive
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .

@@ -25,9 +25,12 @@ func GetX509CertificateFromHTTPRequest(domain string) ([]*x509.Certificate, erro
 	response, err := client.Do(request)
 
 	var hnErr x509.HostnameError
+	var ciErr x509.CertificateInvalidError
 
 	if errors.As(err, &hnErr) {
 		return []*x509.Certificate{hnErr.Certificate}, nil
+	} else if errors.As(err, &ciErr) {
+		return []*x509.Certificate{ciErr.Cert}, nil
 	}
 
 	if err != nil {

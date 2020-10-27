@@ -3,6 +3,7 @@ package certificates
 import (
 	"fmt"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/r2dtools/agent/router"
 	"github.com/r2dtools/agentintegration"
 )
@@ -26,5 +27,25 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 }
 
 func issue(data interface{}) (*agentintegration.Certificate, error) {
-	return nil, nil
+	var certData agentintegration.CertificateIssueRequestData
+
+	err := mapstructure.Decode(data, &certData)
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid certificate request data: %v", err)
+	}
+
+	certManager, err := GetCertificateManager(certData)
+
+	if err != nil {
+		return nil, err
+	}
+
+	certificate, err := certManager.Issue(certData)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return certificate, nil
 }

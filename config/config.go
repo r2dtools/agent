@@ -91,3 +91,23 @@ func (c *Config) GetScriptsDirAbsPath() string {
 func (c *Config) Merge() error {
 	return c.vConfig.MergeInConfig()
 }
+
+// GetVarDirAbsPath returns absolute path to var directory
+func (c *Config) GetVarDirAbsPath() string {
+	return filepath.Join(c.ExecutablePath, "var")
+}
+
+// IsSet checks if key exists in config
+func (c *Config) IsSet(key string) bool {
+	return c.vConfig.IsSet(key)
+}
+
+// GetString returns string value by key
+func (c *Config) GetString(key string) string {
+	return c.vConfig.GetString(key)
+}
+
+// GetInt returns int value by key
+func (c *Config) GetInt(key string) int {
+	return c.vConfig.GetInt(key)
+}

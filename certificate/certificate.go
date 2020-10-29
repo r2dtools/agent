@@ -1,21 +1,30 @@
 package certificate
 
 import (
+	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"net/http"
 	"time"
 
 	"github.com/r2dtools/agentintegration"
 )
 
-// GetX509CertificateFromHTTPRequest retrieves certificate from http request to domain
-func GetX509CertificateFromHTTPRequest(domain string) ([]*x509.Certificate, error) {
-	client := http.Client{
+var client http.Client
+
+func init() {
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client = http.Client{
+		Transport: transport,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
+}
+
+// GetX509CertificateFromHTTPRequest retrieves certificate from http request to domain
+func GetX509CertificateFromHTTPRequest(domain string) ([]*x509.Certificate, error) {
 	request, err := http.NewRequest("GET", "https://"+domain, nil)
 
 	if err != nil {
@@ -23,15 +32,6 @@ func GetX509CertificateFromHTTPRequest(domain string) ([]*x509.Certificate, erro
 	}
 
 	response, err := client.Do(request)
-
-	var hnErr x509.HostnameError
-	var ciErr x509.CertificateInvalidError
-
-	if errors.As(err, &hnErr) {
-		return []*x509.Certificate{hnErr.Certificate}, nil
-	} else if errors.As(err, &ciErr) {
-		return []*x509.Certificate{ciErr.Cert}, nil
-	}
 
 	if err != nil {
 		return nil, err

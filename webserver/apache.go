@@ -9,7 +9,7 @@ import (
 
 // ApacheWebServer provides functionality to work with apache web server
 type ApacheWebServer struct {
-	configurator *a2conf.ApacheConfigurator
+	configurator a2conf.ApacheConfigurator
 	options      map[string]string
 }
 

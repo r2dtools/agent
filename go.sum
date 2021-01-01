@@ -175,6 +175,8 @@ github.com/r2dtools/a2conf v0.0.0-20201017073300-64f7b44d9498 h1:Yoo3r9PVj+acVeH
 github.com/r2dtools/a2conf v0.0.0-20201017073300-64f7b44d9498/go.mod h1:is08+WkUCgd2VTueCvEh4fWheFjDkmmkeuxKUqaJS+4=
 github.com/r2dtools/a2conf v0.0.0-20201231064805-36a1e97e67a9 h1:tlhzT4F2WGG9wPZcJSlEceJ4GZJCZKrFq0IWfkTkUAY=
 github.com/r2dtools/a2conf v0.0.0-20201231064805-36a1e97e67a9/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
+github.com/r2dtools/a2conf v0.0.0-20210101061431-05767c746e51 h1:PakPy1GZUxZKUbF32FqaGs/siIW0+7hW6noXKjInxfk=
+github.com/r2dtools/a2conf v0.0.0-20210101061431-05767c746e51/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
 github.com/r2dtools/agentintegration v0.0.0-20201004152547-259b07bbe333 h1:Uzvrv1R4LufNBllCMPQWJPiLSLBMcnt8T7gAz+SWQW0=
 github.com/r2dtools/agentintegration v0.0.0-20201004152547-259b07bbe333/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/r2dtools/agentintegration v0.0.0-20201004161905-38367e3b3737 h1:NRbkfx8tWaJ7mDoG10sONYwDqJFXNmdQlnZsDI0HNOA=

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/viper"
+	"github.com/unknwon/com"
 )
 
 const (
@@ -28,10 +29,10 @@ var config *Config
 
 // GetConfig returns agent config
 func GetConfig() *Config {
-	return config
-}
+	if config != nil {
+		return config
+	}
 
-func init() {
 	var executablePath string
 	var err error
 
@@ -57,13 +58,17 @@ func init() {
 	vConfig.SetDefault("LogLevel", logLevel)
 
 	configPath := filepath.Join(executablePath, "config")
-	vConfig.SetConfigType("yaml")
-	vConfig.SetConfigName("params")
-	vConfig.AddConfigPath(configPath)
-	viper.AutomaticEnv()
+	configFilePath := filepath.Join(configPath, "params.yaml")
 
-	if err := vConfig.ReadInConfig(); err != nil {
-		panic(err)
+	if com.IsExist(configFilePath) {
+		vConfig.SetConfigType("yaml")
+		vConfig.SetConfigName("params")
+		vConfig.AddConfigPath(configPath)
+		viper.AutomaticEnv()
+
+		if err := vConfig.ReadInConfig(); err != nil {
+			panic(err)
+		}
 	}
 
 	config = &Config{
@@ -75,6 +80,8 @@ func init() {
 		ConfigPath:     configPath,
 		vConfig:        vConfig,
 	}
+
+	return config
 }
 
 // GetLoggerFileAbsPath returns absolute path to logger file

@@ -148,6 +148,7 @@ func getOutputError(output string) string {
 		output = output[errIndex:]
 	}
 
+	output = strings.ReplaceAll(output, "error: ", "")
 	parts := strings.Split(output, "\n")
 	var errorParts []string
 
@@ -157,17 +158,7 @@ func getOutputError(output string) string {
 		}
 
 		// Skip log time: xxxx/xx/xx xx:xx:xx
-		re, err := regexp.Compile(`^[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} (.*)`)
-
-		if err == nil {
-			rParts := re.FindStringSubmatch(part)
-
-			if len(rParts) > 1 {
-				part = rParts[1]
-			}
-		}
-
-		part = strings.TrimSpace(part)
+		part = removeRegexString(part, `^[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} (.*)`)
 
 		if part == "" {
 			continue
@@ -176,5 +167,23 @@ func getOutputError(output string) string {
 		errorParts = append(errorParts, part)
 	}
 
-	return strings.Join(errorParts, "\n")
+	output = strings.Join(errorParts, "\n")
+
+	// Skip ", url:" string. Seems it is a bug in lego library
+	// https://github.com/go-acme/lego/blob/master/acme/errors.go#L47
+	return removeRegexString(output, `(?s)(.*), url:$`)
+}
+
+func removeRegexString(str string, regex string) string {
+	re, err := regexp.Compile(regex)
+
+	if err == nil {
+		rParts := re.FindStringSubmatch(str)
+
+		if len(rParts) > 1 {
+			str = rParts[1]
+		}
+	}
+
+	return strings.TrimSpace(str)
 }

@@ -118,3 +118,17 @@ func (c *Config) GetString(key string) string {
 func (c *Config) GetInt(key string) int {
 	return c.vConfig.GetInt(key)
 }
+
+// ToMap returns all settings as map
+func (c *Config) ToMap() map[string]string {
+	settings := c.vConfig.AllSettings()
+	options := make(map[string]string)
+
+	for key, value := range settings {
+		if strValue, ok := value.(string); ok {
+			options[key] = strValue
+		}
+	}
+
+	return options
+}

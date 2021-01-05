@@ -1,7 +1,6 @@
 package server
 
 import (
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"os/exec"
@@ -69,9 +68,10 @@ func refresh(data interface{}) (*agentintegration.ServerData, error) {
 func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
 	webServerCodes := webserver.GetSupportedWebServers()
 	var vhosts []agentintegration.VirtualHost
+	options := config.GetConfig().ToMap()
 
 	for _, webServerCode := range webServerCodes {
-		webserver, err := webserver.GetWebServer(webServerCode, nil)
+		webserver, err := webserver.GetWebServer(webServerCode, options)
 
 		if err != nil {
 			logger.Error(err.Error())
@@ -112,22 +112,12 @@ func getVhostCertificate(data interface{}) (*agentintegration.Certificate, error
 		return nil, errors.New("invalid request data: vhost name is invalid")
 	}
 
-	certs, err := certificate.GetX509CertificateFromHTTPRequest(vhostName)
+	cert, err := certificate.GetCertificateForDomainFromHTTPRequest(vhostName)
 
 	if err != nil {
 		logger.Info(fmt.Sprintf("could not get vhost '%s' certificate: %v", vhostName, err))
 		return nil, nil
 	}
 
-	if len(certs) == 0 {
-		return nil, nil
-	}
-
-	var roots []*x509.Certificate
-
-	if len(certs) > 1 {
-		roots = certs[1:]
-	}
-
-	return certificate.ConvertX509CertificateToIntCert(certs[0], roots), nil
+	return cert, nil
 }

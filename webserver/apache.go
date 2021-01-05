@@ -13,6 +13,27 @@ type ApacheWebServer struct {
 	options      map[string]string
 }
 
+// GetApacheConfigurator returns webserver code
+func (aws *ApacheWebServer) GetApacheConfigurator() a2conf.ApacheConfigurator {
+	return aws.configurator
+}
+
+// GetCode returns webserver code
+func (aws *ApacheWebServer) GetCode() string {
+	return WebServerApacheCode
+}
+
+// GetVhostByName returns virtual host by name
+func (aws *ApacheWebServer) GetVhostByName(serverName string) (*agentintegration.VirtualHost, error) {
+	vhosts, err := aws.GetVhosts()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return getVhostByName(vhosts, serverName), nil
+}
+
 // GetVhosts returns apache web server vitual hosts
 func (aws *ApacheWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 	var vhosts []agentintegration.VirtualHost
@@ -43,7 +64,7 @@ func (aws *ApacheWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) 
 			DocRoot:    aVhost.DocRoot,
 			Aliases:    aVhost.Aliases,
 			Ssl:        aVhost.Ssl,
-			WebServer:  "apache",
+			WebServer:  WebServerApacheCode,
 			Addresses:  addresses,
 		}
 		vhosts = append(vhosts, vhost)

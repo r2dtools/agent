@@ -9,9 +9,13 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/r2dtools/agent/certificate"
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
+	"github.com/r2dtools/agent/modules/certificates/deploy"
+	"github.com/r2dtools/agent/webserver"
 	"github.com/r2dtools/agentintegration"
+	"github.com/unknwon/com"
 )
 
 const (
@@ -28,29 +32,58 @@ type CertificateManager struct {
 
 // Issue issues a certificate
 func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueRequestData) (*agentintegration.Certificate, error) {
-	subjects := []string{certData.ServerName}
+	// TODO: check that certificate exists in storage
+	serverName := certData.ServerName
+	webserver, err := webserver.GetWebServer(certData.WebServer, config.GetConfig().ToMap())
+
+	if err != nil {
+		return nil, err
+	}
+
+	vhost, err := webserver.GetVhostByName(serverName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if vhost == nil {
+		return nil, fmt.Errorf("could not find virtual host '%s'", serverName)
+	}
+
+	subjects := []string{serverName}
 
 	for _, subject := range certData.Subjects {
-		if subject != certData.ServerName {
+		if subject != serverName {
 			subjects = append(subjects, subject)
 		}
 	}
 
 	params := []string{"--email=" + certData.Email, "--domains=" + strings.Join(subjects, " ")}
-	_, err := c.execCmd("run", params)
+	_, err = c.execCmd("run", params)
 
 	if err != nil {
 		logger.Debug(fmt.Sprintf("%v", err))
 		return nil, err
 	}
 
-	return nil, nil
+	deployer, err := deploy.GetCertificateDeployer(webserver)
+
+	if err != nil {
+		return nil, err
+	}
+
+	certPath := getVhostCertificatePath(serverName)
+	if err = deployer.DeployCertificate(vhost, certPath, getVhostCertificateKeyPath(serverName), "", certPath); err != nil {
+		return nil, err
+	}
+
+	return certificate.GetCertificateForDomainFromHTTPRequest(serverName)
 }
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {
 	dataPath := getDataPath()
 
-	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+	if !com.IsExist(dataPath) {
 		os.MkdirAll(dataPath, 0755)
 	}
 

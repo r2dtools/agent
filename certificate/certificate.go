@@ -76,3 +76,24 @@ func ConvertX509CertificateToIntCert(certificate *x509.Certificate, roots []*x50
 
 	return &cert
 }
+
+// GetCertificateForDomainFromHTTPRequest returns a certificate for a domain
+func GetCertificateForDomainFromHTTPRequest(domain string) (*agentintegration.Certificate, error) {
+	certs, err := GetX509CertificateFromHTTPRequest(domain)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(certs) == 0 {
+		return nil, nil
+	}
+
+	var roots []*x509.Certificate
+
+	if len(certs) > 1 {
+		roots = certs[1:]
+	}
+
+	return ConvertX509CertificateToIntCert(certs[0], roots), nil
+}

@@ -28,7 +28,6 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 
 func issue(data interface{}) (*agentintegration.Certificate, error) {
 	var certData agentintegration.CertificateIssueRequestData
-
 	err := mapstructure.Decode(data, &certData)
 
 	if err != nil {
@@ -41,11 +40,5 @@ func issue(data interface{}) (*agentintegration.Certificate, error) {
 		return nil, err
 	}
 
-	certificate, err := certManager.Issue(certData)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return certificate, nil
+	return certManager.Issue(certData)
 }

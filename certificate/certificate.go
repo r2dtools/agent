@@ -3,47 +3,21 @@ package certificate
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"net/http"
 	"time"
 
 	"github.com/r2dtools/agentintegration"
 )
 
-var client http.Client
-
-func init() {
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client = http.Client{
-		Transport: transport,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-}
-
-// GetX509CertificateFromHTTPRequest retrieves certificate from http request to domain
-func GetX509CertificateFromHTTPRequest(domain string) ([]*x509.Certificate, error) {
-	request, err := http.NewRequest("GET", "https://"+domain, nil)
+// GetX509CertificateFromRequest retrieves certificate from http request to domain
+func GetX509CertificateFromRequest(domain string) ([]*x509.Certificate, error) {
+	conn, err := tls.Dial("tcp", domain+":443", &tls.Config{InsecureSkipVerify: true})
 
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Do(request)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if response.TLS == nil {
-		return nil, nil
-	}
-
-	certificates := response.TLS.PeerCertificates
-
-	return certificates, nil
+	defer conn.Close()
+	return conn.ConnectionState().PeerCertificates, nil
 }
 
 // ConvertX509CertificateToIntCert converts x509 certificate to agentintegration.Certificate
@@ -77,9 +51,9 @@ func ConvertX509CertificateToIntCert(certificate *x509.Certificate, roots []*x50
 	return &cert
 }
 
-// GetCertificateForDomainFromHTTPRequest returns a certificate for a domain
-func GetCertificateForDomainFromHTTPRequest(domain string) (*agentintegration.Certificate, error) {
-	certs, err := GetX509CertificateFromHTTPRequest(domain)
+// GetCertificateForDomainFromRequest returns a certificate for a domain
+func GetCertificateForDomainFromRequest(domain string) (*agentintegration.Certificate, error) {
+	certs, err := GetX509CertificateFromRequest(domain)
 
 	if err != nil {
 		return nil, err

@@ -77,7 +77,7 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		return nil, err
 	}
 
-	return certificate.GetCertificateForDomainFromHTTPRequest(serverName)
+	return certificate.GetCertificateForDomainFromRequest(serverName)
 }
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {

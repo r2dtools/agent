@@ -6,6 +6,7 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/modules"
 	"github.com/r2dtools/agent/router"
@@ -41,6 +42,7 @@ func (s *Server) Serve() error {
 			continue
 		}
 
+		defer conn.Close()
 		logger.Info(fmt.Sprintf("accepted connection from the remote address: %v", conn.RemoteAddr()))
 		err = handleConn(conn)
 
@@ -65,7 +67,6 @@ func getResponse(data interface{}, err error) router.Response {
 }
 
 func handleConn(conn net.Conn) error {
-	//defer conn.Close()
 	buffer := make([]byte, 1024)
 	len, err := conn.Read(buffer)
 
@@ -103,9 +104,9 @@ func handleRequest(data []byte) (interface{}, error) {
 		return nil, fmt.Errorf("could not decode request data: %v", err)
 	}
 
-	//if request.Token == "" || request.Token != config.GetConfig().Token {
-	//	return nil, fmt.Errorf("invalid token specified: %s", request.Token)
-	//}
+	if request.Token == "" || request.Token != config.GetConfig().Token {
+		return nil, fmt.Errorf("invalid request token is specified: %s", request.Token)
+	}
 
 	router := &router.Router{}
 	router.RegisterHandler("main", &MainHandler{})

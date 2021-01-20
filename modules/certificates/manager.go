@@ -95,7 +95,10 @@ func (c *CertificateManager) execCmd(command string, params []string) ([]byte, e
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		logger.Debug(string(output))
+		if len(output) == 0 {
+			return nil, err
+		}
+
 		return nil, errors.New(getOutputError(string(output)))
 	}
 

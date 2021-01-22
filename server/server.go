@@ -1,8 +1,10 @@
 package server
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 
@@ -42,12 +44,14 @@ func (s *Server) Serve() error {
 			continue
 		}
 
-		defer conn.Close()
 		logger.Info(fmt.Sprintf("accepted connection from the remote address: %v", conn.RemoteAddr()))
-		err = handleConn(conn)
 
-		if err != nil {
+		if err = handleConn(conn); err != nil {
 			logger.Error(err.Error())
+		}
+
+		if err = conn.Close(); err != nil {
+			logger.Error("could not close connection: " + err.Error())
 		}
 	}
 }
@@ -67,14 +71,35 @@ func getResponse(data interface{}, err error) router.Response {
 }
 
 func handleConn(conn net.Conn) error {
-	buffer := make([]byte, 1024)
-	len, err := conn.Read(buffer)
+	dataLen, err := readDataLen(conn)
 
 	if err != nil {
 		return err
 	}
 
-	data := buffer[:len]
+	var data []byte
+	buffer := make([]byte, 256)
+	rLen := 0
+
+	for {
+		len, err := conn.Read(buffer)
+
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			return err
+		}
+
+		data = append(data, buffer[:len]...)
+		rLen += len
+
+		if rLen >= dataLen {
+			break
+		}
+	}
+
 	logger.Info(fmt.Sprintf("received data: %v", string(data)))
 	responseData, err := handleRequest(data)
 	response := getResponse(responseData, err)
@@ -84,10 +109,8 @@ func handleConn(conn net.Conn) error {
 		return fmt.Errorf("could not encode response data: %v", err)
 	}
 
-	_, err = conn.Write(responseByte)
-
-	if err != nil {
-		return fmt.Errorf("could not send response: %v", err)
+	if err = writeData(conn, responseByte); err != nil {
+		return err
 	}
 
 	logger.Info("Connection successfully handled")
@@ -113,4 +136,33 @@ func handleRequest(data []byte) (interface{}, error) {
 	modules.RegisterHandlers(router)
 
 	return router.HandleRequest(request)
+}
+
+func writeData(conn net.Conn, data []byte) error {
+	// First, write sending data length to the two bytes
+	header := make([]byte, 2)
+	dataLen := len(data)
+	binary.BigEndian.PutUint16(header, uint16(dataLen))
+
+	if _, err := conn.Write(header); err != nil {
+		return fmt.Errorf("could not write response header: %v", err)
+	}
+
+	if _, err := conn.Write(data); err != nil {
+		return fmt.Errorf("could not write response data: %v", err)
+	}
+
+	return nil
+}
+
+// readDataLen reads first 2 bytes where data length is stored
+func readDataLen(conn net.Conn) (int, error) {
+	header := make([]byte, 2)
+	_, err := conn.Read(header)
+
+	if err != nil {
+		return 0, fmt.Errorf("could not read data length: %v", err)
+	}
+
+	return int(binary.BigEndian.Uint16(header)), nil
 }

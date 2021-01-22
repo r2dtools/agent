@@ -25,6 +25,11 @@ func MergeVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.Virtu
 	for _, vhost := range vhosts {
 		if existedVhost, ok := vhostsMap[vhost.ServerName]; ok {
 			existedVhost.Ssl = existedVhost.Ssl || vhost.Ssl
+
+			if existedVhost.DocRoot == "" {
+				existedVhost.DocRoot = vhost.DocRoot
+			}
+
 			vhostsMap[vhost.ServerName] = existedVhost
 		} else {
 			vhostsMap[vhost.ServerName] = vhost

@@ -34,8 +34,9 @@ jobs:
         
     - name: Prepare build directory
       run: |
-        mkdir build
-        mv r2dtools .version LICENSE config/ scripts/ build/
+        mkdir build build/config
+        mv r2dtools .version LICENSE scripts/ build/
+        mv config/params.yaml build/config/
 
     - name: Build lego
       run: |

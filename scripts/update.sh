@@ -1,6 +1,9 @@
 #!/bin/bash
 
 CURRENT_DIR="$(dirname "$0")"
+
+source "${CURRENT_DIR}/common.sh"
+
 URL="http://r2dtools.com/builds/r2dtools-latest.tar.gz"
 
 # download and unpack agent
@@ -55,7 +58,7 @@ download_and_unpack_agent()
 source "${CURRENT_DIR}/systemd.sh"
 stop_systemd_service
 download_and_unpack_agent
-source "${CURRENT_DIR}/common.sh"
+source "${CURRENT_DIR}/permissions.sh"
 set_agent_dir_owner
 source "${CURRENT_DIR}/post_update.sh"
 start_systemd_service

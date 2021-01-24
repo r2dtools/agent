@@ -2,7 +2,6 @@
 
 CURRENT_DIR="$(dirname "$0")"
 
-source "${CURRENT_DIR}/systemd.sh"
 source "${CURRENT_DIR}/common.sh"
 
 # remove r2dtools agent from systemd
@@ -27,15 +26,10 @@ remove_agent_group()
     groupdel $GROUP
 }
 
-# uninstall r2dtools agent service
-uninstall()
-{
-    stop_systemd_service
-    remove_systemd_service
-    remove_agent_group
+source "${CURRENT_DIR}/systemd.sh"
+stop_systemd_service
+remove_systemd_service
+remove_agent_group
 
-    echo "R2DTools agent was successfully uninstalled."
-    echo "Now you can remove agent directory."
-}
-
-uninstall
+echo "R2DTools agent was successfully uninstalled."
+echo "Now you can remove agent directory."

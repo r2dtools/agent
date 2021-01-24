@@ -2,9 +2,7 @@
 
 CURRENT_DIR="$(dirname "$0")"
 
-source "${CURRENT_DIR}/systemd.sh"
 source "${CURRENT_DIR}/common.sh"
-source "${CURRENT_DIR}/os.sh"
 
 DEBIAN="Debian"
 UBUNTU="Ubuntu"
@@ -97,14 +95,11 @@ install_packages()
     esac
 }
 
-install()
-{
-    check_arch
-    check_os
-    install_packages
-    create_user_group
-    set_agent_dir_owner
-    create_systemd_service
-}
-
-install
+check_arch
+source "${CURRENT_DIR}/os.sh"
+check_os
+install_packages
+create_user_group
+source "${CURRENT_DIR}/permissions.sh"
+set_agent_dir_owner
+create_systemd_service

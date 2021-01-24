@@ -40,6 +40,9 @@ download_and_unpack_agent()
         die "Could not unpack R2DTools agent."
     fi
 
+    # do not replace user`s config file.
+    rm "${unpackedDirPath}/config/params.yaml"
+
     echo "Copying files to ${PWD} ..."
 
     if cp -a "${unpackedDirPath}/." ${PWD}; then

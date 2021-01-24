@@ -49,9 +49,11 @@ download_and_unpack_agent()
     fi
 }
 
+set -e
+source "${CURRENT_DIR}/systemd.sh"
+stop_systemd_service
 download_and_unpack_agent
 source "${CURRENT_DIR}/common.sh"
-stop_systemd_service
 set_agent_dir_owner
 source "${CURRENT_DIR}/post_update.sh"
 start_systemd_service

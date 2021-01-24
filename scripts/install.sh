@@ -2,6 +2,7 @@
 
 CURRENT_DIR="$(dirname "$0")"
 
+source "${CURRENT_DIR}/systemd.sh"
 source "${CURRENT_DIR}/common.sh"
 source "${CURRENT_DIR}/os.sh"
 
@@ -92,4 +93,5 @@ install()
     create_systemd_service
 }
 
+set -e
 install

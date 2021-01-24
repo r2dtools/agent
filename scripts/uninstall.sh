@@ -38,5 +38,4 @@ uninstall()
     echo "Now you can remove agent directory."
 }
 
-set -e
 uninstall

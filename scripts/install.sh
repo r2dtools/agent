@@ -6,6 +6,10 @@ source "${CURRENT_DIR}/systemd.sh"
 source "${CURRENT_DIR}/common.sh"
 source "${CURRENT_DIR}/os.sh"
 
+DEBIAN="Debian"
+UBUNTU="Ubuntu"
+CENTOS="CentOS"
+
 # Check that the current platform is supported
 check_arch()
 {
@@ -23,10 +27,6 @@ check_arch()
 # Check that the current OS is supported
 check_os()
 {
-    DEBIAN="Debian"
-    UBUNTU="Ubuntu"
-    CENTOS="CentOS"
-
     echo "Detecting OS type and version ..."
     detect_os
 
@@ -84,14 +84,27 @@ create_systemd_service()
     fi
 }
 
+# install required packages
+install_packages()
+{
+    case "$OS_NAME" in
+        "$DEBIAN"|"$UBUNTU")
+            apt-get install libaugeas0
+        ;;
+        "$CENTOS")
+            yum install libaugeas0
+        ;;
+    esac
+}
+
 install()
 {
     check_arch
     check_os
+    install_packages
     create_user_group
     set_agent_dir_owner
     create_systemd_service
 }
 
-set -e
 install

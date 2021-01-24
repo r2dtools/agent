@@ -52,7 +52,6 @@ download_and_unpack_agent()
     fi
 }
 
-set -e
 source "${CURRENT_DIR}/systemd.sh"
 stop_systemd_service
 download_and_unpack_agent

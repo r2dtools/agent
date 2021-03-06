@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
 
 	"github.com/r2dtools/agent/config"
@@ -71,6 +72,11 @@ func getResponse(data interface{}, err error) router.Response {
 }
 
 func handleConn(conn net.Conn) error {
+	logger.Debug(fmt.Sprintf("current UID: %d", os.Getuid()))
+	logger.Debug(fmt.Sprintf("current GID: %d", os.Getgid()))
+	logger.Debug(fmt.Sprintf("current EUID: %d", os.Geteuid()))
+	logger.Debug(fmt.Sprintf("current EGID: %d", os.Getegid()))
+
 	dataLen, err := readDataLen(conn)
 
 	if err != nil {

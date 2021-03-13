@@ -11,6 +11,7 @@ import (
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/router"
+	"github.com/r2dtools/agent/system"
 	"github.com/r2dtools/agent/utils"
 	"github.com/r2dtools/agent/webserver"
 	"github.com/r2dtools/agentintegration"
@@ -69,6 +70,16 @@ func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
 	webServerCodes := webserver.GetSupportedWebServers()
 	var vhosts []agentintegration.VirtualHost
 	options := config.GetConfig().ToMap()
+
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("getVhosts: increase privilege failed: %v", err))
+	}
+
+	defer (func() {
+		if err := system.GetPrivilege().DropPrivilege(); err != nil {
+			logger.Error(fmt.Sprintf("getVhosts: drop privilege failed: %v", err))
+		}
+	})()
 
 	for _, webServerCode := range webServerCodes {
 		webserver, err := webserver.GetWebServer(webServerCode, options)

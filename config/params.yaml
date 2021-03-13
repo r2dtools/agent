@@ -1,5 +1,5 @@
 Port: 60150
 LogFile: "var/log/r2dtools.log"
 LogLevel: 4
-Token: "91c54dac47f3b31dc8e2fb57eb55c2c8ae001829acf93745"
+Token: "d59e554b2ebe47ee8ea2ff7ef5362a5e3aaa30fd09162ae5"
 CAServer: "http://localhost:4001/directory"

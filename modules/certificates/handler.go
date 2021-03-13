@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/router"
+	"github.com/r2dtools/agent/system"
 	"github.com/r2dtools/agentintegration"
 )
 
@@ -34,6 +36,15 @@ func issue(data interface{}) (*agentintegration.Certificate, error) {
 		return nil, fmt.Errorf("invalid certificate request data: %v", err)
 	}
 
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("certificate issue: increase privilege failed: %v", err))
+	}
+
+	defer (func() {
+		if err := system.GetPrivilege().DropPrivilege(); err != nil {
+			logger.Error(fmt.Sprintf("certificate issue: drop privilege failed: %v", err))
+		}
+	})()
 	certManager, err := GetCertificateManager(certData)
 
 	if err != nil {

@@ -11,8 +11,9 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts TCP server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config := config.GetConfig()
 		system.GetPrivilege().Init()
+		system.GetPrivilege().DropPrivilege()
+		config := config.GetConfig()
 		server := &server.Server{
 			Port: config.Port,
 		}

@@ -70,7 +70,8 @@ create_systemd_service()
     local SERVICE_FILE="/etc/systemd/system/r2dtools.service"
     local PWD=$(pwd)
     cp "${CURRENT_DIR}/r2dtools.service" ${SERVICE_FILE}
-    sed -i "s/R2DTOOLS_USER/${USER}/" ${SERVICE_FILE}
+    sed -i "s/R2DTOOLS_USER/root/" ${SERVICE_FILE}
+    sed -i "s/R2DTOOLS_GROUP/${GROUP}/" ${SERVICE_FILE}
     sed -i "s#R2DTOOLS_SERVE#${PWD}/r2dtools serve#" ${SERVICE_FILE}
     systemctl start "r2dtools"
     

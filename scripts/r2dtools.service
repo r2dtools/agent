@@ -8,6 +8,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=R2DTOOLS_USER
+Group=R2DTOOLS_GROUP
 ExecStart=R2DTOOLS_SERVE
 
 [Install]

@@ -45,6 +45,7 @@ func issue(data interface{}) (*agentintegration.Certificate, error) {
 			logger.Error(fmt.Sprintf("certificate issue: drop privilege failed: %v", err))
 		}
 	})()
+
 	certManager, err := GetCertificateManager(certData)
 
 	if err != nil {

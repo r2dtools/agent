@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	prodMode = false
+	prodMode = true
 	port     = 60150
 	logFile  = "var/log/r2dtools.log"
 	logLevel = 4

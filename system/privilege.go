@@ -2,9 +2,9 @@ package system
 
 import (
 	"fmt"
+	"syscall"
 
 	"github.com/r2dtools/agent/logger"
-	"golang.org/x/sys/unix"
 )
 
 type Privilege struct {
@@ -16,19 +16,25 @@ var privilige *Privilege
 
 // IncreasePrivilege increases privileges for the current process
 func (p *Privilege) IncreasePrivilege() error {
-	euid := unix.Geteuid()
-	logger.Debug(fmt.Sprintf("increse privilege: current EUID: %d", euid))
+	euid := syscall.Geteuid()
 
-	if err := unix.Setuid(euid); err != nil {
-		return fmt.Errorf("could not increase privilege: %v", err)
+	if euid != syscall.Getuid() {
+		logger.Debug(fmt.Sprintf("increse privilege: current EUID: %d", euid))
+
+		if err := syscall.Setuid(euid); err != nil {
+			return fmt.Errorf("could not increase privilege (uid): %v", err)
+		}
 	}
 
-	egid := unix.Getegid()
-	logger.Debug(fmt.Sprintf("increse privilege: current EGID: %d", egid))
+	egid := syscall.Getegid()
 
-	if err := unix.Setgid(egid); err != nil {
-		unix.Setuid(p.uid) // try to rollback uid
-		return fmt.Errorf("could not increase privilege: %v", err)
+	if egid != syscall.Getgid() {
+		logger.Debug(fmt.Sprintf("increse privilege: current EGID: %d", egid))
+
+		if err := syscall.Setgid(egid); err != nil {
+			syscall.Setuid(p.uid) // try to rollback uid
+			return fmt.Errorf("could not increase privilege (gid): %v", err)
+		}
 	}
 
 	return nil
@@ -36,14 +42,14 @@ func (p *Privilege) IncreasePrivilege() error {
 
 // DropPrivilege drops privileges for the current process
 func (p *Privilege) DropPrivilege() error {
-	if unix.Getuid() != p.uid {
-		if err := unix.Setuid(p.uid); err != nil {
+	if syscall.Getuid() != p.uid {
+		if err := syscall.Setuid(p.uid); err != nil {
 			return fmt.Errorf("could not drop privilege: %v", err)
 		}
 	}
 
-	if unix.Getgid() != p.gid {
-		if err := unix.Setgid(p.gid); err != nil {
+	if syscall.Getgid() != p.gid {
+		if err := syscall.Setgid(p.gid); err != nil {
 			return fmt.Errorf("could not drop privilege: %v", err)
 		}
 	}
@@ -57,9 +63,9 @@ func (p *Privilege) Init() {
 		return
 	}
 
-	p.uid = unix.Getuid()
+	p.uid = syscall.Getuid()
 	logger.Debug(fmt.Sprintf("current UID: %d", p.uid))
-	p.gid = unix.Getgid()
+	p.gid = syscall.Getgid()
 	logger.Debug(fmt.Sprintf("current GID: %d", p.gid))
 	p.initilised = true
 }

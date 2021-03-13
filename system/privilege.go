@@ -43,12 +43,16 @@ func (p *Privilege) IncreasePrivilege() error {
 // DropPrivilege drops privileges for the current process
 func (p *Privilege) DropPrivilege() error {
 	if syscall.Getuid() != p.uid {
+		logger.Debug(fmt.Sprintf("drop privilege: current UID: %d", p.uid))
+
 		if err := syscall.Setuid(p.uid); err != nil {
 			return fmt.Errorf("could not drop privilege: %v", err)
 		}
 	}
 
 	if syscall.Getgid() != p.gid {
+		logger.Debug(fmt.Sprintf("drop privilege: current GID: %d", p.gid))
+
 		if err := syscall.Setgid(p.gid); err != nil {
 			return fmt.Errorf("could not drop privilege: %v", err)
 		}

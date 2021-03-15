@@ -50,15 +50,14 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		return nil, fmt.Errorf("could not find virtual host '%s'", serverName)
 	}
 
-	subjects := []string{serverName}
+	params := []string{"--email=" + certData.Email, "--domains=" + serverName}
 
 	for _, subject := range certData.Subjects {
 		if subject != serverName {
-			subjects = append(subjects, subject)
+			params = append(params, "--domains="+subject)
 		}
 	}
 
-	params := []string{"--email=" + certData.Email, "--domains=" + strings.Join(subjects, " ")}
 	_, err = c.execCmd("run", params)
 
 	if err != nil {

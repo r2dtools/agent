@@ -91,7 +91,7 @@ install_packages()
             apt-get install libaugeas0
         ;;
         "$CENTOS")
-            yum install libaugeas0
+            yum -y install augeas
         ;;
     esac
 }

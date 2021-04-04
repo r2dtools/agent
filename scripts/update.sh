@@ -11,15 +11,18 @@ copy_agent_files()
 {
     local PWD=$(pwd)
 
-    # do not replace user`s config file.
-    rm "${PWD}/config/params.yaml" &> /dev/null
-
     echo "Copying files to ${TARGET_DIR} ..."
 
-    if cp -a "${PWD}/." ${TARGET_DIR}; then
+    if cp -p r2dtools lego .version ${TARGET_DIR}; then
         echo "R2DTools agent files successfully copied."
     else
         die "Could not copy R2DTools agent files to ${TARGET_DIR}."
+    fi
+
+    if cp -p -R scripts ${TARGET_DIR}; then
+        echo "R2DTools agent scritps successfully copied."
+    else
+        die "Could not copy R2DTools agent scripts to ${TARGET_DIR}."
     fi
 }
 

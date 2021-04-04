@@ -14,7 +14,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
-	github.com/r2dtools/a2conf v0.0.0-20210403164224-21455ed821c3
+	github.com/r2dtools/a2conf v0.0.0-20210403180254-d1fd12e5968d
 	github.com/r2dtools/agentintegration v0.0.0-20210105075224-28817ee4c887
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/spf13/afero v1.5.1 // indirect

@@ -2,6 +2,7 @@
 
 USER="r2dtools"
 GROUP="r2dtools"
+TARGET_DIR="/opt/r2dtools"
 
 die()
 {

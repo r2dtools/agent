@@ -4,10 +4,10 @@
 start_systemd_service()
 {
     echo "Starting R2DTools agent service ..."
-    systemctl start "r2dtools"
+    sudo systemctl start "r2dtools"
     
-    if systemctl status "r2dtools"; then
-        systemctl enable "r2dtools"
+    if sudo systemctl status "r2dtools"; then
+        sudo systemctl enable "r2dtools"
         echo "R2DTools agent service successfully started."
     else
         die "Could not start R2DTools agent service."
@@ -19,7 +19,7 @@ stop_systemd_service()
 {
     echo "Stoping R2DTools agent service ..."
 
-    if systemctl stop "r2dtools"; then
+    if sudo systemctl stop "r2dtools"; then
         echo "R2DTools agent service is successfully stoped."
     else
         die "Could not stop R2DTools agent service."

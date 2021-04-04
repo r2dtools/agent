@@ -96,11 +96,29 @@ install_packages()
     esac
 }
 
+# copy agent files
+copy_agent_files()
+{
+    local PWD=$(pwd)
+
+    echo "Copying files to ${TARGET_DIR} ..."
+    rm -R -f ${TARGET_DIR} &> /dev/null
+
+    if cp -R ${PWD} ${TARGET_DIR}; then
+        echo "R2DTools agent files successfully copied."
+    else
+        die "Could not copy R2DTools agent files to ${TARGET_DIR}."
+    fi
+
+    cd ${TARGET_DIR}
+}
+
 check_arch
 source "${CURRENT_DIR}/os.sh"
 check_os
 install_packages
 create_user_group
+copy_agent_files
 source "${CURRENT_DIR}/permissions.sh"
 set_agent_dir_owner
 create_systemd_service

@@ -45,18 +45,11 @@ func (s *Server) Serve() error {
 		}
 
 		logger.Info(fmt.Sprintf("accepted connection from the remote address: %v", conn.RemoteAddr()))
-
-		if err = handleConn(conn); err != nil {
-			logger.Error(err.Error())
-		}
-
-		if err = conn.Close(); err != nil {
-			logger.Error("could not close connection: " + err.Error())
-		}
+		go handleConn(conn)
 	}
 }
 
-func getResponse(data interface{}, err error) router.Response {
+func prepareResponse(data interface{}, err error) router.Response {
 	var response router.Response
 
 	if err != nil {
@@ -70,11 +63,10 @@ func getResponse(data interface{}, err error) router.Response {
 	return response
 }
 
-func handleConn(conn net.Conn) error {
+func getResponse(conn net.Conn) router.Response {
 	dataLen, err := readDataLen(conn)
-
 	if err != nil {
-		return err
+		return prepareResponse(nil, err)
 	}
 
 	var data []byte
@@ -89,7 +81,7 @@ func handleConn(conn net.Conn) error {
 				break
 			}
 
-			return err
+			return prepareResponse(nil, err)
 		}
 
 		data = append(data, buffer[:len]...)
@@ -102,20 +94,30 @@ func handleConn(conn net.Conn) error {
 
 	logger.Info(fmt.Sprintf("received data: %v", string(data)))
 	responseData, err := handleRequest(data)
-	response := getResponse(responseData, err)
-	responseByte, err := json.Marshal(response)
 
+	return prepareResponse(responseData, err)
+}
+
+func handleConn(conn net.Conn) {
+	defer conn.Close()
+	response := getResponse(conn)
+
+	if response.Error != "" {
+		logger.Error(response.Error)
+	}
+
+	responseByte, err := json.Marshal(response)
 	if err != nil {
-		return fmt.Errorf("could not encode response data: %v", err)
+		logger.Error("could not encode response data: " + err.Error())
+		return
 	}
 
 	if err = writeData(conn, responseByte); err != nil {
-		return err
+		logger.Error(err.Error())
+		return
 	}
 
 	logger.Info("Connection successfully handled")
-
-	return nil
 }
 
 // handleRequest handles requests from the main server

@@ -32,7 +32,7 @@ require (
 	github.com/pelletier/go-toml v1.9.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v0.9.3 // indirect
-	github.com/r2dtools/a2conf v0.0.0-20210729163645-8f8817383fac
+	github.com/r2dtools/a2conf v0.0.0-20210803132830-2054d9d44f41
 	github.com/r2dtools/agentintegration v0.0.0-20210105075224-28817ee4c887
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect

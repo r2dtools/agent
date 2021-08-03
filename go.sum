@@ -302,6 +302,12 @@ github.com/r2dtools/a2conf v0.0.0-20210714130226-270fcf403cc8 h1:Qwp+FzAMl0XVB+Q
 github.com/r2dtools/a2conf v0.0.0-20210714130226-270fcf403cc8/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
 github.com/r2dtools/a2conf v0.0.0-20210729163645-8f8817383fac h1:wNkJFwGIoXj80Ovjy9xscvuONikWElwh9xCSkpSBaRk=
 github.com/r2dtools/a2conf v0.0.0-20210729163645-8f8817383fac/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
+github.com/r2dtools/a2conf v0.0.0-20210803053204-1ff040070c4e h1:1eCUausliITrOyoWzEn+zqDpGwwce3WUH+oQe9NtOws=
+github.com/r2dtools/a2conf v0.0.0-20210803053204-1ff040070c4e/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
+github.com/r2dtools/a2conf v0.0.0-20210803120603-53f79b0a6023 h1:W0QfwUN6Koddwb/P8M5dhmxTgXqqNeuOLv8qYtn5fcM=
+github.com/r2dtools/a2conf v0.0.0-20210803120603-53f79b0a6023/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
+github.com/r2dtools/a2conf v0.0.0-20210803132830-2054d9d44f41 h1:aKjT//eDiEroCavzgmsPA1ex+4KjMaaBnVSMnAGFjf4=
+github.com/r2dtools/a2conf v0.0.0-20210803132830-2054d9d44f41/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
 github.com/r2dtools/agentintegration v0.0.0-20201004152547-259b07bbe333 h1:Uzvrv1R4LufNBllCMPQWJPiLSLBMcnt8T7gAz+SWQW0=
 github.com/r2dtools/agentintegration v0.0.0-20201004152547-259b07bbe333/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/r2dtools/agentintegration v0.0.0-20201004161905-38367e3b3737 h1:NRbkfx8tWaJ7mDoG10sONYwDqJFXNmdQlnZsDI0HNOA=

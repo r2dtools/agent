@@ -1,6 +1,11 @@
 package utils
 
-import "github.com/r2dtools/agentintegration"
+import (
+	"github.com/google/go-cmp/cmp"
+	"github.com/unknwon/com"
+
+	"github.com/r2dtools/agentintegration"
+)
 
 // FilterVhosts filter vhosts
 func FilterVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.VirtualHost {
@@ -28,6 +33,26 @@ func MergeVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.Virtu
 
 			if existedVhost.DocRoot == "" {
 				existedVhost.DocRoot = vhost.DocRoot
+			}
+
+			// merge addresses (for example ipv4 + ipv6)
+			for _, address := range vhost.Addresses {
+				var addressExists bool
+				for _, eAddress := range existedVhost.Addresses {
+					if cmp.Equal(address, eAddress) {
+						addressExists = true
+						break
+					}
+				}
+
+				if !addressExists {
+					existedVhost.Addresses = append(existedVhost.Addresses, address)
+				}
+			}
+
+			// merge aliases
+			for _, alias := range vhost.Aliases {
+				existedVhost.Aliases = com.AppendStr(existedVhost.Aliases, alias)
 			}
 
 			vhostsMap[vhost.ServerName] = existedVhost

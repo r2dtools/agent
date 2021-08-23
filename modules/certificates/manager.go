@@ -13,6 +13,7 @@ import (
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/modules/certificates/deploy"
+	"github.com/r2dtools/agent/modules/certificates/utils"
 	"github.com/r2dtools/agent/webserver"
 	"github.com/r2dtools/agentintegration"
 	"github.com/unknwon/com"
@@ -26,28 +27,33 @@ const (
 
 // CertificateManager manages certificates: issue, renew, ....
 type CertificateManager struct {
-	legoBinPath   string
-	challengeType ChallengeType
+	legoBinPath string
 }
 
 // Issue issues a certificate
 func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueRequestData) (*agentintegration.Certificate, error) {
-	// TODO: check that certificate exists in storage
 	serverName := certData.ServerName
-	webserver, err := webserver.GetWebServer(certData.WebServer, config.GetConfig().ToMap())
+	var challengeType ChallengeType
 
-	if err != nil {
-		return nil, err
+	if certData.ChallengeType == "" {
+		return nil, errors.New("challenge type is not specified")
 	}
 
-	vhost, err := webserver.GetVhostByName(serverName)
+	if certData.ChallengeType == httpChallengeType {
+		challengeType = &HTTPChallengeType{
+			HTTPPort: httpPort,
+			TLSPort:  tlsPort,
+			WebRoot:  certData.DocRoot,
+		}
+	} else if certData.ChallengeType == dnsChallengeType {
+		provider := certData.GetAdditionalParam("provider")
+		if provider == "" {
+			return nil, errors.New("dns provider is not specified")
+		}
 
-	if err != nil {
-		return nil, err
-	}
-
-	if vhost == nil {
-		return nil, fmt.Errorf("could not find virtual host '%s'", serverName)
+		challengeType = &DNSChallengeType{provider}
+	} else {
+		return nil, fmt.Errorf("unsupported challenge type: %s", certData.ChallengeType)
 	}
 
 	params := []string{"--email=" + certData.Email, "--domains=" + serverName}
@@ -58,21 +64,63 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		}
 	}
 
-	_, err = c.execCmd("run", params)
+	params = append(params, challengeType.GetParams()...)
+	_, err := c.execCmd("run", params)
 
 	if err != nil {
 		logger.Debug(fmt.Sprintf("%v", err))
 		return nil, err
 	}
 
-	deployer, err := deploy.GetCertificateDeployer(webserver)
+	certPath := getVhostCertificatePath(serverName, "crt")
+	keyPath := getVhostCertificateKeyPath(serverName)
 
+	return c.deployCertificate(serverName, certData.WebServer, certPath, keyPath)
+}
+
+// Upload deploys an existed certificate
+func (c *CertificateManager) Upload(certData *agentintegration.CertificateUploadRequestData) (*agentintegration.Certificate, error) {
+	cert, err := utils.LoadCertficateAndKeyFromPem(certData.PemCertificate)
+	if err != nil {
+		return nil, fmt.Errorf("uploaded certificate is invalid: %v", err)
+	}
+
+	certPath := getVhostCertificatePath(certData.ServerName, "pem")
+	keyPath := getVhostCertificateKeyPath(certData.ServerName)
+	ensureCertificatesDirPathExists()
+
+	if err = os.WriteFile(certPath, []byte(certData.PemCertificate), 0644); err != nil {
+		return nil, fmt.Errorf("could not save certificate data: %v", err)
+	}
+
+	if err = os.WriteFile(keyPath, cert.PrivateKey, 0644); err != nil {
+		return nil, fmt.Errorf("could not save certificate private key: %v", err)
+	}
+
+	return c.deployCertificate(certData.ServerName, certData.WebServer, certPath, keyPath)
+}
+
+func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, keyPath string) (*agentintegration.Certificate, error) {
+	webserver, err := webserver.GetWebServer(webServer, config.GetConfig().ToMap())
 	if err != nil {
 		return nil, err
 	}
 
-	certPath := getVhostCertificatePath(serverName)
-	if err = deployer.DeployCertificate(vhost, certPath, getVhostCertificateKeyPath(serverName), "", certPath); err != nil {
+	vhost, err := webserver.GetVhostByName(serverName)
+	if err != nil {
+		return nil, err
+	}
+
+	if vhost == nil {
+		return nil, fmt.Errorf("could not find virtual host '%s'", serverName)
+	}
+
+	deployer, err := deploy.GetCertificateDeployer(webserver)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = deployer.DeployCertificate(vhost, certPath, keyPath, "", certPath); err != nil {
 		return nil, err
 	}
 
@@ -80,14 +128,9 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 }
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {
+	ensureDataPathExists()
 	dataPath := getDataPath()
-
-	if !com.IsExist(dataPath) {
-		os.MkdirAll(dataPath, 0755)
-	}
-
 	aParams := []string{"--server=" + c.getCAServer(), "--accept-tos", "--path=" + dataPath}
-	aParams = append(aParams, c.challengeType.GetParams()...)
 	params = append(params, aParams...)
 	params = append(params, command)
 	cmd := exec.Command(c.legoBinPath, params...)
@@ -115,7 +158,7 @@ func (c *CertificateManager) getCAServer() string {
 }
 
 // GetCertificateManager creates CertificateManager instance
-func GetCertificateManager(certData agentintegration.CertificateIssueRequestData) (*CertificateManager, error) {
+func GetCertificateManager() (*CertificateManager, error) {
 	aConfig := config.GetConfig()
 	legoBinPath := filepath.Join(aConfig.ExecutablePath, "lego")
 
@@ -123,33 +166,8 @@ func GetCertificateManager(certData agentintegration.CertificateIssueRequestData
 		legoBinPath = aConfig.GetString("LegoBinPath")
 	}
 
-	var challengeType ChallengeType
-
-	if certData.ChallengeType == "" {
-		return nil, errors.New("challenge type is not specified")
-	}
-
-	if certData.ChallengeType == httpChallengeType {
-		challengeType = &HTTPChallengeType{
-			HTTPPort: httpPort,
-			TLSPort:  tlsPort,
-			WebRoot:  certData.DocRoot,
-		}
-	} else if certData.ChallengeType == dnsChallengeType {
-		provider := certData.GetAdditionalParam("provider")
-
-		if provider == "" {
-			return nil, errors.New("dns provider is not specified")
-		}
-
-		challengeType = &DNSChallengeType{provider}
-	} else {
-		return nil, fmt.Errorf("unsupported challenge type: %s", certData.ChallengeType)
-	}
-
 	certManager := &CertificateManager{
-		legoBinPath:   legoBinPath,
-		challengeType: challengeType,
+		legoBinPath: legoBinPath,
 	}
 
 	return certManager, nil
@@ -167,8 +185,8 @@ func getCertificatesDirPath() string {
 	return filepath.Join(dataPath, "certificates")
 }
 
-func getVhostCertificatePath(serverName string) string {
-	return filepath.Join(getCertificatesDirPath(), serverName+".crt")
+func getVhostCertificatePath(serverName, extension string) string {
+	return filepath.Join(getCertificatesDirPath(), serverName+"."+extension)
 }
 
 func getVhostCertificateKeyPath(serverName string) string {
@@ -221,4 +239,20 @@ func removeRegexString(str string, regex string) string {
 	}
 
 	return strings.TrimSpace(str)
+}
+
+func ensureDataPathExists() {
+	dataPath := getDataPath()
+
+	if !com.IsExist(dataPath) {
+		os.MkdirAll(dataPath, 0755)
+	}
+}
+
+func ensureCertificatesDirPathExists() {
+	certsDirPath := getCertificatesDirPath()
+
+	if !com.IsExist(certsDirPath) {
+		os.MkdirAll(certsDirPath, 0755)
+	}
 }

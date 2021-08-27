@@ -3,6 +3,7 @@ package certificate
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"net"
 	"time"
 
 	"github.com/r2dtools/agentintegration"
@@ -10,7 +11,7 @@ import (
 
 // GetX509CertificateFromRequest retrieves certificate from http request to domain
 func GetX509CertificateFromRequest(domain string) ([]*x509.Certificate, error) {
-	conn, err := tls.Dial("tcp", domain+":443", &tls.Config{InsecureSkipVerify: true})
+	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: time.Minute}, "tcp", domain+":443", &tls.Config{InsecureSkipVerify: true})
 
 	if err != nil {
 		return nil, err

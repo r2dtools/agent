@@ -126,8 +126,9 @@ func getVhostCertificate(data interface{}) (*agentintegration.Certificate, error
 	cert, err := certificate.GetCertificateForDomainFromRequest(vhostName)
 
 	if err != nil {
-		logger.Info(fmt.Sprintf("could not get vhost '%s' certificate: %v", vhostName, err))
-		return nil, nil
+		message := fmt.Sprintf("could not get vhost '%s' certificate: %v", vhostName, err)
+		logger.Info(fmt.Sprintf(message))
+		return nil, fmt.Errorf(message)
 	}
 
 	return cert, nil

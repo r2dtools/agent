@@ -220,6 +220,12 @@ github.com/r2dtools/a2conf v0.1.0 h1:+NnrrS1Hv9KtqAbBcqmHofCZXb40qqnZaxfYEl0aqpI
 github.com/r2dtools/a2conf v0.1.0/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
 github.com/r2dtools/agentintegration v1.0.0 h1:XXKpzYajgzXdlzVoXJIRt29oSJnrULbnv1KRPvY3KqA=
 github.com/r2dtools/agentintegration v1.0.0/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
+github.com/r2dtools/agentintegration v1.0.1-0.20210909135736-477377ffb071 h1:O2KCwO60+kIrw/opPOZTzNBLfAe20PoiukXXCm9VFcI=
+github.com/r2dtools/agentintegration v1.0.1-0.20210909135736-477377ffb071/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
+github.com/r2dtools/agentintegration v1.0.1-0.20210910110537-3975be874cd7 h1:r0NWlWZtt63VD0Zo9Q6PRoOZg+70CFdciirYuthMXYA=
+github.com/r2dtools/agentintegration v1.0.1-0.20210910110537-3975be874cd7/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
+github.com/r2dtools/agentintegration v1.0.1-0.20210910112207-45534a19f241 h1:4EdFpHcIFLHottJ+fWGEMxaYzDCHG+Vz9S4ac8DsWTQ=
+github.com/r2dtools/agentintegration v1.0.1-0.20210910112207-45534a19f241/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

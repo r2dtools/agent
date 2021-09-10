@@ -9,7 +9,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/r2dtools/a2conf v0.1.0
-	github.com/r2dtools/agentintegration v1.0.0
+	github.com/r2dtools/agentintegration v1.0.1-0.20210910112207-45534a19f241
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/cobra v1.2.1

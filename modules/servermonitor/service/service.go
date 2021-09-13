@@ -18,8 +18,13 @@ func GetService() (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	collectors = append(collectors, cpuStatCollector)
+
+	cpuCoreStatCollectors, err := GetCoreCpuStatCollectors()
+	if err != nil {
+		return nil, err
+	}
+	collectors = append(collectors, cpuCoreStatCollectors...)
 
 	return &Service{collectors}, nil
 }

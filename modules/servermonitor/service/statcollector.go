@@ -11,11 +11,13 @@ import (
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
+	"github.com/shirou/gopsutil/cpu"
 	"github.com/unknwon/com"
 )
 
 const (
-	OVERALL_CPU_PROVIDER_CODE = "overall_cpu"
+	OVERALL_CPU_PROVIDER_CODE = "cpuoverall"
+	CORE_CPU_PROVIDER_CODE    = "cpucore"
 )
 
 type StatProvider interface {
@@ -92,6 +94,41 @@ func (sc *StatCollector) Load(filter StatProviderFilter) ([][]string, error) {
 	}
 
 	return data, nil
+}
+
+// GetCoreCpuStatProviders creates statistics providers for cpu cores
+func GetCoreCpuStatProviders() ([]StatProvider, error) {
+	cores, err := cpu.Counts(false)
+	if err != nil {
+		return nil, fmt.Errorf("could not create statisitcs providers for cpu cores: %v", err)
+	}
+	logger.Debug(fmt.Sprintf("count of cpu cores: %d", cores))
+
+	var providers []StatProvider
+	for i := 1; i <= cores; i++ {
+		providers = append(providers, &CoreCPUStatPrivider{i})
+	}
+
+	return providers, nil
+}
+
+func GetCoreCpuStatCollectors() ([]*StatCollector, error) {
+	providers, err := GetCoreCpuStatProviders()
+	if err != nil {
+		return nil, err
+	}
+
+	var collectors []*StatCollector
+	for _, provider := range providers {
+		collector, err := GetStatCollector(provider)
+		if err != nil {
+			logger.Debug(err.Error())
+			continue
+		}
+		collectors = append(collectors, collector)
+	}
+
+	return collectors, nil
 }
 
 func GetStatCollector(provider StatProvider) (*StatCollector, error) {

@@ -50,20 +50,30 @@ func loadTimeLineData(data interface{}) (*agentintegration.ServerMonitorTimeLine
 func loadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorTimeLineResponseData, error) {
 	var responseData agentintegration.ServerMonitorTimeLineResponseData
 	responseData.Data = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
+	filter := &service.StatProviderTimeFilter{
+		FromTime: requestData.FromTime,
+		ToTime:   requestData.ToTime,
+	}
+	overallCpuData, err := loadOverallCpuTimeLineData(filter)
+	if err != nil {
+		return nil, err
+	}
+	responseData.Data["overall"] = overallCpuData
 
+	return &responseData, nil
+}
+
+func loadOverallCpuTimeLineData(filter service.StatProviderFilter) ([]agentintegration.ServerMonitorTimeLinePoint, error) {
 	overallCpuStatCollector, err := service.GetStatCollector(&service.OverallCPUStatPrivider{})
 	if err != nil {
 		return nil, err
 	}
 
-	filter := &service.StatProviderTimeFilter{
-		FromTime: requestData.FromTime,
-		ToTime:   requestData.ToTime,
-	}
 	rows, err := overallCpuStatCollector.Load(filter)
 	if err != nil {
 		return nil, err
 	}
+
 	var overallCpuData []agentintegration.ServerMonitorTimeLinePoint
 	for _, row := range rows {
 		overallCpuData = append(overallCpuData, agentintegration.ServerMonitorTimeLinePoint{
@@ -76,7 +86,10 @@ func loadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequ
 			},
 		})
 	}
-	responseData.Data["overall"] = overallCpuData
 
-	return &responseData, nil
+	return overallCpuData, nil
+}
+
+func loadCoreCpuTimeLineData(filter service.StatProviderFilter) {
+
 }

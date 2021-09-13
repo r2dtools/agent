@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/r2dtools/agent/modules/servermonitor/service"
 	"github.com/r2dtools/agent/router"
 	"github.com/r2dtools/agentintegration"
 )
@@ -34,14 +35,48 @@ func loadTimeLineData(data interface{}) (*agentintegration.ServerMonitorTimeLine
 		return nil, fmt.Errorf("servermonitor: invalid request data: %v", err)
 	}
 
+	var responseData *agentintegration.ServerMonitorTimeLineResponseData
+
+	switch requestData.Category {
+	case "cpu":
+		responseData, err = loadCpuTimeLineData(&requestData)
+	default:
+		responseData, err = nil, fmt.Errorf("invalid category '%s' provided", requestData.Category)
+	}
+
+	return responseData, err
+}
+
+func loadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorTimeLineResponseData, error) {
 	var responseData agentintegration.ServerMonitorTimeLineResponseData
 	responseData.Data = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
-	responseData.Data["overall"] = []agentintegration.ServerMonitorTimeLinePoint{
-		{Time: 1, Value: map[string]float32{"user": 1, "system": 2}},
-		{Time: 2, Value: map[string]float32{"user": 2, "system": 4}},
-		{Time: 3, Value: map[string]float32{"user": 3, "system": 9}},
-		{Time: 5, Value: map[string]float32{"user": 7, "system": 1}},
+
+	overallCpuStatCollector, err := service.GetStatCollector(&service.OverallCPUStatPrivider{})
+	if err != nil {
+		return nil, err
 	}
+
+	filter := &service.StatProviderTimeFilter{
+		FromTime: requestData.FromTime,
+		ToTime:   requestData.ToTime,
+	}
+	rows, err := overallCpuStatCollector.Load(filter)
+	if err != nil {
+		return nil, err
+	}
+	var overallCpuData []agentintegration.ServerMonitorTimeLinePoint
+	for _, row := range rows {
+		overallCpuData = append(overallCpuData, agentintegration.ServerMonitorTimeLinePoint{
+			Time: row[0],
+			Value: map[string]string{
+				"system": row[1],
+				"user":   row[2],
+				"nice":   row[3],
+				"idle":   row[4],
+			},
+		})
+	}
+	responseData.Data["overall"] = overallCpuData
 
 	return &responseData, nil
 }

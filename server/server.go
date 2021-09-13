@@ -12,6 +12,7 @@ import (
 	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/modules"
 	"github.com/r2dtools/agent/router"
+	"github.com/r2dtools/agent/service"
 )
 
 // Server structure
@@ -34,6 +35,16 @@ func (s *Server) Serve() error {
 	s.listener = listener
 	logger.Info("TCP server successfully started")
 	defer listener.Close()
+
+	serviceManager := service.ServiceManager{}
+	if err = modules.RegisterSercices(&serviceManager); err != nil {
+		return err
+	}
+
+	if err = serviceManager.RunServices(); err != nil {
+		logger.Error(err.Error())
+		return err
+	}
 
 	for {
 		logger.Info(fmt.Sprintf("listening to a remote conection ..."))

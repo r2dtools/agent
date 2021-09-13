@@ -47,7 +47,7 @@ func (sc *CoreCPUStatPrivider) GetData() ([]string, error) {
 		return nil, nil
 	}
 
-	return prepareData(items[sc.CoreNum])
+	return prepareData(items[sc.CoreNum-1])
 }
 
 func (sc *CoreCPUStatPrivider) GetCode() string {

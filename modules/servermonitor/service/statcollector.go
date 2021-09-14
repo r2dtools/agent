@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
@@ -31,6 +32,7 @@ type StatProviderFilter interface {
 }
 
 type StatCollector struct {
+	mu       *sync.RWMutex
 	Provider StatProvider
 	FilePath string
 }
@@ -44,6 +46,9 @@ func (sc *StatCollector) Collect() error {
 	if data == nil {
 		return nil
 	}
+
+	sc.mu.Lock()
+	defer sc.mu.Unlock()
 
 	file, err := os.OpenFile(sc.FilePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -66,6 +71,9 @@ func (sc *StatCollector) Collect() error {
 }
 
 func (sc *StatCollector) Load(filter StatProviderFilter) ([][]string, error) {
+	sc.mu.RLock()
+	defer sc.mu.RUnlock()
+
 	file, err := os.Open(sc.FilePath)
 	if err != nil {
 		return nil, err
@@ -148,7 +156,7 @@ func GetStatCollector(provider StatProvider) (*StatCollector, error) {
 		}
 	}
 
-	return &StatCollector{provider, statFilePath}, nil
+	return &StatCollector{&sync.RWMutex{}, provider, statFilePath}, nil
 }
 
 func getDataFolder() string {

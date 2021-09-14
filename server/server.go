@@ -15,6 +15,8 @@ import (
 	"github.com/r2dtools/agent/service"
 )
 
+const HEADER_DATA_LENGTH = 4 // bytes
+
 // Server structure
 type Server struct {
 	Port     int
@@ -152,10 +154,10 @@ func handleRequest(data []byte) (interface{}, error) {
 }
 
 func writeData(conn net.Conn, data []byte) error {
-	// First, write sending data length to the two bytes
-	header := make([]byte, 2)
+	// First, write sending data length
+	header := make([]byte, HEADER_DATA_LENGTH)
 	dataLen := len(data)
-	binary.BigEndian.PutUint16(header, uint16(dataLen))
+	binary.BigEndian.PutUint32(header, uint32(dataLen))
 
 	if _, err := conn.Write(header); err != nil {
 		return fmt.Errorf("could not write response header: %v", err)
@@ -168,14 +170,14 @@ func writeData(conn net.Conn, data []byte) error {
 	return nil
 }
 
-// readDataLen reads first 2 bytes where data length is stored
+// readDataLen reads first bytes where data length is stored
 func readDataLen(conn net.Conn) (int, error) {
-	header := make([]byte, 2)
+	header := make([]byte, HEADER_DATA_LENGTH)
 	_, err := conn.Read(header)
 
 	if err != nil {
 		return 0, fmt.Errorf("could not read data length: %v", err)
 	}
 
-	return int(binary.BigEndian.Uint16(header)), nil
+	return int(binary.BigEndian.Uint32(header)), nil
 }

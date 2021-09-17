@@ -54,42 +54,66 @@ func loadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequ
 		FromTime: requestData.FromTime,
 		ToTime:   requestData.ToTime,
 	}
-	overallCpuData, err := loadOverallCpuTimeLineData(filter)
-	if err != nil {
+	if err := loadOverallCpuTimeLineData(&responseData, filter); err != nil {
 		return nil, err
 	}
-	responseData.Data["overall"] = overallCpuData
+	if err := loadCoreCpuTimeLineData(&responseData, filter); err != nil {
+		return nil, err
+	}
 
 	return &responseData, nil
 }
 
-func loadOverallCpuTimeLineData(filter service.StatProviderFilter) ([]agentintegration.ServerMonitorTimeLinePoint, error) {
+func loadOverallCpuTimeLineData(responseData *agentintegration.ServerMonitorTimeLineResponseData, filter service.StatProviderFilter) error {
 	overallCpuStatCollector, err := service.GetStatCollector(&service.OverallCPUStatPrivider{})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rows, err := overallCpuStatCollector.Load(filter)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var overallCpuData []agentintegration.ServerMonitorTimeLinePoint
 	for _, row := range rows {
-		overallCpuData = append(overallCpuData, agentintegration.ServerMonitorTimeLinePoint{
-			Time: row[0],
-			Value: map[string]string{
-				"system": row[1],
-				"user":   row[2],
-				"nice":   row[3],
-				"idle":   row[4],
-			},
-		})
+		overallCpuData = append(overallCpuData, getCpuTimeLinePoint(row))
 	}
+	responseData.Data["overall"] = overallCpuData
 
-	return overallCpuData, nil
+	return nil
 }
 
-func loadCoreCpuTimeLineData(filter service.StatProviderFilter) {
+func loadCoreCpuTimeLineData(responseData *agentintegration.ServerMonitorTimeLineResponseData, filter service.StatProviderFilter) error {
+	coreCpuStatCollectors, err := service.GetCoreCpuStatCollectors()
+	if err != nil {
+		return err
+	}
 
+	for index, collector := range coreCpuStatCollectors {
+		var coreCpuData []agentintegration.ServerMonitorTimeLinePoint
+		rows, err := collector.Load(filter)
+		if err != nil {
+			return err
+		}
+
+		for _, row := range rows {
+			coreCpuData = append(coreCpuData, getCpuTimeLinePoint(row))
+		}
+		responseData.Data[fmt.Sprintf("core%d", index+1)] = coreCpuData
+	}
+
+	return nil
+}
+
+func getCpuTimeLinePoint(row []string) agentintegration.ServerMonitorTimeLinePoint {
+	return agentintegration.ServerMonitorTimeLinePoint{
+		Time: row[0],
+		Value: map[string]string{
+			"system": row[1],
+			"user":   row[2],
+			"nice":   row[3],
+			"idle":   row[4],
+		},
+	}
 }

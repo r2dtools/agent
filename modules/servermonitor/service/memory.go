@@ -27,7 +27,7 @@ func (sc *MemoryStatPrivider) GetData() ([]string, error) {
 	data = append(data, formatMemValue(vmStat.Cached))
 	data = append(data, formatMemValue(vmStat.Buffers))
 
-	// time|total|available|free|used|active|inactive|cached|buffers
+	// time|total|available|free|used|active|inactive|cached|buffered
 	return data, nil
 }
 
@@ -44,5 +44,5 @@ func (sc *MemoryStatPrivider) CheckData(data []string, filter StatProviderFilter
 }
 
 func formatMemValue(value uint64) string {
-	return strconv.FormatUint(value, 10)
+	return strconv.FormatUint(value/(1024*1024), 10)
 }

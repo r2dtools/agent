@@ -159,7 +159,7 @@ func getMemoryTimeLinePoint(row []string) agentintegration.ServerMonitorTimeLine
 			"active":    row[5],
 			"inactive":  row[6],
 			"cached":    row[7],
-			"buffers":   row[8],
+			"buffered":  row[8],
 		},
 	}
 }

@@ -19,6 +19,7 @@ import (
 const (
 	OVERALL_CPU_PROVIDER_CODE = "cpuoverall"
 	CORE_CPU_PROVIDER_CODE    = "cpucore"
+	MEMORY_PROVIDER_CODE    = "memory"
 )
 
 type StatProvider interface {

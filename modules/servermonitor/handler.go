@@ -40,6 +40,8 @@ func loadTimeLineData(data interface{}) (*agentintegration.ServerMonitorTimeLine
 	switch requestData.Category {
 	case "cpu":
 		responseData, err = loadCpuTimeLineData(&requestData)
+	case "memory":
+		responseData, err = loadMemoryTimeLineData(&requestData)
 	default:
 		responseData, err = nil, fmt.Errorf("invalid category '%s' provided", requestData.Category)
 	}
@@ -60,6 +62,33 @@ func loadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequ
 	if err := loadCoreCpuTimeLineData(&responseData, filter); err != nil {
 		return nil, err
 	}
+
+	return &responseData, nil
+}
+
+func loadMemoryTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorTimeLineResponseData, error) {
+	var responseData agentintegration.ServerMonitorTimeLineResponseData
+	responseData.Data = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
+	filter := &service.StatProviderTimeFilter{
+		FromTime: requestData.FromTime,
+		ToTime:   requestData.ToTime,
+	}
+
+	memoryStatCollector, err := service.GetStatCollector(&service.MemoryStatPrivider{})
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := memoryStatCollector.Load(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var memoryData []agentintegration.ServerMonitorTimeLinePoint
+	for _, row := range rows {
+		memoryData = append(memoryData, getMemoryTimeLinePoint(row))
+	}
+	responseData.Data["base"] = memoryData
 
 	return &responseData, nil
 }
@@ -114,6 +143,23 @@ func getCpuTimeLinePoint(row []string) agentintegration.ServerMonitorTimeLinePoi
 			"user":   row[2],
 			"nice":   row[3],
 			"idle":   row[4],
+		},
+	}
+}
+
+// time|total|available|free|used|active|inactive|cached|buffers
+func getMemoryTimeLinePoint(row []string) agentintegration.ServerMonitorTimeLinePoint {
+	return agentintegration.ServerMonitorTimeLinePoint{
+		Time: row[0],
+		Value: map[string]string{
+			"total":     row[1],
+			"available": row[2],
+			"free":      row[3],
+			"used":      row[4],
+			"active":    row[5],
+			"inactive":  row[6],
+			"cached":    row[7],
+			"buffers":   row[8],
 		},
 	}
 }

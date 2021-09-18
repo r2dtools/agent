@@ -62,16 +62,16 @@ func prepareData(item cpu.TimesStat) ([]string, error) {
 	var data []string
 	total := item.Total()
 	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
-	data = append(data, getPercertValue(item.System, total))
-	data = append(data, getPercertValue(item.User, total))
-	data = append(data, getPercertValue(item.Nice, total))
-	data = append(data, getPercertValue(item.Idle, total))
+	data = append(data, getCpuPercertValue(item.System, total))
+	data = append(data, getCpuPercertValue(item.User, total))
+	data = append(data, getCpuPercertValue(item.Nice, total))
+	data = append(data, getCpuPercertValue(item.Idle, total))
 
 	// data: time|system|user|nice|idle
 	return data, nil
 }
 
-func getPercertValue(value, total float64) string {
+func getCpuPercertValue(value, total float64) string {
 	return fmt.Sprintf("%.2f", 100*value/total)
 }
 

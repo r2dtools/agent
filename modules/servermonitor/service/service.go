@@ -26,6 +26,12 @@ func GetService() (*Service, error) {
 	}
 	collectors = append(collectors, cpuCoreStatCollectors...)
 
+	memoryStatCollector, err := GetStatCollector(&MemoryStatPrivider{})
+	if err != nil {
+		return nil, err
+	}
+	collectors = append(collectors, memoryStatCollector)
+
 	return &Service{collectors}, nil
 }
 

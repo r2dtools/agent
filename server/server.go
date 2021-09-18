@@ -49,7 +49,7 @@ func (s *Server) Serve() error {
 	}
 
 	for {
-		logger.Info(fmt.Sprintf("listening to a remote conection ..."))
+		logger.Info("listening to a remote conection ...")
 		conn, err := listener.Accept()
 
 		if err != nil {
@@ -76,8 +76,8 @@ func prepareResponse(data interface{}, err error) router.Response {
 	return response
 }
 
-func getResponse(conn net.Conn) router.Response {
-	dataLen, err := readDataLen(conn)
+func getResponse(reader io.Reader) router.Response {
+	dataLen, err := readDataLen(reader)
 	if err != nil {
 		return prepareResponse(nil, err)
 	}
@@ -87,7 +87,7 @@ func getResponse(conn net.Conn) router.Response {
 	rLen := 0
 
 	for {
-		len, err := conn.Read(buffer)
+		len, err := reader.Read(buffer)
 
 		if err != nil {
 			if err == io.EOF {
@@ -113,16 +113,18 @@ func getResponse(conn net.Conn) router.Response {
 
 func handleConn(conn net.Conn) {
 	defer conn.Close()
-	response := getResponse(conn)
+	var response router.Response
 
+	response = getResponse(conn)
 	if response.Error != "" {
 		logger.Error(response.Error)
 	}
 
 	responseByte, err := json.Marshal(response)
 	if err != nil {
-		logger.Error("could not encode response data: " + err.Error())
-		return
+		response = prepareResponse(nil, fmt.Errorf("could not encode response data: %v", err))
+		responseByte, _ = json.Marshal(response)
+		logger.Error(response.Error)
 	}
 
 	if err = writeData(conn, responseByte); err != nil {
@@ -153,17 +155,17 @@ func handleRequest(data []byte) (interface{}, error) {
 	return router.HandleRequest(request)
 }
 
-func writeData(conn net.Conn, data []byte) error {
+func writeData(writer io.Writer, data []byte) error {
 	// First, write sending data length
 	header := make([]byte, HEADER_DATA_LENGTH)
 	dataLen := len(data)
 	binary.BigEndian.PutUint32(header, uint32(dataLen))
 
-	if _, err := conn.Write(header); err != nil {
+	if _, err := writer.Write(header); err != nil {
 		return fmt.Errorf("could not write response header: %v", err)
 	}
 
-	if _, err := conn.Write(data); err != nil {
+	if _, err := writer.Write(data); err != nil {
 		return fmt.Errorf("could not write response data: %v", err)
 	}
 
@@ -171,11 +173,9 @@ func writeData(conn net.Conn, data []byte) error {
 }
 
 // readDataLen reads first bytes where data length is stored
-func readDataLen(conn net.Conn) (int, error) {
+func readDataLen(reader io.Reader) (int, error) {
 	header := make([]byte, HEADER_DATA_LENGTH)
-	_, err := conn.Read(header)
-
-	if err != nil {
+	if _, err := reader.Read(header); err != nil {
 		return 0, fmt.Errorf("could not read data length: %v", err)
 	}
 

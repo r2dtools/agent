@@ -56,6 +56,11 @@ func (m *SwapMemoryStatPrivider) GetData() ([]string, error) {
 		return nil, err
 	}
 
+	// if there is no SWAP skip statistics collection
+	if swapStat.Total == 0 {
+		return nil, nil
+	}
+
 	var data []string
 	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
 	data = append(data, formatMemValue(swapStat.Total))

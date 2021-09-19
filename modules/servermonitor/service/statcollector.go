@@ -19,7 +19,8 @@ import (
 const (
 	OVERALL_CPU_PROVIDER_CODE = "cpuoverall"
 	CORE_CPU_PROVIDER_CODE    = "cpucore"
-	MEMORY_PROVIDER_CODE    = "memory"
+	VIRTUAL_MEMORY_PROVIDER_CODE    = "memoryvirtual"
+	SWAP_MEMORY_PROVIDER_CODE    = "memoryswap"
 )
 
 type StatProvider interface {

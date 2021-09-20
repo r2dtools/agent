@@ -1,6 +1,7 @@
 package server
 
 import (
+	"compress/flate"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -88,18 +89,15 @@ func getResponse(reader io.Reader) router.Response {
 
 	for {
 		len, err := reader.Read(buffer)
-
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
-
 			return prepareResponse(nil, err)
 		}
 
 		data = append(data, buffer[:len]...)
 		rLen += len
-
 		if rLen >= dataLen {
 			break
 		}
@@ -115,23 +113,27 @@ func handleConn(conn net.Conn) {
 	defer conn.Close()
 	var response router.Response
 
-	response = getResponse(conn)
+	cReader := flate.NewReader(conn)
+	defer cReader.Close()
+	response = getResponse(cReader)
+
 	if response.Error != "" {
 		logger.Error(response.Error)
 	}
 
-	responseByte, err := json.Marshal(response)
+	cWriter, err := flate.NewWriter(conn, flate.BestCompression)
 	if err != nil {
-		response = prepareResponse(nil, fmt.Errorf("could not encode response data: %v", err))
-		responseByte, _ = json.Marshal(response)
-		logger.Error(response.Error)
+		logger.Error(fmt.Sprintf("could not create compressed data writer: %v", err))
+		return
 	}
+	defer cWriter.Close()
 
-	if err = writeData(conn, responseByte); err != nil {
+	jEncoder := json.NewEncoder(cWriter)
+	if err = jEncoder.Encode(response); err != nil {
 		logger.Error(err.Error())
 		return
 	}
-
+	cWriter.Flush()
 	logger.Info("Connection successfully handled")
 }
 
@@ -153,23 +155,6 @@ func handleRequest(data []byte) (interface{}, error) {
 	modules.RegisterHandlers(router)
 
 	return router.HandleRequest(request)
-}
-
-func writeData(writer io.Writer, data []byte) error {
-	// First, write sending data length
-	header := make([]byte, HEADER_DATA_LENGTH)
-	dataLen := len(data)
-	binary.BigEndian.PutUint32(header, uint32(dataLen))
-
-	if _, err := writer.Write(header); err != nil {
-		return fmt.Errorf("could not write response header: %v", err)
-	}
-
-	if _, err := writer.Write(data); err != nil {
-		return fmt.Errorf("could not write response data: %v", err)
-	}
-
-	return nil
 }
 
 // readDataLen reads first bytes where data length is stored

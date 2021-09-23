@@ -42,11 +42,17 @@ func loadTimeLineData(data interface{}) (*agentintegration.ServerMonitorTimeLine
 		responseData, err = loadCpuTimeLineData(&requestData)
 	case "memory":
 		responseData, err = loadMemoryTimeLineData(&requestData)
+	case "disk":
+		responseData, err = loadDiskUsageTimeLineData(&requestData)
 	default:
 		responseData, err = nil, fmt.Errorf("invalid category '%s' provided", requestData.Category)
 	}
 
 	return responseData, err
+}
+
+func loadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorTimeLineResponseData, error) {
+	return nil, nil
 }
 
 func loadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorTimeLineResponseData, error) {

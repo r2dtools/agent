@@ -13,14 +13,16 @@ import (
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
 	"github.com/unknwon/com"
 )
 
 const (
-	OVERALL_CPU_PROVIDER_CODE = "cpuoverall"
-	CORE_CPU_PROVIDER_CODE    = "cpucore"
-	VIRTUAL_MEMORY_PROVIDER_CODE    = "memoryvirtual"
+	OVERALL_CPU_PROVIDER_CODE    = "cpuoverall"
+	CORE_CPU_PROVIDER_CODE       = "cpucore"
+	VIRTUAL_MEMORY_PROVIDER_CODE = "memoryvirtual"
 	SWAP_MEMORY_PROVIDER_CODE    = "memoryswap"
+	DISK_PROVIDER_CODE           = "disk"
 )
 
 type StatProvider interface {
@@ -128,6 +130,10 @@ func GetCoreCpuStatCollectors() ([]*StatCollector, error) {
 		return nil, err
 	}
 
+	return GetStatCollectors(providers)
+}
+
+func GetStatCollectors(providers []StatProvider) ([]*StatCollector, error) {
 	var collectors []*StatCollector
 	for _, provider := range providers {
 		collector, err := GetStatCollector(provider)
@@ -139,6 +145,30 @@ func GetCoreCpuStatCollectors() ([]*StatCollector, error) {
 	}
 
 	return collectors, nil
+}
+
+func GetDiskStatCollectors() ([]*StatCollector, error) {
+	providers, err := GetDiskStatProviders()
+	if err != nil {
+		return nil, err
+	}
+
+	return GetStatCollectors(providers)
+}
+
+func GetDiskStatProviders() ([]StatProvider, error) {
+	partitions, err := disk.Partitions(false)
+	if err != nil {
+		return nil, fmt.Errorf("could not create statistics providers for disk: %v", err)
+	}
+
+	var providers []StatProvider
+	for _, partition := range partitions {
+		//todo: filter redundant partitions
+		providers = append(providers, &DiskStatPrivider{&partition})
+	}
+
+	return providers, nil
 }
 
 func GetStatCollector(provider StatProvider) (*StatCollector, error) {

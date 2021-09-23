@@ -42,6 +42,13 @@ func GetService() (*Service, error) {
 	}
 	collectors = append(collectors, swapMemoryStatCollector)
 
+	// disk statistics
+	diskStatCollectors, err := GetDiskStatCollectors()
+	if err != nil {
+		return nil, err
+	}
+	collectors = append(collectors, diskStatCollectors...)
+
 	return &Service{collectors}, nil
 }
 

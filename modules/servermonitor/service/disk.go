@@ -28,6 +28,7 @@ func (m *DiskUsageStatPrivider) GetData() ([]string, error) {
 	data = append(data, formatSpaceValue(usageStat.Used))
 	data = append(data, fmt.Sprintf("%.2f", usageStat.UsedPercent))
 
+	// time|total|free|used|usedPercent
 	return data, nil
 }
 
@@ -36,6 +37,10 @@ func (m *DiskUsageStatPrivider) GetCode() string {
 }
 
 func (m *DiskUsageStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
+	if len(data) != 5 {
+		return false
+	}
+
 	if filter == nil {
 		return true
 	}

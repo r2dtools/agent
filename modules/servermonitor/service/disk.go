@@ -9,13 +9,14 @@ import (
 	"github.com/shirou/gopsutil/disk"
 )
 
-// DiskStatPrivider retrieves statistics data for the disk usage
-type DiskStatPrivider struct {
-	Partition *disk.PartitionStat
+// DiskUsageStatPrivider retrieves statistics data for the disk usage
+type DiskUsageStatPrivider struct {
+	Mountpoint   string
+	MountPointID int
 }
 
-func (m *DiskStatPrivider) GetData() ([]string, error) {
-	usageStat, err := disk.Usage(m.Partition.Mountpoint)
+func (m *DiskUsageStatPrivider) GetData() ([]string, error) {
+	usageStat, err := disk.Usage(m.Mountpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -30,11 +31,11 @@ func (m *DiskStatPrivider) GetData() ([]string, error) {
 	return data, nil
 }
 
-func (m *DiskStatPrivider) GetCode() string {
-	return DISK_PROVIDER_CODE + strings.ReplaceAll(m.Partition.Device, "/", "")
+func (m *DiskUsageStatPrivider) GetCode() string {
+	return fmt.Sprintf("%s%d", DISK_USAGE_PROVIDER_CODE, m.MountPointID)
 }
 
-func (m *DiskStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
+func (m *DiskUsageStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
 	if filter == nil {
 		return true
 	}
@@ -44,4 +45,21 @@ func (m *DiskStatPrivider) CheckData(data []string, filter StatProviderFilter) b
 
 func formatSpaceValue(value uint64) string {
 	return strconv.FormatUint(value/(1024*1024), 10)
+}
+
+func GetPartitions() ([]disk.PartitionStat, error) {
+	partitions, err := disk.Partitions(false)
+	if err != nil {
+		return nil, fmt.Errorf("could not get partitions: %v", err)
+	}
+
+	var fPartitions []disk.PartitionStat
+	for _, partition := range partitions {
+		if strings.Contains(partition.Device, "/loop") || !strings.HasPrefix(partition.Device, "/dev") {
+			continue
+		}
+		fPartitions = append(fPartitions, partition)
+	}
+
+	return fPartitions, nil
 }

@@ -12,8 +12,8 @@ import (
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
+	"github.com/r2dtools/agent/modules/servermonitor/service/disk"
 	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/disk"
 	"github.com/unknwon/com"
 )
 
@@ -22,7 +22,7 @@ const (
 	CORE_CPU_PROVIDER_CODE       = "cpucore"
 	VIRTUAL_MEMORY_PROVIDER_CODE = "memoryvirtual"
 	SWAP_MEMORY_PROVIDER_CODE    = "memoryswap"
-	DISK_PROVIDER_CODE           = "disk"
+	DISK_USAGE_PROVIDER_CODE     = "diskusage"
 )
 
 type StatProvider interface {
@@ -147,25 +147,37 @@ func GetStatCollectors(providers []StatProvider) ([]*StatCollector, error) {
 	return collectors, nil
 }
 
-func GetDiskStatCollectors() ([]*StatCollector, error) {
-	providers, err := GetDiskStatProviders()
+func GetDiskUsageStatCollectors() ([]*StatCollector, error) {
+	providers, err := GetDiskUsageStatProviders()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not create statistics providers for disk usage: %v", err)
 	}
 
 	return GetStatCollectors(providers)
 }
 
-func GetDiskStatProviders() ([]StatProvider, error) {
-	partitions, err := disk.Partitions(false)
+func GetDiskUsageStatProviders() ([]StatProvider, error) {
+	partitions, err := GetPartitions()
 	if err != nil {
-		return nil, fmt.Errorf("could not create statistics providers for disk: %v", err)
+		return nil, err
+	}
+
+	dataFolder := getDataFolder()
+	if err = ensureFolderExists(dataFolder); err != nil {
+		return nil, err
 	}
 
 	var providers []StatProvider
+	mounpointIdMapper, err := disk.GetMountpointIDMapper(dataFolder)
+	if err != nil {
+		return nil, err
+	}
 	for _, partition := range partitions {
-		//todo: filter redundant partitions
-		providers = append(providers, &DiskStatPrivider{&partition})
+		mountpointId, err := mounpointIdMapper.GetMountpointID(partition.Mountpoint)
+		if err != nil {
+			return nil, err
+		}
+		providers = append(providers, &DiskUsageStatPrivider{Mountpoint: partition.Mountpoint, MountPointID: mountpointId})
 	}
 
 	return providers, nil
@@ -173,16 +185,13 @@ func GetDiskStatProviders() ([]StatProvider, error) {
 
 func GetStatCollector(provider StatProvider) (*StatCollector, error) {
 	dataFolderPath := getDataFolder()
-	if !com.IsDir(dataFolderPath) {
-		if err := os.MkdirAll(dataFolderPath, 0755); err != nil {
-			return nil, fmt.Errorf("could not create statistics collector '%s': %v", provider.GetCode(), err)
-		}
+	if err := ensureFolderExists(dataFolderPath); err != nil {
+		return nil, fmt.Errorf("could not create statistics collector '%s': %v", provider.GetCode(), err)
 	}
 
 	statFilePath := filepath.Join(dataFolderPath, provider.GetCode())
 	if !com.IsFile(statFilePath) {
 		_, err := os.Create(statFilePath)
-
 		if err != nil {
 			return nil, fmt.Errorf("could not create statistics collector '%s': %v", provider.GetCode(), err)
 		}
@@ -194,6 +203,16 @@ func GetStatCollector(provider StatProvider) (*StatCollector, error) {
 func getDataFolder() string {
 	varDirPath := config.GetConfig().GetVarDirAbsPath()
 	return filepath.Join(varDirPath, "modules", "servermonitor-module", "statistics")
+}
+
+func ensureFolderExists(folder string) error {
+	if !com.IsDir(folder) {
+		if err := os.MkdirAll(folder, 0755); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type StatProviderTimeFilter struct {

@@ -22,7 +22,7 @@ const (
 	CORE_CPU_PROVIDER_CODE       = "cpucore"
 	VIRTUAL_MEMORY_PROVIDER_CODE = "memoryvirtual"
 	SWAP_MEMORY_PROVIDER_CODE    = "memoryswap"
-	DISK_USAGE_PROVIDER_CODE     = "diskusage"
+	DISK_USAGE_PROVIDER_CODE     = "mountpoint"
 )
 
 type StatProvider interface {
@@ -177,7 +177,7 @@ func GetDiskUsageStatProviders() ([]StatProvider, error) {
 		if err != nil {
 			return nil, err
 		}
-		providers = append(providers, &DiskUsageStatPrivider{Mountpoint: partition.Mountpoint, MountPointID: mountpointId})
+		providers = append(providers, &DiskUsageStatProvider{Partition: partition, MountPointID: mountpointId})
 	}
 
 	return providers, nil

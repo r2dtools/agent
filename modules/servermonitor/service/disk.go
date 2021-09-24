@@ -9,14 +9,14 @@ import (
 	"github.com/shirou/gopsutil/disk"
 )
 
-// DiskUsageStatPrivider retrieves statistics data for the disk usage
-type DiskUsageStatPrivider struct {
-	Mountpoint   string
+// DiskUsageStatProvider retrieves statistics data for the disk usage
+type DiskUsageStatProvider struct {
+	Partition    disk.PartitionStat
 	MountPointID int
 }
 
-func (m *DiskUsageStatPrivider) GetData() ([]string, error) {
-	usageStat, err := disk.Usage(m.Mountpoint)
+func (m *DiskUsageStatProvider) GetData() ([]string, error) {
+	usageStat, err := disk.Usage(m.Partition.Mountpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +32,11 @@ func (m *DiskUsageStatPrivider) GetData() ([]string, error) {
 	return data, nil
 }
 
-func (m *DiskUsageStatPrivider) GetCode() string {
+func (m *DiskUsageStatProvider) GetCode() string {
 	return fmt.Sprintf("%s%d", DISK_USAGE_PROVIDER_CODE, m.MountPointID)
 }
 
-func (m *DiskUsageStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
+func (m *DiskUsageStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
 	if len(data) != 5 {
 		return false
 	}

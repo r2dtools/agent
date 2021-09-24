@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/r2dtools/agent/modules/servermonitor/service"
 	"github.com/r2dtools/agentintegration"
-	"github.com/shirou/gopsutil/disk"
 )
 
 func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorDiskResponseData, error) {
@@ -24,59 +24,50 @@ func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorTimeLi
 }
 
 func loadDiskUsageData(responseData *agentintegration.ServerMonitorDiskResponseData, filter service.StatProviderFilter) error {
-	diskUsageStatCollectors, err := service.GetDiskUsageStatCollectors()
+	diskUsageStatCollector, err := service.GetDiskUsageStatCollector()
 	if err != nil {
 		return err
 	}
 
-	for _, collector := range diskUsageStatCollectors {
-		var diskUsageData []agentintegration.ServerMonitorTimeLinePoint
-		rows, err := collector.Load(filter)
-		if err != nil {
-			return err
-		}
-
-		diskProvider, ok := collector.Provider.(*service.DiskUsageStatProvider)
-		if !ok {
-			return errors.New("invalid disk statistics data provider type")
-		}
-
-		for _, row := range rows {
-			diskUsageData = append(diskUsageData, getDiskUsageTimeLinePoint(row))
-		}
-		code := diskProvider.GetCode()
-		responseData.TimeLineData[code] = diskUsageData
-
-		usageData, err := collector.Provider.GetData()
-		if err != nil {
-			return nil
-		}
-		responseData.DiskInfo[code] = getDiskInfoItem(diskProvider.Partition, usageData)
+	var diskUsageData []agentintegration.ServerMonitorTimeLinePoint
+	rows, err := diskUsageStatCollector.Load(filter)
+	if err != nil {
+		return err
 	}
+
+	for _, row := range rows {
+		diskUsageTimeLinePoint, err := getDiskUsageTimeLinePoint(row)
+		if err == nil {
+			diskUsageData = append(diskUsageData, diskUsageTimeLinePoint)
+		}
+	}
+
+	provider := diskUsageStatCollector.Provider
+	diskUsageStatProvider, ok := provider.(*service.DiskUsageStatProvider)
+	if !ok {
+		return errors.New("invalid type of disk usage statistics provider")
+	}
+
+	diskInfo, err := diskUsageStatProvider.GetDiskInfo()
+	if err != nil {
+		return err
+	}
+	responseData.TimeLineData[diskUsageStatProvider.GetCode()] = diskUsageData
+	responseData.DiskInfo = diskInfo
 
 	return nil
 }
 
-func getDiskUsageTimeLinePoint(row []string) agentintegration.ServerMonitorTimeLinePoint {
-	return agentintegration.ServerMonitorTimeLinePoint{
-		Time: row[0],
-		Value: map[string]string{
-			"used":        row[3],
-			"usedPercert": row[4],
-		},
+func getDiskUsageTimeLinePoint(row []string) (agentintegration.ServerMonitorTimeLinePoint, error) {
+	usageData := make(map[string]string)
+	var timeLinePoint agentintegration.ServerMonitorTimeLinePoint
+	if err := json.Unmarshal([]byte(row[1]), &usageData); err != nil {
+		return timeLinePoint, err
 	}
-}
+	timeLinePoint = agentintegration.ServerMonitorTimeLinePoint{
+		Time:  row[0],
+		Value: usageData,
+	}
 
-// time|total|free|used|usedPercent
-func getDiskInfoItem(partition disk.PartitionStat, row []string) map[string]string {
-	item := make(map[string]string)
-	item["total"] = row[1]
-	item["free"] = row[2]
-	item["used"] = row[3]
-	item["usedPercent"] = row[4]
-	item["fstype"] = partition.Fstype
-	item["mountpoint"] = partition.Mountpoint
-	item["device"] = partition.Device
-
-	return item
+	return timeLinePoint, nil
 }

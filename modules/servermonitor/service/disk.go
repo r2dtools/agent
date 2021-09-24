@@ -1,43 +1,58 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	diskService "github.com/r2dtools/agent/modules/servermonitor/service/disk"
 	"github.com/shirou/gopsutil/disk"
 )
 
 // DiskUsageStatProvider retrieves statistics data for the disk usage
 type DiskUsageStatProvider struct {
-	Partition    disk.PartitionStat
-	MountPointID int
+	Mapper *diskService.MountpointIDMapper
 }
 
 func (m *DiskUsageStatProvider) GetData() ([]string, error) {
-	usageStat, err := disk.Usage(m.Partition.Mountpoint)
+	partitions, err := GetPartitions()
+	if err != nil {
+		return nil, err
+	}
+
+	usageData := make(map[int]string)
+	for _, partition := range partitions {
+		mountpointId, err := m.Mapper.GetMountpointID(partition.Mountpoint)
+		if err != nil {
+			return nil, err
+		}
+		usageStat, err := disk.Usage(partition.Mountpoint)
+		if err != nil {
+			return nil, err
+		}
+		usageData[mountpointId] = formatSpaceValue(usageStat.Used)
+	}
+	usageDataBytes, err := json.Marshal(usageData)
 	if err != nil {
 		return nil, err
 	}
 
 	var data []string
 	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
-	data = append(data, formatSpaceValue(usageStat.Total))
-	data = append(data, formatSpaceValue(usageStat.Free))
-	data = append(data, formatSpaceValue(usageStat.Used))
-	data = append(data, fmt.Sprintf("%.2f", usageStat.UsedPercent))
+	data = append(data, string(usageDataBytes))
 
-	// time|total|free|used|usedPercent
+	// time|{mountpointId: '', ....}
 	return data, nil
 }
 
 func (m *DiskUsageStatProvider) GetCode() string {
-	return fmt.Sprintf("%s%d", DISK_USAGE_PROVIDER_CODE, m.MountPointID)
+	return DISK_USAGE_PROVIDER_CODE
 }
 
 func (m *DiskUsageStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 5 {
+	if len(data) != 2 {
 		return false
 	}
 
@@ -46,6 +61,34 @@ func (m *DiskUsageStatProvider) CheckData(data []string, filter StatProviderFilt
 	}
 
 	return filter.Check(data)
+}
+
+func (m *DiskUsageStatProvider) GetDiskInfo() (map[string]map[string]string, error) {
+	partitions, err := GetPartitions()
+	if err != nil {
+		return nil, err
+	}
+	diskInfo := make(map[string]map[string]string)
+	for _, partition := range partitions {
+		usageStat, err := disk.Usage(partition.Mountpoint)
+		if err != nil {
+			return nil, err
+		}
+		mountpointId, err := m.Mapper.GetMountpointID(partition.Mountpoint)
+		if err != nil {
+			return nil, err
+		}
+		diskInfo[strconv.Itoa(mountpointId)] = map[string]string{
+			"mountpoint":  partition.Mountpoint,
+			"fstype":      usageStat.Fstype,
+			"used":        formatSpaceValue(usageStat.Used),
+			"free":        formatSpaceValue(usageStat.Free),
+			"total":       formatSpaceValue(usageStat.Total),
+			"usedPercent": fmt.Sprintf("%.2f", usageStat.UsedPercent),
+		}
+	}
+
+	return diskInfo, nil
 }
 
 func formatSpaceValue(value uint64) string {

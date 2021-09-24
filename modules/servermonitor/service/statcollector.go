@@ -22,7 +22,7 @@ const (
 	CORE_CPU_PROVIDER_CODE       = "cpucore"
 	VIRTUAL_MEMORY_PROVIDER_CODE = "memoryvirtual"
 	SWAP_MEMORY_PROVIDER_CODE    = "memoryswap"
-	DISK_USAGE_PROVIDER_CODE     = "mountpoint"
+	DISK_USAGE_PROVIDER_CODE     = "diskusage"
 )
 
 type StatProvider interface {
@@ -147,40 +147,27 @@ func GetStatCollectors(providers []StatProvider) ([]*StatCollector, error) {
 	return collectors, nil
 }
 
-func GetDiskUsageStatCollectors() ([]*StatCollector, error) {
-	providers, err := GetDiskUsageStatProviders()
+func GetDiskUsageStatCollector() (*StatCollector, error) {
+	provider, err := GetDiskUsageStatProvider()
 	if err != nil {
-		return nil, fmt.Errorf("could not create statistics providers for disk usage: %v", err)
+		return nil, fmt.Errorf("could not create statistics provider for disk usage: %v", err)
 	}
 
-	return GetStatCollectors(providers)
+	return GetStatCollector(provider)
 }
 
-func GetDiskUsageStatProviders() ([]StatProvider, error) {
-	partitions, err := GetPartitions()
-	if err != nil {
-		return nil, err
-	}
-
+func GetDiskUsageStatProvider() (StatProvider, error) {
 	dataFolder := getDataFolder()
-	if err = ensureFolderExists(dataFolder); err != nil {
+	if err := ensureFolderExists(dataFolder); err != nil {
 		return nil, err
 	}
 
-	var providers []StatProvider
 	mounpointIdMapper, err := disk.GetMountpointIDMapper(dataFolder)
 	if err != nil {
 		return nil, err
 	}
-	for _, partition := range partitions {
-		mountpointId, err := mounpointIdMapper.GetMountpointID(partition.Mountpoint)
-		if err != nil {
-			return nil, err
-		}
-		providers = append(providers, &DiskUsageStatProvider{Partition: partition, MountPointID: mountpointId})
-	}
 
-	return providers, nil
+	return &DiskUsageStatProvider{mounpointIdMapper}, nil
 }
 
 func GetStatCollector(provider StatProvider) (*StatCollector, error) {

@@ -43,11 +43,11 @@ func GetService() (*Service, error) {
 	collectors = append(collectors, swapMemoryStatCollector)
 
 	// disk usage statistics
-	diskUsageStatCollectors, err := GetDiskUsageStatCollectors()
+	diskUsageStatCollector, err := GetDiskUsageStatCollector()
 	if err != nil {
 		return nil, err
 	}
-	collectors = append(collectors, diskUsageStatCollectors...)
+	collectors = append(collectors, diskUsageStatCollector)
 
 	return &Service{collectors}, nil
 }

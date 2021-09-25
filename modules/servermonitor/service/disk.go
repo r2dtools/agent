@@ -3,12 +3,14 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	diskService "github.com/r2dtools/agent/modules/servermonitor/service/disk"
 	"github.com/shirou/gopsutil/disk"
+	"github.com/unknwon/com"
 )
 
 // DiskUsageStatProvider retrieves statistics data for the disk usage
@@ -91,10 +93,6 @@ func (m *DiskUsageStatProvider) GetDiskInfo() (map[string]map[string]string, err
 	return diskInfo, nil
 }
 
-func formatSpaceValue(value uint64) string {
-	return strconv.FormatUint(value/(1024*1024), 10)
-}
-
 func GetPartitions() ([]disk.PartitionStat, error) {
 	partitions, err := disk.Partitions(false)
 	if err != nil {
@@ -110,4 +108,90 @@ func GetPartitions() ([]disk.PartitionStat, error) {
 	}
 
 	return fPartitions, nil
+}
+
+func GetDiskDevices() ([]string, error) {
+	partitions, err := GetPartitions()
+	if err != nil {
+		return nil, err
+	}
+
+	sdSubPartitionRegexp, err := regexp.Compile(`^/dev/sd(.+)(\d+)$`)
+	if err != nil {
+		return nil, err
+	}
+	nvmeSubPartitionRegexp, err := regexp.Compile(`^/dev/nvme(.+)p(\d+)$`)
+	if err != nil {
+		return nil, err
+	}
+	var diskDevices []string
+	for _, partition := range partitions {
+		device := partition.Device
+		if !strings.HasPrefix(device, "/dev/sd") && !strings.HasPrefix(device, "/dev/nvme") {
+			continue
+		}
+		// skip device "sub" partitions: sda1, sda2, ...
+		if sdSubPartitionRegexp.Match([]byte(device)) || nvmeSubPartitionRegexp.Match([]byte(device)) {
+			continue
+		}
+		device = strings.ReplaceAll(device, "/dev/", "")
+		if !com.IsSliceContainsStr(diskDevices, device) {
+			diskDevices = append(diskDevices, device)
+		}
+	}
+
+	return diskDevices, nil
+}
+
+// DiskIOStatProvider retrieves statistics data for the disk IO
+type DiskIOStatProvider struct {
+	Device string
+}
+
+func (m *DiskIOStatProvider) GetData() ([]string, error) {
+	ioStats, err := disk.IOCounters(m.Device)
+	if err != nil {
+		return nil, err
+	}
+	ioStat, ok := ioStats[m.Device]
+	if !ok {
+		return nil, nil
+	}
+
+	var data []string
+	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
+	data = append(data, formatIOValue(ioStat.ReadCount))
+	data = append(data, formatIOValue(ioStat.WriteCount))
+	data = append(data, formatIOValue(ioStat.MergedReadCount))
+	data = append(data, formatIOValue(ioStat.MergedWriteCount))
+	data = append(data, formatIOValue(ioStat.ReadTime))
+	data = append(data, formatIOValue(ioStat.WriteTime))
+	data = append(data, formatIOValue(ioStat.IoTime))
+	data = append(data, formatIOValue(ioStat.ReadBytes))
+	data = append(data, formatIOValue(ioStat.WriteBytes))
+
+	// time|ReadCount|WriteCount|MergedReadCount|MergedWriteCount|ReadTime|WriteTime|IoTime|ReadBytes|WriteBytes
+	return data, nil
+}
+
+func (m *DiskIOStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
+	if len(data) != 10 {
+		return false
+	}
+	if filter == nil {
+		return true
+	}
+	return filter.Check(data)
+}
+
+func (m *DiskIOStatProvider) GetCode() string {
+	return DISK_IO_PROVIDER_CODE + m.Device
+}
+
+func formatSpaceValue(value uint64) string {
+	return strconv.FormatUint(value/(1024*1024), 10)
+}
+
+func formatIOValue(value uint64) string {
+	return strconv.FormatUint(value, 10)
 }

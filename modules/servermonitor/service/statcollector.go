@@ -23,6 +23,7 @@ const (
 	VIRTUAL_MEMORY_PROVIDER_CODE = "memoryvirtual"
 	SWAP_MEMORY_PROVIDER_CODE    = "memoryswap"
 	DISK_USAGE_PROVIDER_CODE     = "diskusage"
+	DISK_IO_PROVIDER_CODE        = "diskio"
 )
 
 type StatProvider interface {
@@ -168,6 +169,20 @@ func GetDiskUsageStatProvider() (StatProvider, error) {
 	}
 
 	return &DiskUsageStatProvider{mounpointIdMapper}, nil
+}
+
+func GetDiskIOStatCollectors() ([]*StatCollector, error) {
+	devices, err := GetDiskDevices()
+	if err != nil {
+		return nil, err
+	}
+
+	var providers []StatProvider
+	for _, device := range devices {
+		providers = append(providers, &DiskIOStatProvider{device})
+	}
+
+	return GetStatCollectors(providers)
 }
 
 func GetStatCollector(provider StatProvider) (*StatCollector, error) {

@@ -33,8 +33,8 @@ func loadDiskIOData(responseData *agentintegration.ServerMonitorDiskResponseData
 		return err
 	}
 
-	var diskIoData []agentintegration.ServerMonitorTimeLinePoint
 	for _, collector := range diskIOStatCollectors {
+		var diskIoData []agentintegration.ServerMonitorTimeLinePoint
 		rows, err := collector.Load(filter)
 		if err != nil {
 			return err

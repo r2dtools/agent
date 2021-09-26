@@ -172,6 +172,16 @@ func GetDiskUsageStatProvider() (StatProvider, error) {
 }
 
 func GetDiskIOStatCollectors() ([]*StatCollector, error) {
+	dataFolder := getDataFolder()
+	if err := ensureFolderExists(dataFolder); err != nil {
+		return nil, err
+	}
+
+	ioMeasureStorage, err := disk.GetIOMeasure(dataFolder)
+	if err != nil {
+		return nil, err
+	}
+
 	devices, err := GetDiskDevices()
 	if err != nil {
 		return nil, err
@@ -179,7 +189,7 @@ func GetDiskIOStatCollectors() ([]*StatCollector, error) {
 
 	var providers []StatProvider
 	for _, device := range devices {
-		providers = append(providers, &DiskIOStatProvider{device})
+		providers = append(providers, &DiskIOStatProvider{Device: device, IOMeasureStorage: ioMeasureStorage})
 	}
 
 	return GetStatCollectors(providers)

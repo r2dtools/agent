@@ -126,15 +126,30 @@ func GetDiskDevices() ([]string, error) {
 	}
 
 	var diskDevices []string
+	deviceRegexps := []*regexp.Regexp{sdSubPartitionRegexp, nvmeSubPartitionRegexp}
+	subPartitionMap := make(map[string]string)
+
 	for _, partition := range partitions {
 		device := partition.Device
-		sdGroups := sdSubPartitionRegexp.FindStringSubmatch(device)
-		nvmeGroups := nvmeSubPartitionRegexp.FindStringSubmatch(device)
-
-		if len(sdGroups) != 0 || len(nvmeGroups) != 0 {
-			if !com.IsSliceContainsStr(diskDevices, sdGroups[1]) {
-				diskDevices = append(diskDevices, sdGroups[1])
+		for _, deviceRegexp := range deviceRegexps {
+			groups := deviceRegexp.FindStringSubmatch(device)
+			if len(groups) == 0 {
+				continue
 			}
+
+			gDevice := groups[1]
+			gSubPartition := groups[2]
+			if gSubPartition != "" {
+				subPartitionMap[gSubPartition] = gDevice
+			} else if !com.IsSliceContainsStr(diskDevices, gDevice) {
+				diskDevices = append(diskDevices, gDevice)
+			}
+		}
+	}
+
+	for subPartition, device := range subPartitionMap {
+		if !com.IsSliceContainsStr(diskDevices, device) {
+			diskDevices = append(diskDevices, subPartition)
 		}
 	}
 

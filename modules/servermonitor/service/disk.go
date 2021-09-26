@@ -116,7 +116,7 @@ func GetDiskDevices() ([]string, error) {
 		return nil, err
 	}
 
-	sdSubPartitionRegexp, err := regexp.Compile(`^/dev/(sd.+)(\d*)$`)
+	sdSubPartitionRegexp, err := regexp.Compile(`^/dev/(sd[a-z]+)(\d*)$`)
 	if err != nil {
 		return nil, err
 	}

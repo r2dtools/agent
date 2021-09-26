@@ -149,7 +149,7 @@ func GetDiskDevices() ([]string, error) {
 
 	for subPartition, device := range subPartitionMap {
 		if !com.IsSliceContainsStr(diskDevices, device) {
-			diskDevices = append(diskDevices, subPartition)
+			diskDevices = append(diskDevices, device+subPartition)
 		}
 	}
 

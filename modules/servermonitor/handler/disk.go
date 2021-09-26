@@ -10,7 +10,8 @@ import (
 
 func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorDiskResponseData, error) {
 	var responseData agentintegration.ServerMonitorDiskResponseData
-	responseData.TimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
+	responseData.DiskUsageTimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
+	responseData.DiskIOTimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	responseData.DiskInfo = make(map[string]map[string]string)
 	filter := &service.StatProviderTimeFilter{
 		FromTime: requestData.FromTime,
@@ -19,8 +20,36 @@ func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorTimeLi
 	if err := loadDiskUsageData(&responseData, filter); err != nil {
 		return nil, err
 	}
+	if err := loadDiskIOData(&responseData, filter); err != nil {
+		return nil, err
+	}
 
 	return &responseData, nil
+}
+
+func loadDiskIOData(responseData *agentintegration.ServerMonitorDiskResponseData, filter service.StatProviderFilter) error {
+	diskIOStatCollectors, err := service.GetDiskIOStatCollectors()
+	if err != nil {
+		return err
+	}
+
+	var diskIoData []agentintegration.ServerMonitorTimeLinePoint
+	for _, collector := range diskIOStatCollectors {
+		rows, err := collector.Load(filter)
+		if err != nil {
+			return err
+		}
+
+		for _, row := range rows {
+			diskIoData = append(diskIoData, getDiskIOTimeLineData(row))
+		}
+		provider, ok := collector.Provider.(*service.DiskIOStatProvider)
+		if !ok {
+			return errors.New("invalid type of disk io statistics provider")
+		}
+		responseData.DiskIOTimeLineData[provider.Device] = diskIoData
+	}
+	return nil
 }
 
 func loadDiskUsageData(responseData *agentintegration.ServerMonitorDiskResponseData, filter service.StatProviderFilter) error {
@@ -52,7 +81,7 @@ func loadDiskUsageData(responseData *agentintegration.ServerMonitorDiskResponseD
 	if err != nil {
 		return err
 	}
-	responseData.TimeLineData[diskUsageStatProvider.GetCode()] = diskUsageData
+	responseData.DiskUsageTimeLineData[diskUsageStatProvider.GetCode()] = diskUsageData
 	responseData.DiskInfo = diskInfo
 
 	return nil
@@ -70,4 +99,22 @@ func getDiskUsageTimeLinePoint(row []string) (agentintegration.ServerMonitorTime
 	}
 
 	return timeLinePoint, nil
+}
+
+// row: time|ReadCount|WriteCount|MergedReadCount|MergedWriteCount|ReadTime|WriteTime|IoTime|ReadBytes|WriteBytes
+func getDiskIOTimeLineData(row []string) agentintegration.ServerMonitorTimeLinePoint {
+	return agentintegration.ServerMonitorTimeLinePoint{
+		Time: row[0],
+		Value: map[string]string{
+			"readcount":        row[1],
+			"writecount":       row[2],
+			"mergedreadcount":  row[3],
+			"mergedwritecount": row[4],
+			"readtime":         row[5],
+			"writetime":        row[6],
+			"iotime":           row[7],
+			"readbytes":        row[8],
+			"writebytes":       row[9],
+		},
+	}
 }

@@ -11,7 +11,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/r2dtools/a2conf v0.1.0
-	github.com/r2dtools/agentintegration v1.0.1-0.20210923160053-4873ac513eac
+	github.com/r2dtools/agentintegration v1.0.1-0.20210926063157-ee9b7088a725
 	github.com/shirou/gopsutil v3.21.8+incompatible
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect

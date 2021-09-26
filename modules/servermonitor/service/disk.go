@@ -116,27 +116,25 @@ func GetDiskDevices() ([]string, error) {
 		return nil, err
 	}
 
-	sdSubPartitionRegexp, err := regexp.Compile(`^/dev/sd(.+)(\d+)$`)
+	sdSubPartitionRegexp, err := regexp.Compile(`^/dev/(sd.+)(\d*)$`)
 	if err != nil {
 		return nil, err
 	}
-	nvmeSubPartitionRegexp, err := regexp.Compile(`^/dev/nvme(.+)p(\d+)$`)
+	nvmeSubPartitionRegexp, err := regexp.Compile(`^/dev/(nvme.+)(p\d*)$`)
 	if err != nil {
 		return nil, err
 	}
+
 	var diskDevices []string
 	for _, partition := range partitions {
 		device := partition.Device
-		if !strings.HasPrefix(device, "/dev/sd") && !strings.HasPrefix(device, "/dev/nvme") {
-			continue
-		}
-		// skip device "sub" partitions: sda1, sda2, ...
-		if sdSubPartitionRegexp.Match([]byte(device)) || nvmeSubPartitionRegexp.Match([]byte(device)) {
-			continue
-		}
-		device = strings.ReplaceAll(device, "/dev/", "")
-		if !com.IsSliceContainsStr(diskDevices, device) {
-			diskDevices = append(diskDevices, device)
+		sdGroups := sdSubPartitionRegexp.FindStringSubmatch(device)
+		nvmeGroups := nvmeSubPartitionRegexp.FindStringSubmatch(device)
+
+		if len(sdGroups) != 0 || len(nvmeGroups) != 0 {
+			if !com.IsSliceContainsStr(diskDevices, sdGroups[1]) {
+				diskDevices = append(diskDevices, sdGroups[1])
+			}
 		}
 	}
 

@@ -184,36 +184,40 @@ func (m *DiskIOStatProvider) GetData() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = m.setLastMeasure(ioStat); err != nil {
-		return nil, err
-	}
 	if lastMeasure == nil {
+		if err = m.setLastMeasure(ioStat); err != nil {
+			return nil, err
+		}
 		return nil, nil
 	}
 
 	var data []string
 	var readBytes, writeBytes uint64
-	readTime := ioStat.ReadTime - lastMeasure.ReadTime
-	writeTime := ioStat.WriteTime - lastMeasure.WriteTime
-	ioTime := ioStat.IoTime - lastMeasure.IoTime
+	readTime := m.getDiff(ioStat.ReadTime, lastMeasure.ReadTime)
+	writeTime := m.getDiff(ioStat.WriteTime, lastMeasure.WriteTime)
+	ioTime := m.getDiff(ioStat.IoTime, lastMeasure.IoTime)
 
 	if readTime != 0 {
-		readBytes = (ioStat.ReadBytes - lastMeasure.ReadBytes) / readTime
+		readBytes = m.getDiff(ioStat.ReadBytes, lastMeasure.ReadBytes) / readTime
 	}
 	if writeTime != 0 {
-		writeBytes = (ioStat.WriteBytes - lastMeasure.WriteBytes) / writeTime
+		writeBytes = m.getDiff(ioStat.WriteBytes, lastMeasure.WriteBytes) / writeTime
 	}
 
 	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
-	data = append(data, formatIOValue(ioStat.ReadCount-lastMeasure.ReadCount))
-	data = append(data, formatIOValue(ioStat.WriteCount-lastMeasure.WriteCount))
-	data = append(data, formatIOValue(ioStat.MergedReadCount-lastMeasure.MergedReadCount))
-	data = append(data, formatIOValue(ioStat.MergedWriteCount-lastMeasure.MergedWriteCount))
+	data = append(data, formatIOValue(m.getDiff(ioStat.ReadCount, lastMeasure.ReadCount)))
+	data = append(data, formatIOValue(m.getDiff(ioStat.WriteCount, lastMeasure.WriteCount)))
+	data = append(data, formatIOValue(m.getDiff(ioStat.MergedReadCount, lastMeasure.MergedReadCount)))
+	data = append(data, formatIOValue(m.getDiff(ioStat.MergedWriteCount, lastMeasure.MergedWriteCount)))
 	data = append(data, formatIOValue(readTime))
 	data = append(data, formatIOValue(writeTime))
 	data = append(data, formatIOValue(ioTime))
 	data = append(data, formatIOValue(readBytes))
 	data = append(data, formatIOValue(writeBytes))
+
+	if err = m.setLastMeasure(ioStat); err != nil {
+		return nil, err
+	}
 
 	// time|ReadCount|WriteCount|MergedReadCount|MergedWriteCount|ReadTime|WriteTime|IoTime|ReadBytes|WriteBytes
 	return data, nil
@@ -231,6 +235,13 @@ func (m *DiskIOStatProvider) CheckData(data []string, filter StatProviderFilter)
 
 func (m *DiskIOStatProvider) GetCode() string {
 	return DISK_IO_PROVIDER_CODE + m.Device
+}
+
+func (m *DiskIOStatProvider) getDiff(new, old uint64) uint64 {
+	if new < old {
+		return 0
+	}
+	return new - old
 }
 
 func (m *DiskIOStatProvider) setLastMeasure(ioStat disk.IOCountersStat) error {

@@ -124,9 +124,13 @@ func GetDiskDevices() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	dmPartitionRegexp, err := regexp.Compile(`^/dev/(dm\-\d+)$`)
+	if err != nil {
+		return nil, err
+	}
 
 	var diskDevices []string
-	deviceRegexps := []*regexp.Regexp{sdSubPartitionRegexp, nvmeSubPartitionRegexp}
+	deviceRegexps := []*regexp.Regexp{dmPartitionRegexp, sdSubPartitionRegexp, nvmeSubPartitionRegexp}
 	subPartitionMap := make(map[string]string)
 
 	for _, partition := range partitions {
@@ -138,7 +142,11 @@ func GetDiskDevices() ([]string, error) {
 			}
 
 			gDevice := groups[1]
-			gSubPartition := groups[2]
+			var gSubPartition string
+			if len(groups) > 2 {
+				gSubPartition = groups[2]
+			}
+
 			if gSubPartition != "" {
 				subPartitionMap[gSubPartition] = gDevice
 			} else if !com.IsSliceContainsStr(diskDevices, gDevice) {

@@ -42,11 +42,7 @@ func (s *Server) Serve() error {
 	if err = modules.RegisterSercices(&serviceManager); err != nil {
 		return err
 	}
-
-	if err = serviceManager.RunServices(); err != nil {
-		logger.Error(err.Error())
-		return err
-	}
+	serviceManager.RunServices()
 
 	for {
 		logger.Info("listening to a remote conection ...")

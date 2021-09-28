@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+
+	"github.com/r2dtools/agent/logger"
 )
 
 // Service is implemeted by services that are started with starting agent tcp server
@@ -22,22 +24,14 @@ func (s *ServiceManager) AddService(name string, service Service) {
 }
 
 // RunServices runs all registered services
-func (s *ServiceManager) RunServices() error {
-	var errs []error
-
+func (s *ServiceManager) RunServices() {
 	for name, service := range s.services {
-		runService := func(iName string, iService Service, errs []error) {
+		runService := func(iName string, iService Service) {
 			if err := iService.Run(); err != nil {
-				_ = append(errs, fmt.Errorf("could not start service '%s': %v", iName, err))
+				logger.Error(fmt.Sprintf("could not run service '%s': %v", iName, err))
 			}
 		}
 
-		go runService(name, service, errs)
+		go runService(name, service)
 	}
-
-	if len(errs) != 0 {
-		return errs[0]
-	}
-
-	return nil
 }

@@ -50,7 +50,7 @@ func GetService() (*Service, error) {
 	collectors = append(collectors, diskUsageStatCollector)
 
 	// disk io statistics
-	diskIOStatCollectors, err := GetDiskIOStatCollectors()
+	diskIOStatCollectors, err := GetDiskIOStatCollectors(true)
 	if err != nil {
 		return nil, err
 	}

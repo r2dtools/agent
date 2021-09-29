@@ -27,6 +27,9 @@ type IOMeasure struct {
 
 func GetIOMeasure(dataFolder string) (*IOMeasureStorage, error) {
 	filePath := filepath.Join(dataFolder, "diskiomeasure")
+	if com.IsFile(filePath) {
+		os.Remove(filePath)
+	}
 	if !com.IsFile(filePath) {
 		if _, err := os.Create(filePath); err != nil {
 			return nil, err

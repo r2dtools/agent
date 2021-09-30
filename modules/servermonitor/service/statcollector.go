@@ -171,13 +171,13 @@ func GetDiskUsageStatProvider() (StatProvider, error) {
 	return &DiskUsageStatProvider{mounpointIdMapper}, nil
 }
 
-func GetDiskIOStatCollectors() ([]*StatCollector, error) {
+func GetDiskIOStatCollectors(clearLastMeasure bool) ([]*StatCollector, error) {
 	dataFolder := getDataFolder()
 	if err := ensureFolderExists(dataFolder); err != nil {
 		return nil, err
 	}
 
-	ioMeasureStorage, err := disk.GetIOMeasure(dataFolder)
+	ioMeasureStorage, err := disk.GetIOMeasure(dataFolder, clearLastMeasure)
 	if err != nil {
 		return nil, err
 	}

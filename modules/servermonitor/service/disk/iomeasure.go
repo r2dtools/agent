@@ -25,9 +25,9 @@ type IOMeasure struct {
 	WriteBytes uint64
 }
 
-func GetIOMeasure(dataFolder string) (*IOMeasureStorage, error) {
+func GetIOMeasure(dataFolder string, clearLastMeasure bool) (*IOMeasureStorage, error) {
 	filePath := filepath.Join(dataFolder, "diskiomeasure")
-	if com.IsFile(filePath) {
+	if clearLastMeasure && com.IsFile(filePath) {
 		os.Remove(filePath)
 	}
 	if !com.IsFile(filePath) {

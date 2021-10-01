@@ -3,9 +3,6 @@ package server
 import (
 	"errors"
 	"fmt"
-	"os/exec"
-	"path/filepath"
-	"strings"
 
 	"github.com/r2dtools/agent/certificate"
 	"github.com/r2dtools/agent/config"
@@ -15,6 +12,7 @@ import (
 	"github.com/r2dtools/agent/utils"
 	"github.com/r2dtools/agent/webserver"
 	"github.com/r2dtools/agentintegration"
+	"github.com/shirou/gopsutil/host"
 )
 
 // MainHandler handles common agent requests
@@ -40,30 +38,28 @@ func (h *MainHandler) Handle(request router.Request) (interface{}, error) {
 }
 
 func refresh(data interface{}) (*agentintegration.ServerData, error) {
-	scriptsPath := config.GetConfig().GetScriptsDirAbsPath()
-	cmd := exec.Command("bash", filepath.Join(scriptsPath, "detect_os.sh"))
-	output, err := cmd.Output()
-
+	info, err := host.Info()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get system info: %v", err)
 	}
-
-	parts := strings.Split(string(output), "/")
-
-	// Linux/Ubuntu/20.04/focal
-	if len(parts) < 4 {
-		logger.Debug(fmt.Sprintf("detect_os.sh script output %s", string(output)))
-
-		return nil, fmt.Errorf("could not get OS data")
-	}
+	var serverData agentintegration.ServerData
+	serverData.BootTime = info.BootTime
+	serverData.Uptime = info.Uptime
+	serverData.KernelArch = info.KernelArch
+	serverData.KernelVersion = info.KernelVersion
+	serverData.HostName = info.Hostname
+	serverData.Platform = info.Platform
+	serverData.PlatformFamily = info.PlatformFamily
+	serverData.PlatformVersion = info.PlatformVersion
+	serverData.Os = info.OS
 
 	version, err := utils.GetAgentVersion()
-
 	if err != nil {
 		return nil, err
 	}
+	serverData.AgentVersion = version
 
-	return &agentintegration.ServerData{AgentVersion: version, OsCode: strings.ToLower(parts[1]), OsVersion: parts[2]}, nil
+	return &serverData, nil
 }
 
 func getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {

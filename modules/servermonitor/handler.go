@@ -44,6 +44,8 @@ func loadTimeLineData(data interface{}) (interface{}, error) {
 		responseData, err = handler.LoadMemoryTimeLineData(&requestData)
 	case "disk":
 		responseData, err = handler.LoadDiskUsageTimeLineData(&requestData)
+	case "network":
+		responseData, err = handler.LoadNetworkTimeLineData(&requestData)
 	default:
 		responseData, err = nil, fmt.Errorf("invalid category '%s' provided", requestData.Category)
 	}

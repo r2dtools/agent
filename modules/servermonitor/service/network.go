@@ -3,15 +3,47 @@ package service
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/shirou/gopsutil/net"
 )
 
-// NetworkStatProvider retrieves statistics data for the network usage
-type NetworkStatProvider struct{}
+// OverallNetworkStatProvider retrieves statistics data for the network usage
+type OverallNetworkStatProvider struct{}
 
-func (n *NetworkStatProvider) GetData() ([]string, error) {
-	return nil, nil
+func (n *OverallNetworkStatProvider) GetData() ([]string, error) {
+	iCountersStat, err := net.IOCounters(false)
+	if err != nil {
+		return nil, err
+	}
+	if len(iCountersStat) == 0 {
+		return nil, nil
+	}
+	stat := iCountersStat[0]
+	var data []string
+	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
+	data = append(data, formatInterfaceValue(stat.BytesRecv))
+	data = append(data, formatInterfaceValue(stat.BytesSent))
+	data = append(data, formatInterfaceValue(stat.PacketsRecv))
+	data = append(data, formatInterfaceValue(stat.PacketsSent))
+
+	// time|bytesrecv|bytessent|packetsrecv|packetssent
+	return data, nil
+}
+
+func (n *OverallNetworkStatProvider) GetCode() string {
+	return OVERALL_NETWORK_PROVIDER_CODE
+}
+
+func (n *OverallNetworkStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
+	if len(data) != 5 {
+		return false
+	}
+	if filter != nil {
+		return filter.Check(data)
+	}
+
+	return true
 }
 
 func GetNetworkInterfacesInfo() ([]map[string]string, error) {
@@ -31,8 +63,13 @@ func GetNetworkInterfacesInfo() ([]map[string]string, error) {
 
 	var data []map[string]string
 	for _, iCounterStat := range iCountersStat {
+		name := iCounterStat.Name
+		// skip docker, lo network interfsces
+		if strings.HasPrefix(name, "docker") || name == "lo" {
+			continue
+		}
 		interfaceInfo := make(map[string]string)
-		interfaceInfo["name"] = iCounterStat.Name
+		interfaceInfo["name"] = name
 		interfaceInfo["bytesrecv"] = formatInterfaceValue(iCounterStat.BytesRecv)
 		interfaceInfo["bytessent"] = formatInterfaceValue(iCounterStat.BytesSent)
 		interfaceInfo["packetsrecv"] = formatInterfaceValue(iCounterStat.PacketsRecv)

@@ -18,12 +18,13 @@ import (
 )
 
 const (
-	OVERALL_CPU_PROVIDER_CODE    = "cpuoverall"
-	CORE_CPU_PROVIDER_CODE       = "cpucore"
-	VIRTUAL_MEMORY_PROVIDER_CODE = "memoryvirtual"
-	SWAP_MEMORY_PROVIDER_CODE    = "memoryswap"
-	DISK_USAGE_PROVIDER_CODE     = "diskusage"
-	DISK_IO_PROVIDER_CODE        = "diskio"
+	OVERALL_CPU_PROVIDER_CODE     = "cpuoverall"
+	CORE_CPU_PROVIDER_CODE        = "cpucore"
+	VIRTUAL_MEMORY_PROVIDER_CODE  = "memoryvirtual"
+	SWAP_MEMORY_PROVIDER_CODE     = "memoryswap"
+	DISK_USAGE_PROVIDER_CODE      = "diskusage"
+	DISK_IO_PROVIDER_CODE         = "diskio"
+	OVERALL_NETWORK_PROVIDER_CODE = "networkoverall"
 )
 
 type StatProvider interface {

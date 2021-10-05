@@ -9,12 +9,39 @@ func LoadNetworkTimeLineData(requestData *agentintegration.ServerMonitorTimeLine
 	var responseData agentintegration.ServerMonitorNetworkResponseData
 	responseData.TimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	responseData.InterfacesInfo = make([]map[string]string, 0)
+	filter := &service.StatProviderTimeFilter{
+		FromTime: requestData.FromTime,
+		ToTime:   requestData.ToTime,
+	}
 
+	if err := loadOverallNetworkTimeLineData(&responseData, filter); err != nil {
+		return nil, err
+	}
 	if err := loadNetworkInterfaceInfo(&responseData); err != nil {
 		return nil, err
 	}
 
 	return &responseData, nil
+}
+
+func loadOverallNetworkTimeLineData(responseData *agentintegration.ServerMonitorNetworkResponseData, filter service.StatProviderFilter) error {
+	overallNetworkStatCollector, err := service.GetStatCollector(&service.OverallNetworkStatProvider{})
+	if err != nil {
+		return err
+	}
+
+	rows, err := overallNetworkStatCollector.Load(filter)
+	if err != nil {
+		return err
+	}
+
+	var overallNetworkData []agentintegration.ServerMonitorTimeLinePoint
+	for _, row := range rows {
+		overallNetworkData = append(overallNetworkData, getNetworkTimeLinePoint(row))
+	}
+	responseData.TimeLineData["overall"] = overallNetworkData
+
+	return nil
 }
 
 func loadNetworkInterfaceInfo(responseData *agentintegration.ServerMonitorNetworkResponseData) error {
@@ -25,4 +52,16 @@ func loadNetworkInterfaceInfo(responseData *agentintegration.ServerMonitorNetwor
 
 	responseData.InterfacesInfo = interfacesInfo
 	return nil
+}
+
+func getNetworkTimeLinePoint(row []string) agentintegration.ServerMonitorTimeLinePoint {
+	return agentintegration.ServerMonitorTimeLinePoint{
+		Time: row[0],
+		Value: map[string]string{
+			"bytesrecv":   row[1],
+			"bytessent":   row[2],
+			"packetsrecv": row[3],
+			"packetssent": row[4],
+		},
+	}
 }

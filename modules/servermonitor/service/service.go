@@ -56,6 +56,13 @@ func GetService() (*Service, error) {
 	}
 	collectors = append(collectors, diskIOStatCollectors...)
 
+	// network overall statistics
+	networkStatCollector, err := GetStatCollector(&OverallNetworkStatProvider{})
+	if err != nil {
+		return nil, err
+	}
+	collectors = append(collectors, networkStatCollector)
+
 	return &Service{collectors}, nil
 }
 

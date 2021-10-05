@@ -19,7 +19,7 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 
 	switch action := request.GetAction(); action {
 	case "loadTimeLineData":
-		response, err = loadTimeLineData(request.Data)
+		response, err = loadStatisticsData(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -27,7 +27,7 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 	return response, err
 }
 
-func loadTimeLineData(data interface{}) (interface{}, error) {
+func loadStatisticsData(data interface{}) (interface{}, error) {
 	var requestData agentintegration.ServerMonitorTimeLineRequestData
 	err := mapstructure.Decode(data, &requestData)
 
@@ -46,6 +46,8 @@ func loadTimeLineData(data interface{}) (interface{}, error) {
 		responseData, err = handler.LoadDiskUsageTimeLineData(&requestData)
 	case "network":
 		responseData, err = handler.LoadNetworkTimeLineData(&requestData)
+	case "process":
+		responseData, err = handler.LoadProcessStatisticsData(&requestData)
 	default:
 		responseData, err = nil, fmt.Errorf("invalid category '%s' provided", requestData.Category)
 	}

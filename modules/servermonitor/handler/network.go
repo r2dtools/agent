@@ -5,7 +5,7 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-func LoadNetworkTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorNetworkResponseData, error) {
+func LoadNetworkTimeLineData(requestData *agentintegration.ServerMonitorStatisticsRequestData) (*agentintegration.ServerMonitorNetworkResponseData, error) {
 	var responseData agentintegration.ServerMonitorNetworkResponseData
 	responseData.TimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	responseData.InterfacesInfo = make([]map[string]string, 0)

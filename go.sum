@@ -268,6 +268,8 @@ github.com/r2dtools/agentintegration v1.0.1-0.20211003061130-3b54d0d9f9ea h1:dKX
 github.com/r2dtools/agentintegration v1.0.1-0.20211003061130-3b54d0d9f9ea/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/r2dtools/agentintegration v1.0.1-0.20211003064533-7f91b4400a85 h1:v2c10QJWdYR86TX2iguTGi748OLBnh/gSvnee1gnoK0=
 github.com/r2dtools/agentintegration v1.0.1-0.20211003064533-7f91b4400a85/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
+github.com/r2dtools/agentintegration v1.0.1-0.20211006050041-86bda454cf2a h1:l2xqv65PFoctJdmaKQxnEp+6hXwUTHeDRzYZeXU+/p0=
+github.com/r2dtools/agentintegration v1.0.1-0.20211006050041-86bda454cf2a/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

@@ -5,8 +5,8 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-func LoadMemoryTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorTimeLineResponseData, error) {
-	var responseData agentintegration.ServerMonitorTimeLineResponseData
+func LoadMemoryTimeLineData(requestData *agentintegration.ServerMonitorStatisticsRequestData) (*agentintegration.ServerMonitorStatisticsResponseData, error) {
+	var responseData agentintegration.ServerMonitorStatisticsResponseData
 	responseData.Data = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	filter := &service.StatProviderTimeFilter{
 		FromTime: requestData.FromTime,
@@ -23,7 +23,7 @@ func LoadMemoryTimeLineData(requestData *agentintegration.ServerMonitorTimeLineR
 	return &responseData, nil
 }
 
-func loadVirtualMemoryTimeLineData(responseData *agentintegration.ServerMonitorTimeLineResponseData, filter service.StatProviderFilter) error {
+func loadVirtualMemoryTimeLineData(responseData *agentintegration.ServerMonitorStatisticsResponseData, filter service.StatProviderFilter) error {
 	virtualMemoryStatCollector, err := service.GetStatCollector(&service.VirtualMemoryStatPrivider{})
 	if err != nil {
 		return nil
@@ -43,7 +43,7 @@ func loadVirtualMemoryTimeLineData(responseData *agentintegration.ServerMonitorT
 	return nil
 }
 
-func loadSwapMemoryTimeLineData(responseData *agentintegration.ServerMonitorTimeLineResponseData, filter service.StatProviderFilter) error {
+func loadSwapMemoryTimeLineData(responseData *agentintegration.ServerMonitorStatisticsResponseData, filter service.StatProviderFilter) error {
 	swapMemoryStatCollector, err := service.GetStatCollector(&service.SwapMemoryStatPrivider{})
 	if err != nil {
 		return nil

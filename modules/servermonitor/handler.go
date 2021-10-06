@@ -18,7 +18,7 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 	var err error
 
 	switch action := request.GetAction(); action {
-	case "loadTimeLineData":
+	case "loadStatisticsData":
 		response, err = loadStatisticsData(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
@@ -28,7 +28,7 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 }
 
 func loadStatisticsData(data interface{}) (interface{}, error) {
-	var requestData agentintegration.ServerMonitorTimeLineRequestData
+	var requestData agentintegration.ServerMonitorStatisticsRequestData
 	err := mapstructure.Decode(data, &requestData)
 
 	if err != nil {

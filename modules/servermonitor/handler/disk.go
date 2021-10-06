@@ -8,7 +8,7 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorDiskResponseData, error) {
+func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorStatisticsRequestData) (*agentintegration.ServerMonitorDiskResponseData, error) {
 	var responseData agentintegration.ServerMonitorDiskResponseData
 	responseData.DiskUsageTimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	responseData.DiskIOTimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)

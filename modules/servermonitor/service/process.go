@@ -1,37 +1,19 @@
 package service
 
 import (
+	"github.com/r2dtools/agentintegration"
 	proc "github.com/shirou/gopsutil/process"
 )
 
-type ProcessData struct {
-	Name,
-	User,
-	Cmd string
-	Pid,
-	PPid int32
-	Cpu       float64
-	Memory    float32
-	OpenFiles []string
-	NetBytesRecv,
-	NetBytesSent,
-	NetPacketsRecv,
-	NetPacketsSent,
-	DiskReadBytes,
-	DiskWriteBytes,
-	DiskReadCount,
-	DiskWriteCount uint64
-}
-
-func GetProcessesData() ([]ProcessData, error) {
+func GetProcessesData() ([]agentintegration.ProcessData, error) {
 	processes, err := proc.Processes()
 	if err != nil {
 		return nil, err
 	}
 
-	var data []ProcessData
+	var data []agentintegration.ProcessData
 	for _, process := range processes {
-		var processData ProcessData
+		var processData agentintegration.ProcessData
 
 		name, err := process.Name()
 		if err != nil {

@@ -7,8 +7,8 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-func LoadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequestData) (*agentintegration.ServerMonitorTimeLineResponseData, error) {
-	var responseData agentintegration.ServerMonitorTimeLineResponseData
+func LoadCpuTimeLineData(requestData *agentintegration.ServerMonitorStatisticsRequestData) (*agentintegration.ServerMonitorStatisticsResponseData, error) {
+	var responseData agentintegration.ServerMonitorStatisticsResponseData
 	responseData.Data = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	filter := &service.StatProviderTimeFilter{
 		FromTime: requestData.FromTime,
@@ -24,7 +24,7 @@ func LoadCpuTimeLineData(requestData *agentintegration.ServerMonitorTimeLineRequ
 	return &responseData, nil
 }
 
-func loadOverallCpuTimeLineData(responseData *agentintegration.ServerMonitorTimeLineResponseData, filter service.StatProviderFilter) error {
+func loadOverallCpuTimeLineData(responseData *agentintegration.ServerMonitorStatisticsResponseData, filter service.StatProviderFilter) error {
 	overallCpuStatCollector, err := service.GetStatCollector(&service.OverallCPUStatPrivider{})
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func loadOverallCpuTimeLineData(responseData *agentintegration.ServerMonitorTime
 	return nil
 }
 
-func loadCoreCpuTimeLineData(responseData *agentintegration.ServerMonitorTimeLineResponseData, filter service.StatProviderFilter) error {
+func loadCoreCpuTimeLineData(responseData *agentintegration.ServerMonitorStatisticsResponseData, filter service.StatProviderFilter) error {
 	coreCpuStatCollectors, err := service.GetCoreCpuStatCollectors()
 	if err != nil {
 		return err

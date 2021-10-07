@@ -1,11 +1,15 @@
 package service
 
 import (
+	"github.com/r2dtools/agent/system"
 	"github.com/r2dtools/agentintegration"
 	proc "github.com/shirou/gopsutil/process"
 )
 
 func GetProcessesData() ([]agentintegration.ProcessData, error) {
+	system.GetPrivilege().IncreasePrivilege()
+	defer system.GetPrivilege().DropPrivilege()
+
 	processes, err := proc.Processes()
 	if err != nil {
 		return nil, err

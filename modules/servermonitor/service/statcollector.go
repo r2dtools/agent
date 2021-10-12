@@ -89,6 +89,7 @@ func (sc *StatCollector) Load(filter StatProviderFilter) ([][]string, error) {
 	bReader := bufio.NewReaderSize(file, 102400)
 	reader := csv.NewReader(bReader)
 	reader.Comma = '|'
+	reader.FieldsPerRecord = -1
 	var data [][]string
 
 	for {

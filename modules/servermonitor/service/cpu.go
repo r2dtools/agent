@@ -8,6 +8,18 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 )
 
+type lastTimes struct {
+	lastCPUTimes    []cpu.TimesStat
+	lastPerCPUTimes []cpu.TimesStat
+}
+
+var lTimes lastTimes
+
+func init() {
+	lTimes.lastCPUTimes, _ = cpu.Times(false)
+	lTimes.lastPerCPUTimes, _ = cpu.Times(true)
+}
+
 // OverallCPUStatPrivider retrieves overall statistics data for cpu
 type OverallCPUStatPrivider struct{}
 
@@ -21,7 +33,15 @@ func (sc *OverallCPUStatPrivider) GetData() ([]string, error) {
 		return nil, nil
 	}
 
-	return prepareData(items[0])
+	if len(lTimes.lastCPUTimes) == 0 {
+		lTimes.lastCPUTimes = items
+		return nil, nil
+	}
+
+	data, err := prepareCpuData(lTimes.lastCPUTimes[0], items[0])
+	lTimes.lastCPUTimes = items
+
+	return data, err
 }
 
 func (sc *OverallCPUStatPrivider) GetCode() string {
@@ -47,7 +67,15 @@ func (sc *CoreCPUStatPrivider) GetData() ([]string, error) {
 		return nil, nil
 	}
 
-	return prepareData(items[sc.CoreNum-1])
+	if len(lTimes.lastPerCPUTimes) < sc.CoreNum {
+		lTimes.lastPerCPUTimes[sc.CoreNum-1] = items[sc.CoreNum-1]
+		return nil, nil
+	}
+
+	data, err := prepareCpuData(lTimes.lastPerCPUTimes[sc.CoreNum-1], items[sc.CoreNum-1])
+	lTimes.lastPerCPUTimes[sc.CoreNum-1] = items[sc.CoreNum-1]
+
+	return data, err
 }
 
 func (sc *CoreCPUStatPrivider) GetCode() string {
@@ -58,25 +86,40 @@ func (sc *CoreCPUStatPrivider) CheckData(data []string, filter StatProviderFilte
 	return checkData(data, filter)
 }
 
-func prepareData(item cpu.TimesStat) ([]string, error) {
+func prepareCpuData(previous, current cpu.TimesStat) ([]string, error) {
 	var data []string
-	total := item.Total()
-	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
-	data = append(data, getCpuPercertValue(item.System, total))
-	data = append(data, getCpuPercertValue(item.User, total))
-	data = append(data, getCpuPercertValue(item.Nice, total))
-	data = append(data, getCpuPercertValue(item.Idle, total))
 
-	// data: time|system|user|nice|idle
+	system := current.System - previous.System
+	user := current.User - previous.User
+	nice := current.Nice - previous.Nice
+	idle := current.Idle - previous.Idle
+	total := current.Total() - previous.Total()
+	usage := (current.Total() - current.Idle) - (previous.Total() - previous.Idle)
+
+	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
+	data = append(data, getCpuPercertValue(system, total))
+	data = append(data, getCpuPercertValue(user, total))
+	data = append(data, getCpuPercertValue(nice, total))
+	data = append(data, getCpuPercertValue(idle, total))
+	data = append(data, getCpuPercertValue(usage, total))
+
+	// data: time|system|user|nice|idle|usage
 	return data, nil
 }
 
 func getCpuPercertValue(value, total float64) string {
+	if value <= 0 {
+		return "0"
+	}
+	if total <= 0 {
+		return "100"
+	}
+
 	return fmt.Sprintf("%.2f", 100*value/total)
 }
 
 func checkData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 5 {
+	if len(data) < 5 {
 		return false
 	}
 

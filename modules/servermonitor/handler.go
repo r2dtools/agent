@@ -48,8 +48,6 @@ func loadStatisticsData(data interface{}) (interface{}, error) {
 		responseData, err = handler.LoadNetworkTimeLineData(&requestData)
 	case "process":
 		responseData, err = handler.LoadProcessStatisticsData(&requestData)
-	case "overview":
-		responseData, err = handler.LoadOverviewStatisticsData(&requestData)
 	default:
 		responseData, err = nil, fmt.Errorf("invalid category '%s' provided", requestData.Category)
 	}

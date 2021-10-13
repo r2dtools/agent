@@ -8,6 +8,18 @@ import (
 	"github.com/shirou/gopsutil/net"
 )
 
+type lastCounters struct {
+	lastNetworkCounters []net.IOCountersStat
+	lastTime            int64
+}
+
+var lCounters lastCounters
+
+func init() {
+	lCounters.lastNetworkCounters = make([]net.IOCountersStat, 0)
+	lCounters.lastTime = time.Now().Unix()
+}
+
 // OverallNetworkStatProvider retrieves statistics data for the network usage
 type OverallNetworkStatProvider struct{}
 
@@ -19,15 +31,31 @@ func (n *OverallNetworkStatProvider) GetData() ([]string, error) {
 	if len(iCountersStat) == 0 {
 		return nil, nil
 	}
-	stat := iCountersStat[0]
-	var data []string
-	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
-	data = append(data, formatInterfaceValue(stat.BytesRecv))
-	data = append(data, formatInterfaceValue(stat.BytesSent))
-	data = append(data, formatInterfaceValue(stat.PacketsRecv))
-	data = append(data, formatInterfaceValue(stat.PacketsSent))
 
-	// time|bytesrecv|bytessent|packetsrecv|packetssent
+	currentTime := time.Now().Unix()
+
+	if len(lCounters.lastNetworkCounters) == 0 {
+		lCounters.lastNetworkCounters = iCountersStat
+		lCounters.lastTime = currentTime
+		return nil, nil
+	}
+
+	current := iCountersStat[0]
+	previous := lCounters.lastNetworkCounters[0]
+	timeDelta := currentTime - lCounters.lastTime
+
+	var data []string
+	data = append(data, strconv.FormatInt(currentTime, 10))
+	data = append(data, formatBytesSpeed(previous.BytesRecv, current.BytesRecv, timeDelta))
+	data = append(data, formatBytesSpeed(previous.BytesSent, current.BytesSent, timeDelta))
+	data = append(data, formatDiffCount(previous.PacketsRecv, current.PacketsRecv))
+	data = append(data, formatDiffCount(previous.PacketsSent, current.PacketsSent))
+	data = append(data, formatDiffCount(previous.Errin, current.Errin))
+	data = append(data, formatDiffCount(previous.Errout, current.Errout))
+	lCounters.lastNetworkCounters = iCountersStat
+	lCounters.lastTime = currentTime
+
+	// time|bytesrecv|bytessent|packetsrecv|packetssent|errin|errout
 	return data, nil
 }
 
@@ -70,12 +98,6 @@ func GetNetworkInterfacesInfo() ([]map[string]string, error) {
 		}
 		interfaceInfo := make(map[string]string)
 		interfaceInfo["name"] = name
-		interfaceInfo["bytesrecv"] = formatInterfaceValue(iCounterStat.BytesRecv)
-		interfaceInfo["bytessent"] = formatInterfaceValue(iCounterStat.BytesSent)
-		interfaceInfo["packetsrecv"] = formatInterfaceValue(iCounterStat.PacketsRecv)
-		interfaceInfo["packetssent"] = formatInterfaceValue(iCounterStat.PacketsSent)
-		interfaceInfo["errin"] = formatInterfaceValue(iCounterStat.Errin)
-		interfaceInfo["errout"] = formatInterfaceValue(iCounterStat.Errout)
 
 		iStat, ok := iMap[iCounterStat.Name]
 		if !ok || len(iStat.Addrs) == 0 {
@@ -95,6 +117,18 @@ func GetNetworkInterfacesInfo() ([]map[string]string, error) {
 	return data, nil
 }
 
-func formatInterfaceValue(value uint64) string {
-	return strconv.FormatUint(value, 10)
+func formatBytesSpeed(previous, current uint64, time int64) string {
+	if previous > current || time <= 0 {
+		return "0"
+	}
+
+	return strconv.FormatUint((current-previous)/uint64(time), 10)
+}
+
+func formatDiffCount(previous, current uint64) string {
+	if previous > current {
+		return "0"
+	}
+
+	return strconv.FormatUint(current-previous, 10)
 }

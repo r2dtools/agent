@@ -13,6 +13,24 @@ import (
 	"github.com/unknwon/com"
 )
 
+type IOMeasure struct {
+	ReadCount,
+	WriteCount,
+	MergedReadCount,
+	MergedWriteCount,
+	ReadTime,
+	WriteTime,
+	IoTime,
+	ReadBytes,
+	WriteBytes uint64
+}
+
+func init() {
+	lastIOMeasure = make(map[string]IOMeasure)
+}
+
+var lastIOMeasure map[string]IOMeasure
+
 // DiskUsageStatProvider retrieves statistics data for the disk usage
 type DiskUsageStatProvider struct {
 	Mapper *diskService.MountpointIDMapper
@@ -166,8 +184,7 @@ func GetDiskDevices() ([]string, error) {
 
 // DiskIOStatProvider retrieves statistics data for the disk IO
 type DiskIOStatProvider struct {
-	Device           string
-	IOMeasureStorage *diskService.IOMeasureStorage
+	Device string
 }
 
 func (m *DiskIOStatProvider) GetData() ([]string, error) {
@@ -180,14 +197,9 @@ func (m *DiskIOStatProvider) GetData() ([]string, error) {
 		return nil, nil
 	}
 
-	lastMeasure, err := m.IOMeasureStorage.GetLast(m.Device)
-	if err != nil {
-		return nil, err
-	}
-	if lastMeasure == nil {
-		if err = m.setLastMeasure(ioStat); err != nil {
-			return nil, err
-		}
+	lastMeasure, ok := lastIOMeasure[m.Device]
+	if !ok {
+		lastIOMeasure[m.Device] = getLastIOMeasure(ioStat)
 		return nil, nil
 	}
 
@@ -215,9 +227,7 @@ func (m *DiskIOStatProvider) GetData() ([]string, error) {
 	data = append(data, formatIOValue(readBytes))
 	data = append(data, formatIOValue(writeBytes))
 
-	if err = m.setLastMeasure(ioStat); err != nil {
-		return nil, err
-	}
+	lastIOMeasure[m.Device] = getLastIOMeasure(ioStat)
 
 	// time|ReadCount|WriteCount|MergedReadCount|MergedWriteCount|ReadTime|WriteTime|IoTime|ReadBytes|WriteBytes
 	return data, nil
@@ -244,8 +254,8 @@ func (m *DiskIOStatProvider) getDiff(new, old uint64) uint64 {
 	return new - old
 }
 
-func (m *DiskIOStatProvider) setLastMeasure(ioStat disk.IOCountersStat) error {
-	measure := &diskService.IOMeasure{
+func getLastIOMeasure(ioStat disk.IOCountersStat) IOMeasure {
+	return IOMeasure{
 		ReadCount:        ioStat.ReadCount,
 		WriteCount:       ioStat.WriteCount,
 		MergedReadCount:  ioStat.MergedReadCount,
@@ -256,10 +266,6 @@ func (m *DiskIOStatProvider) setLastMeasure(ioStat disk.IOCountersStat) error {
 		ReadBytes:        ioStat.ReadBytes,
 		WriteBytes:       ioStat.WriteBytes,
 	}
-	if err := m.IOMeasureStorage.SetLast(m.Device, measure); err != nil {
-		return err
-	}
-	return nil
 }
 
 func formatSpaceValue(value uint64) string {

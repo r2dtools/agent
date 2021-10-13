@@ -28,7 +28,7 @@ func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorStatis
 }
 
 func loadDiskIOData(responseData *agentintegration.ServerMonitorDiskResponseData, filter service.StatProviderFilter) error {
-	diskIOStatCollectors, err := service.GetDiskIOStatCollectors(false)
+	diskIOStatCollectors, err := service.GetDiskIOStatCollectors()
 	if err != nil {
 		return err
 	}

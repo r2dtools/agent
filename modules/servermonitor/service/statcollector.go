@@ -173,14 +173,9 @@ func GetDiskUsageStatProvider() (StatProvider, error) {
 	return &DiskUsageStatProvider{mounpointIdMapper}, nil
 }
 
-func GetDiskIOStatCollectors(clearLastMeasure bool) ([]*StatCollector, error) {
+func GetDiskIOStatCollectors() ([]*StatCollector, error) {
 	dataFolder := getDataFolder()
 	if err := ensureFolderExists(dataFolder); err != nil {
-		return nil, err
-	}
-
-	ioMeasureStorage, err := disk.GetIOMeasure(dataFolder, clearLastMeasure)
-	if err != nil {
 		return nil, err
 	}
 
@@ -191,7 +186,7 @@ func GetDiskIOStatCollectors(clearLastMeasure bool) ([]*StatCollector, error) {
 
 	var providers []StatProvider
 	for _, device := range devices {
-		providers = append(providers, &DiskIOStatProvider{Device: device, IOMeasureStorage: ioMeasureStorage})
+		providers = append(providers, &DiskIOStatProvider{Device: device})
 	}
 
 	return GetStatCollectors(providers)

@@ -94,6 +94,9 @@ func prepareCpuData(previous, current cpu.TimesStat) ([]string, error) {
 	nice := current.Nice - previous.Nice
 	idle := current.Idle - previous.Idle
 	total := current.Total() - previous.Total()
+	if total < 0 {
+		return nil, nil
+	}
 	usage := (current.Total() - current.Idle) - (previous.Total() - previous.Idle)
 
 	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))

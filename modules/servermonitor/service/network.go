@@ -64,7 +64,7 @@ func (n *OverallNetworkStatProvider) GetCode() string {
 }
 
 func (n *OverallNetworkStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 5 {
+	if len(data) != 7 {
 		return false
 	}
 	if filter != nil {
@@ -112,6 +112,8 @@ func GetNetworkInterfacesInfo() ([]map[string]string, error) {
 
 		interfaceInfo["addresses"] = strings.Join(addresses, ",")
 		data = append(data, interfaceInfo)
+		interfaceInfo["flags"] = strings.Join(iStat.Flags, ",")
+		interfaceInfo["hadwareaddr"] = iStat.HardwareAddr
 	}
 
 	return data, nil

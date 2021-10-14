@@ -46,12 +46,12 @@ func (n *OverallNetworkStatProvider) GetData() ([]string, error) {
 
 	var data []string
 	data = append(data, strconv.FormatInt(currentTime, 10))
-	data = append(data, formatBytesSpeed(previous.BytesRecv, current.BytesRecv, timeDelta))
-	data = append(data, formatBytesSpeed(previous.BytesSent, current.BytesSent, timeDelta))
-	data = append(data, formatDiffCount(previous.PacketsRecv, current.PacketsRecv))
-	data = append(data, formatDiffCount(previous.PacketsSent, current.PacketsSent))
-	data = append(data, formatDiffCount(previous.Errin, current.Errin))
-	data = append(data, formatDiffCount(previous.Errout, current.Errout))
+	data = append(data, formatSpeed(previous.BytesRecv, current.BytesRecv, timeDelta))
+	data = append(data, formatSpeed(previous.BytesSent, current.BytesSent, timeDelta))
+	data = append(data, formatSpeed(previous.PacketsRecv, current.PacketsRecv, timeDelta))
+	data = append(data, formatSpeed(previous.PacketsSent, current.PacketsSent, timeDelta))
+	data = append(data, formatSpeed(previous.Errin, current.Errin, timeDelta))
+	data = append(data, formatSpeed(previous.Errout, current.Errout, timeDelta))
 	lCounters.lastNetworkCounters = iCountersStat
 	lCounters.lastTime = currentTime
 
@@ -119,18 +119,10 @@ func GetNetworkInterfacesInfo() ([]map[string]string, error) {
 	return data, nil
 }
 
-func formatBytesSpeed(previous, current uint64, time int64) string {
+func formatSpeed(previous, current uint64, time int64) string {
 	if previous > current || time <= 0 {
 		return "0"
 	}
 
 	return strconv.FormatUint((current-previous)/uint64(time), 10)
-}
-
-func formatDiffCount(previous, current uint64) string {
-	if previous > current {
-		return "0"
-	}
-
-	return strconv.FormatUint(current-previous, 10)
 }

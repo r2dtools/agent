@@ -3,39 +3,20 @@ package service
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
-	"github.com/r2dtools/agent/modules/servermonitor/service/disk"
-	"github.com/shirou/gopsutil/cpu"
 	"github.com/unknwon/com"
 )
-
-const (
-	OVERALL_CPU_PROVIDER_CODE     = "cpuoverall"
-	CORE_CPU_PROVIDER_CODE        = "cpucore"
-	VIRTUAL_MEMORY_PROVIDER_CODE  = "memoryvirtual"
-	SWAP_MEMORY_PROVIDER_CODE     = "memoryswap"
-	DISK_USAGE_PROVIDER_CODE      = "diskusage"
-	DISK_IO_PROVIDER_CODE         = "diskio"
-	OVERALL_NETWORK_PROVIDER_CODE = "networkoverall"
-)
-
-type StatProvider interface {
-	GetData() ([]string, error)
-	GetCode() string
-	CheckData([]string, StatProviderFilter) bool
-}
-
-type StatProviderFilter interface {
-	Check(row []string) bool
-}
 
 type StatCollector struct {
 	mu       *sync.RWMutex
@@ -44,7 +25,7 @@ type StatCollector struct {
 }
 
 func (sc *StatCollector) Collect() error {
-	data, err := sc.Provider.GetData()
+	data, err := sc.Provider.GetRecord()
 	if err != nil {
 		return err
 	}
@@ -62,9 +43,13 @@ func (sc *StatCollector) Collect() error {
 	}
 	defer file.Close()
 
+	cTime := strconv.FormatInt(time.Now().Unix(), 10)
+	fullData := []string{cTime}
+	fullData = append(fullData, data...)
+
 	writer := csv.NewWriter(file)
 	writer.Comma = '|'
-	if err = writer.Write(data); err != nil {
+	if err = writer.Write(fullData); err != nil {
 		return fmt.Errorf("could not write statistics data for '%s': %v", sc.Provider.GetCode(), err)
 	}
 	writer.Flush()
@@ -90,7 +75,8 @@ func (sc *StatCollector) Load(filter StatProviderFilter) ([][]string, error) {
 	reader := csv.NewReader(bReader)
 	reader.Comma = '|'
 	reader.FieldsPerRecord = -1
-	var data [][]string
+	data := make([][]string, 0)
+	var previousRecord []string
 
 	for {
 		record, err := reader.Read()
@@ -102,29 +88,165 @@ func (sc *StatCollector) Load(filter StatProviderFilter) ([][]string, error) {
 			continue
 		}
 
-		if !sc.Provider.CheckData(record, filter) {
+		if !sc.Provider.CheckRecord(record, filter) {
 			continue
 		}
-		data = append(data, record)
+
+		data = append(data, sc.getExtendedRecords(previousRecord, record, DEFAULT_COLLECT_INTERVALL)...)
+		previousRecord = record
 	}
+	data = sc.averageRecords(data, filter.GetFromTime(), filter.GetToTime())
 
 	return data, nil
 }
 
-// GetCoreCpuStatProviders creates statistics providers for cpu cores
-func GetCoreCpuStatProviders() ([]StatProvider, error) {
-	cores, err := cpu.Counts(false)
+func (sc *StatCollector) averageRecords(records [][]string, fromTime, toTime int) [][]string {
+	if len(records) == 0 {
+		return records
+	}
+	firstRecord := records[0]
+	recordTime, _, err := sc.parseRecord(firstRecord)
 	if err != nil {
-		return nil, fmt.Errorf("could not create statisitcs providers for cpu cores: %v", err)
-	}
-	logger.Debug(fmt.Sprintf("count of cpu cores: %d", cores))
-
-	var providers []StatProvider
-	for i := 1; i <= cores; i++ {
-		providers = append(providers, &CoreCPUStatPrivider{i})
+		logger.Debug(fmt.Sprintf("could not parse first record of data for the provider '%s': %v", sc.Provider.GetCode(), err))
+		return records
 	}
 
-	return providers, nil
+	minTime := fromTime
+	if fromTime < recordTime {
+		minTime = recordTime
+	}
+
+	maxTime := toTime
+	currentTime := time.Now().Unix()
+	if toTime > int(currentTime) {
+		maxTime = int(currentTime)
+	}
+
+	averageCount := sc.getAverageCount(minTime, maxTime)
+	if averageCount <= 0 {
+		return records
+	}
+
+	var averagedRecords [][]string
+	for i := 0; i < len(records); i += averageCount {
+		end := i + averageCount
+		if end > len(records) {
+			end = len(records)
+		}
+		chunk := records[i:end]
+		var averageChunk [][]string
+		var times []int
+		for _, chunkItem := range chunk {
+			time, values, err := sc.parseRecord(chunkItem)
+			if err != nil {
+				continue
+			}
+			times = append(times, time)
+			averageChunk = append(averageChunk, values)
+		}
+
+		if len(times) == 0 {
+			continue
+		}
+		lTime := times[len(times)-1]
+		averageRecord := sc.Provider.GetAverageRecord(averageChunk)
+		averageRecord = append([]string{strconv.Itoa(lTime)}, averageRecord...)
+		averagedRecords = append(averagedRecords, averageRecord)
+	}
+
+	return averagedRecords
+}
+
+// todo: add unit tests
+func (sc *StatCollector) getAverageCount(minTime, maxTime int) int {
+	days := (float64(maxTime) - float64(minTime)) / (60 * 60 * 24) //days count
+	maxDays := math.Ceil(days)
+	if maxDays <= 1 {
+		return -1
+	}
+	count := math.Ceil(maxDays / 7)
+
+	return int(count) * 5
+}
+
+// todo: add unit tests
+func (sc *StatCollector) getFullRecord(fieldsCount int, record []string) []string {
+	nRecord := sc.getEmptyRecord(-1, fieldsCount)
+	iterateCount := len(record)
+	if fieldsCount == iterateCount {
+		return record
+	}
+	if iterateCount > fieldsCount {
+		iterateCount = fieldsCount
+	}
+
+	for i := 0; i < iterateCount; i += 1 {
+		nRecord[i] = record[i]
+	}
+
+	return nRecord
+}
+
+func (sc *StatCollector) getEmptyRecord(time, fieldsCount int) []string {
+	nRecord := make([]string, fieldsCount)
+	for i := range nRecord {
+		if i == 0 {
+			nRecord[i] = ""
+		} else {
+			nRecord[i] = sc.Provider.GetEmptyRecordValue(i)
+		}
+	}
+	if time > 0 {
+		nRecord[0] = strconv.Itoa(time)
+	}
+
+	return nRecord
+}
+
+// todo: add unit tests
+func (sc *StatCollector) getExtendedRecords(previousRecord, record []string, interval time.Duration) [][]string {
+	fieldsCount := sc.Provider.GetFieldsCount() + 1
+	eRecords := [][]string{sc.getFullRecord(fieldsCount, record)}
+
+	if previousRecord == nil {
+		return eRecords
+	}
+
+	lTime, _, err := sc.parseRecord(previousRecord)
+	if err != nil {
+		return eRecords
+	}
+
+	time, _, err := sc.parseRecord(record)
+	if err != nil {
+		return eRecords
+	}
+
+	timeDiff := time - lTime
+	intervalSeconds := interval.Seconds()
+
+	var addRecords [][]string
+	for timeDiff > int(math.Ceil(intervalSeconds)) {
+		time := lTime + int(intervalSeconds)
+		fullRecord := sc.getEmptyRecord(time, fieldsCount)
+		addRecords = append(addRecords, fullRecord)
+		timeDiff = timeDiff - int(intervalSeconds)
+		lTime = time
+	}
+	eRecords = append(addRecords, eRecords...)
+
+	return eRecords
+}
+
+func (sc *StatCollector) parseRecord(record []string) (int, []string, error) {
+	if len(record) == 0 {
+		return 0, nil, errors.New("record is empty")
+	}
+	time, err := strconv.Atoi(record[0])
+	if err != nil {
+		return 0, nil, err
+	}
+	return time, record[1:], nil
 }
 
 func GetCoreCpuStatCollectors() ([]*StatCollector, error) {
@@ -157,20 +279,6 @@ func GetDiskUsageStatCollector() (*StatCollector, error) {
 	}
 
 	return GetStatCollector(provider)
-}
-
-func GetDiskUsageStatProvider() (StatProvider, error) {
-	dataFolder := getDataFolder()
-	if err := ensureFolderExists(dataFolder); err != nil {
-		return nil, err
-	}
-
-	mounpointIdMapper, err := disk.GetMountpointIDMapper(dataFolder)
-	if err != nil {
-		return nil, err
-	}
-
-	return &DiskUsageStatProvider{mounpointIdMapper}, nil
 }
 
 func GetDiskIOStatCollectors() ([]*StatCollector, error) {
@@ -222,29 +330,4 @@ func ensureFolderExists(folder string) error {
 	}
 
 	return nil
-}
-
-type StatProviderTimeFilter struct {
-	FromTime, ToTime int
-}
-
-func (f *StatProviderTimeFilter) Check(row []string) bool {
-	if len(row) == 0 {
-		return false
-	}
-
-	time, err := strconv.Atoi(row[0])
-	if err != nil {
-		return false
-	}
-
-	if f.FromTime > 0 && time < f.FromTime {
-		return false
-	}
-
-	if f.ToTime > 0 && time > f.ToTime {
-		return false
-	}
-
-	return true
 }

@@ -2,8 +2,6 @@ package service
 
 import (
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/shirou/gopsutil/cpu"
 )
@@ -21,9 +19,11 @@ func init() {
 }
 
 // OverallCPUStatPrivider retrieves overall statistics data for cpu
-type OverallCPUStatPrivider struct{}
+type OverallCPUStatPrivider struct {
+	BaseStatProvider
+}
 
-func (sc *OverallCPUStatPrivider) GetData() ([]string, error) {
+func (sc *OverallCPUStatPrivider) GetRecord() ([]string, error) {
 	items, err := cpu.Times(false)
 	if err != nil {
 		return nil, err
@@ -48,16 +48,25 @@ func (sc *OverallCPUStatPrivider) GetCode() string {
 	return OVERALL_CPU_PROVIDER_CODE
 }
 
-func (sc *OverallCPUStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
-	return checkData(data, filter)
+func (sc *OverallCPUStatPrivider) GetAverageRecord(records [][]string) []string {
+	return sc.getAverageRecord(records, sc.GetFieldsCount(), true, sc.GetEmptyRecordValue)
+}
+
+func (sc *OverallCPUStatPrivider) GetFieldsCount() int {
+	return 5
+}
+
+func (sc *OverallCPUStatPrivider) CheckRecord(data []string, filter StatProviderFilter) bool {
+	return checkRecord(data, filter)
 }
 
 // CoreCPUStatPrivider retrieves statistics data for cpu per core
 type CoreCPUStatPrivider struct {
+	BaseStatProvider
 	CoreNum int
 }
 
-func (sc *CoreCPUStatPrivider) GetData() ([]string, error) {
+func (sc *CoreCPUStatPrivider) GetRecord() ([]string, error) {
 	items, err := cpu.Times(true)
 	if err != nil {
 		return nil, err
@@ -78,12 +87,20 @@ func (sc *CoreCPUStatPrivider) GetData() ([]string, error) {
 	return data, err
 }
 
+func (sc *CoreCPUStatPrivider) GetAverageRecord(records [][]string) []string {
+	return sc.getAverageRecord(records, sc.GetFieldsCount(), true, sc.GetEmptyRecordValue)
+}
+
+func (sc *CoreCPUStatPrivider) GetFieldsCount() int {
+	return 5
+}
+
 func (sc *CoreCPUStatPrivider) GetCode() string {
 	return fmt.Sprintf("%s%d", CORE_CPU_PROVIDER_CODE, sc.CoreNum)
 }
 
-func (sc *CoreCPUStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
-	return checkData(data, filter)
+func (sc *CoreCPUStatPrivider) CheckRecord(data []string, filter StatProviderFilter) bool {
+	return checkRecord(data, filter)
 }
 
 func prepareCpuData(previous, current cpu.TimesStat) ([]string, error) {
@@ -99,14 +116,13 @@ func prepareCpuData(previous, current cpu.TimesStat) ([]string, error) {
 	}
 	usage := (current.Total() - current.Idle) - (previous.Total() - previous.Idle)
 
-	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
 	data = append(data, getCpuPercertValue(system, total))
 	data = append(data, getCpuPercertValue(user, total))
 	data = append(data, getCpuPercertValue(nice, total))
 	data = append(data, getCpuPercertValue(idle, total))
 	data = append(data, getCpuPercertValue(usage, total))
 
-	// data: time|system|user|nice|idle|usage
+	// data: system|user|nice|idle|usage
 	return data, nil
 }
 
@@ -121,11 +137,7 @@ func getCpuPercertValue(value, total float64) string {
 	return fmt.Sprintf("%.2f", 100*value/total)
 }
 
-func checkData(data []string, filter StatProviderFilter) bool {
-	if len(data) < 5 {
-		return false
-	}
-
+func checkRecord(data []string, filter StatProviderFilter) bool {
 	if filter != nil {
 		return filter.Check(data)
 	}

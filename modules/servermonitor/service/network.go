@@ -21,9 +21,11 @@ func init() {
 }
 
 // OverallNetworkStatProvider retrieves statistics data for the network usage
-type OverallNetworkStatProvider struct{}
+type OverallNetworkStatProvider struct {
+	BaseStatProvider
+}
 
-func (n *OverallNetworkStatProvider) GetData() ([]string, error) {
+func (n *OverallNetworkStatProvider) GetRecord() ([]string, error) {
 	iCountersStat, err := net.IOCounters(false)
 	if err != nil {
 		return nil, err
@@ -45,7 +47,6 @@ func (n *OverallNetworkStatProvider) GetData() ([]string, error) {
 	timeDelta := currentTime - lCounters.lastTime
 
 	var data []string
-	data = append(data, strconv.FormatInt(currentTime, 10))
 	data = append(data, formatSpeed(previous.BytesRecv, current.BytesRecv, timeDelta))
 	data = append(data, formatSpeed(previous.BytesSent, current.BytesSent, timeDelta))
 	data = append(data, formatSpeed(previous.PacketsRecv, current.PacketsRecv, timeDelta))
@@ -55,18 +56,23 @@ func (n *OverallNetworkStatProvider) GetData() ([]string, error) {
 	lCounters.lastNetworkCounters = iCountersStat
 	lCounters.lastTime = currentTime
 
-	// time|bytesrecv|bytessent|packetsrecv|packetssent|errin|errout
+	// bytesrecv|bytessent|packetsrecv|packetssent|errin|errout
 	return data, nil
+}
+
+func (n *OverallNetworkStatProvider) GetAverageRecord(records [][]string) []string {
+	return n.getAverageRecord(records, n.GetFieldsCount(), false, n.GetEmptyRecordValue)
+}
+
+func (n *OverallNetworkStatProvider) GetFieldsCount() int {
+	return 6
 }
 
 func (n *OverallNetworkStatProvider) GetCode() string {
 	return OVERALL_NETWORK_PROVIDER_CODE
 }
 
-func (n *OverallNetworkStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 7 {
-		return false
-	}
+func (n *OverallNetworkStatProvider) CheckRecord(data []string, filter StatProviderFilter) bool {
 	if filter != nil {
 		return filter.Check(data)
 	}

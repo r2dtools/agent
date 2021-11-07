@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	diskService "github.com/r2dtools/agent/modules/servermonitor/service/disk"
 	"github.com/shirou/gopsutil/disk"
@@ -33,10 +32,11 @@ var lastIOMeasure map[string]IOMeasure
 
 // DiskUsageStatProvider retrieves statistics data for the disk usage
 type DiskUsageStatProvider struct {
+	BaseStatProvider
 	Mapper *diskService.MountpointIDMapper
 }
 
-func (m *DiskUsageStatProvider) GetData() ([]string, error) {
+func (m *DiskUsageStatProvider) GetRecord() ([]string, error) {
 	partitions, err := GetPartitions()
 	if err != nil {
 		return nil, err
@@ -60,22 +60,66 @@ func (m *DiskUsageStatProvider) GetData() ([]string, error) {
 	}
 
 	var data []string
-	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
 	data = append(data, string(usageDataBytes))
 
-	// time|{mountpointId: '', ....}
+	// {mountpointId: '', ....}
 	return data, nil
+}
+
+func (m *DiskUsageStatProvider) GetEmptyRecordValue(index int) string {
+	return "{}"
+}
+
+// todo: add unit tests
+func (m *DiskUsageStatProvider) GetAverageRecord(records [][]string) []string {
+	averageRecordSum := make(map[int]int)
+	averageRecordCount := make(map[int]int)
+	averageRecord := make(map[int]string)
+	for _, record := range records {
+		if len(record) == 0 || record[0] == m.GetEmptyRecordValue(0) {
+			continue
+		}
+
+		recordData := make(map[int]string)
+		if err := json.Unmarshal([]byte(record[0]), &recordData); err != nil {
+			continue
+		}
+		for mountpoint, sValue := range recordData {
+			if _, ok := averageRecordSum[mountpoint]; !ok {
+				averageRecordSum[mountpoint] = 0
+			}
+			value, err := strconv.Atoi(sValue)
+			if err != nil {
+				continue
+			}
+			averageRecordSum[mountpoint] += value
+			averageRecordCount[mountpoint] += 1
+		}
+	}
+
+	for mountpoint, sum := range averageRecordSum {
+		averageRecord[mountpoint] = strconv.Itoa(sum / averageRecordCount[mountpoint])
+	}
+	data := make([]string, 1)
+	averageRecordBytes, err := json.Marshal(averageRecord)
+	if err != nil {
+		data[0] = m.GetEmptyRecordValue(0)
+	} else {
+		data[0] = string(averageRecordBytes)
+	}
+
+	return data
+}
+
+func (m *DiskUsageStatProvider) GetFieldsCount() int {
+	return 1
 }
 
 func (m *DiskUsageStatProvider) GetCode() string {
 	return DISK_USAGE_PROVIDER_CODE
 }
 
-func (m *DiskUsageStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 2 {
-		return false
-	}
-
+func (m *DiskUsageStatProvider) CheckRecord(data []string, filter StatProviderFilter) bool {
 	if filter == nil {
 		return true
 	}
@@ -184,10 +228,11 @@ func GetDiskDevices() ([]string, error) {
 
 // DiskIOStatProvider retrieves statistics data for the disk IO
 type DiskIOStatProvider struct {
+	BaseStatProvider
 	Device string
 }
 
-func (m *DiskIOStatProvider) GetData() ([]string, error) {
+func (m *DiskIOStatProvider) GetRecord() ([]string, error) {
 	ioStats, err := disk.IOCounters(m.Device)
 	if err != nil {
 		return nil, err
@@ -216,7 +261,6 @@ func (m *DiskIOStatProvider) GetData() ([]string, error) {
 		writeBytes = m.getDiff(ioStat.WriteBytes, lastMeasure.WriteBytes) / writeTime
 	}
 
-	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
 	data = append(data, formatIOValue(m.getDiff(ioStat.ReadCount, lastMeasure.ReadCount)))
 	data = append(data, formatIOValue(m.getDiff(ioStat.WriteCount, lastMeasure.WriteCount)))
 	data = append(data, formatIOValue(m.getDiff(ioStat.MergedReadCount, lastMeasure.MergedReadCount)))
@@ -229,14 +273,19 @@ func (m *DiskIOStatProvider) GetData() ([]string, error) {
 
 	lastIOMeasure[m.Device] = getLastIOMeasure(ioStat)
 
-	// time|ReadCount|WriteCount|MergedReadCount|MergedWriteCount|ReadTime|WriteTime|IoTime|ReadBytes|WriteBytes
+	// ReadCount|WriteCount|MergedReadCount|MergedWriteCount|ReadTime|WriteTime|IoTime|ReadBytes|WriteBytes
 	return data, nil
 }
 
-func (m *DiskIOStatProvider) CheckData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 10 {
-		return false
-	}
+func (m *DiskIOStatProvider) GetAverageRecord(records [][]string) []string {
+	return m.getAverageRecord(records, m.GetFieldsCount(), false, m.GetEmptyRecordValue)
+}
+
+func (m *DiskIOStatProvider) GetFieldsCount() int {
+	return 9
+}
+
+func (m *DiskIOStatProvider) CheckRecord(data []string, filter StatProviderFilter) bool {
 	if filter == nil {
 		return true
 	}

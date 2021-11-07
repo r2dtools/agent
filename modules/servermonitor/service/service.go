@@ -75,6 +75,6 @@ func (s *Service) Run() error {
 			}
 		}
 
-		time.Sleep(time.Minute)
+		time.Sleep(DEFAULT_COLLECT_INTERVALL)
 	}
 }

@@ -2,22 +2,22 @@ package service
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/shirou/gopsutil/mem"
 )
 
 // VirtualMemoryStatPrivider retrieves statistics data for memory
-type VirtualMemoryStatPrivider struct{}
+type VirtualMemoryStatPrivider struct {
+	BaseStatProvider
+}
 
-func (m *VirtualMemoryStatPrivider) GetData() ([]string, error) {
+func (m *VirtualMemoryStatPrivider) GetRecord() ([]string, error) {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {
 		return nil, err
 	}
 
 	var data []string
-	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
 	data = append(data, formatMemValue(vmStat.Total))
 	data = append(data, formatMemValue(vmStat.Available))
 	data = append(data, formatMemValue(vmStat.Free))
@@ -27,19 +27,23 @@ func (m *VirtualMemoryStatPrivider) GetData() ([]string, error) {
 	data = append(data, formatMemValue(vmStat.Cached))
 	data = append(data, formatMemValue(vmStat.Buffers))
 
-	// time|total|available|free|used|active|inactive|cached|buffered
+	// total|available|free|used|active|inactive|cached|buffered
 	return data, nil
+}
+
+func (m *VirtualMemoryStatPrivider) GetAverageRecord(records [][]string) []string {
+	return m.getAverageRecord(records, m.GetFieldsCount(), false, m.GetEmptyRecordValue)
+}
+
+func (m *VirtualMemoryStatPrivider) GetFieldsCount() int {
+	return 8
 }
 
 func (m *VirtualMemoryStatPrivider) GetCode() string {
 	return VIRTUAL_MEMORY_PROVIDER_CODE
 }
 
-func (m *VirtualMemoryStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 9 {
-		return false
-	}
-
+func (m *VirtualMemoryStatPrivider) CheckRecord(data []string, filter StatProviderFilter) bool {
 	if filter == nil {
 		return true
 	}
@@ -48,9 +52,11 @@ func (m *VirtualMemoryStatPrivider) CheckData(data []string, filter StatProvider
 }
 
 // SwapMemoryStatPrivider retrieves statistics data for memory
-type SwapMemoryStatPrivider struct{}
+type SwapMemoryStatPrivider struct {
+	BaseStatProvider
+}
 
-func (m *SwapMemoryStatPrivider) GetData() ([]string, error) {
+func (m *SwapMemoryStatPrivider) GetRecord() ([]string, error) {
 	swapStat, err := mem.SwapMemory()
 	if err != nil {
 		return nil, err
@@ -62,24 +68,27 @@ func (m *SwapMemoryStatPrivider) GetData() ([]string, error) {
 	}
 
 	var data []string
-	data = append(data, strconv.FormatInt(time.Now().Unix(), 10))
 	data = append(data, formatMemValue(swapStat.Total))
 	data = append(data, formatMemValue(swapStat.Used))
 	data = append(data, formatMemValue(swapStat.Free))
 
-	// time|total|used|free
+	// total|used|free
 	return data, nil
+}
+
+func (m *SwapMemoryStatPrivider) GetAverageRecord(records [][]string) []string {
+	return m.getAverageRecord(records, m.GetFieldsCount(), false, m.GetEmptyRecordValue)
+}
+
+func (m *SwapMemoryStatPrivider) GetFieldsCount() int {
+	return 3
 }
 
 func (m *SwapMemoryStatPrivider) GetCode() string {
 	return SWAP_MEMORY_PROVIDER_CODE
 }
 
-func (m *SwapMemoryStatPrivider) CheckData(data []string, filter StatProviderFilter) bool {
-	if len(data) != 4 {
-		return false
-	}
-
+func (m *SwapMemoryStatPrivider) CheckRecord(data []string, filter StatProviderFilter) bool {
 	if filter == nil {
 		return true
 	}

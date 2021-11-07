@@ -37,7 +37,6 @@ func (p *BaseStatProvider) GetEmptyRecordValue(index int) string {
 	return ""
 }
 
-// todo: add unit tests
 func (p *BaseStatProvider) getAverageRecord(records [][]string, fieldsCount int, formatFloat bool, getRecordEmptyValue func(int) string) []string {
 	averageRecord := make([]string, fieldsCount)
 	for i := 0; i < fieldsCount; i += 1 {

@@ -29,6 +29,9 @@ jobs:
             dep ensure
         fi
 
+    - name: Run unit tests
+      run: go test ./...
+
     - name: Build
       run: go build -o r2dtools -v main.go
         

@@ -70,7 +70,6 @@ func (m *DiskUsageStatProvider) GetEmptyRecordValue(index int) string {
 	return "{}"
 }
 
-// todo: add unit tests
 func (m *DiskUsageStatProvider) GetAverageRecord(records [][]string) []string {
 	averageRecordSum := make(map[int]int)
 	averageRecordCount := make(map[int]int)
@@ -85,9 +84,6 @@ func (m *DiskUsageStatProvider) GetAverageRecord(records [][]string) []string {
 			continue
 		}
 		for mountpoint, sValue := range recordData {
-			if _, ok := averageRecordSum[mountpoint]; !ok {
-				averageRecordSum[mountpoint] = 0
-			}
 			value, err := strconv.Atoi(sValue)
 			if err != nil {
 				continue
@@ -178,6 +174,10 @@ func GetDiskDevices() ([]string, error) {
 		return nil, err
 	}
 
+	return getDiskDevicesFromPartitions(partitions)
+}
+
+func getDiskDevicesFromPartitions(partitions []disk.PartitionStat) ([]string, error) {
 	sdSubPartitionRegexp, err := regexp.Compile(`^/dev/(sd[a-z]+)(\d*)$`)
 	if err != nil {
 		return nil, err

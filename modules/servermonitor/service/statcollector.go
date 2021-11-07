@@ -157,7 +157,6 @@ func (sc *StatCollector) averageRecords(records [][]string, fromTime, toTime int
 	return averagedRecords
 }
 
-// todo: add unit tests
 func (sc *StatCollector) getAverageCount(minTime, maxTime int) int {
 	days := (float64(maxTime) - float64(minTime)) / (60 * 60 * 24) //days count
 	maxDays := math.Ceil(days)
@@ -169,7 +168,6 @@ func (sc *StatCollector) getAverageCount(minTime, maxTime int) int {
 	return int(count) * 5
 }
 
-// todo: add unit tests
 func (sc *StatCollector) getFullRecord(fieldsCount int, record []string) []string {
 	nRecord := sc.getEmptyRecord(-1, fieldsCount)
 	iterateCount := len(record)
@@ -203,7 +201,6 @@ func (sc *StatCollector) getEmptyRecord(time, fieldsCount int) []string {
 	return nRecord
 }
 
-// todo: add unit tests
 func (sc *StatCollector) getExtendedRecords(previousRecord, record []string, interval time.Duration) [][]string {
 	fieldsCount := sc.Provider.GetFieldsCount() + 1
 	eRecords := [][]string{sc.getFullRecord(fieldsCount, record)}

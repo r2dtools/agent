@@ -223,7 +223,7 @@ func (sc *StatCollector) getExtendedRecords(previousRecord, record []string, int
 	intervalSeconds := interval.Seconds()
 
 	var addRecords [][]string
-	for timeDiff > int(math.Ceil(intervalSeconds)) {
+	for timeDiff > int(math.Ceil(intervalSeconds))+int(interval.Seconds()/2) {
 		time := lTime + int(intervalSeconds)
 		fullRecord := sc.getEmptyRecord(time, fieldsCount)
 		addRecords = append(addRecords, fullRecord)

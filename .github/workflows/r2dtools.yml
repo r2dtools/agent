@@ -6,7 +6,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     env:
-      BUILD_ARCHIVE_NAME: "r2dtools-latest.tar.gz"
+      BUILD_ARCHIVE_NAME: "r2dtools-agent.tar.gz"
     steps:
 
     - name: Set up Go

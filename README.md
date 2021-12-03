@@ -1,4 +1,4 @@
-# R2DTools agent (https://r2dtools.com)
+# R2DTools agent
 Simplify the maintenance of your websites and servers
 
 ## Secure your website with SSL/TLS certificate

@@ -24,9 +24,21 @@ Simple server monitoring helps you track your server parameters such as CPU, Mem
 ## How to install
 
 * Connect to the server via ssh
-* Download the latest version of the agent installer: wget https://github.com/r2dtools/installer/releases/download/v1.0.0/installer
-* Make the installer executable: chmod +x /tmp/installer
-* Install the agent: /tmp/installer install
-* The agent will be installed to the /opt/r2dtools directory
-* Add generated token to the agent configuration file /opt/r2dtools/config/params.yaml: Token: token
-* Restart the agent: systemctl restart r2dtools.service
+* Download the latest version of the agent installer:
+  ```bash 
+  wget https://github.com/r2dtools/installer/releases/download/v1.0.0/installer
+  ```
+* Make the installer executable:
+  ```bash
+  chmod +x /tmp/installer
+  ```
+* Install the agent:
+  ```bash
+  /tmp/installer install
+  ```
+* The agent will be installed to the <strong>/opt/r2dtools</string> directory
+* Add generated token to the agent configuration file <string>/opt/r2dtools/config/params.yaml<string>: Token: <em>token</em>
+* Restart the agent:
+  ```bash
+  systemctl restart r2dtools.service
+  ```

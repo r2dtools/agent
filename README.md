@@ -37,7 +37,7 @@ Simple server monitoring helps you track your server parameters such as CPU, Mem
   /tmp/installer install
   ```
 * The agent will be installed to the <strong>/opt/r2dtools</strong> directory
-* Add generated token to the agent configuration file <strong>/opt/r2dtools/config/params.yaml<strong>: Token: <em>token</em>
+* Add generated token to the agent configuration file <strong>/opt/r2dtools/config/params.yaml</strong>: Token: <em>token</em>
 * Restart the agent:
   ```bash
   systemctl restart r2dtools.service

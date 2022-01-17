@@ -23,7 +23,7 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 		response, err = issue(request.Data)
 	case "upload":
 		response, err = upload(request.Data)
-	case "storage.certnamelist":
+	case "storagecertnamelist":
 		response, err = certNameList(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())

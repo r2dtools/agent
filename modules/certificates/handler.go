@@ -23,6 +23,8 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 		response, err = issue(request.Data)
 	case "upload":
 		response, err = upload(request.Data)
+	case "storage.certnamelist":
+		response, err = certNameList(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -72,4 +74,8 @@ func upload(data interface{}) (*agentintegration.Certificate, error) {
 	}
 
 	return certManager.Upload(&requestData)
+}
+
+func certNameList(data interface{}) (*agentintegration.StorageCertificateNameList, error) {
+	return nil, nil
 }

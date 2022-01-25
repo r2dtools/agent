@@ -9,6 +9,8 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
+const MODULE_ID = "servermonitor"
+
 // Handler handles requests to the module
 type Handler struct{}
 

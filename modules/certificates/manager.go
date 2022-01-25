@@ -175,13 +175,12 @@ func GetCertificateManager() (*CertificateManager, error) {
 
 // getDataPath returns directory path to store data
 func getDataPath() string {
-	return filepath.Join(config.GetConfig().GetVarDirAbsPath(), "modules", "certificates-module")
+	return config.GetConfig().GetModuleVarAbsDir("certificates")
 }
 
 // getCertificatesDirPath returns path to directory where certificates are stored
 func getCertificatesDirPath() string {
 	dataPath := getDataPath()
-
 	return filepath.Join(dataPath, "certificates")
 }
 

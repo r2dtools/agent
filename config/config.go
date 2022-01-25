@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -9,7 +10,7 @@ import (
 )
 
 const (
-	prodMode = true
+	prodMode = false
 	port     = 60150
 	logFile  = "var/log/r2dtools.log"
 	logLevel = 4
@@ -89,11 +90,6 @@ func (c *Config) GetLoggerFileAbsPath() string {
 	return filepath.Join(c.ExecutablePath, c.LogFile)
 }
 
-// GetScriptsDirAbsPath returns absolute path to scripts directory
-func (c *Config) GetScriptsDirAbsPath() string {
-	return filepath.Join(c.ExecutablePath, "scripts")
-}
-
 // Merge merges config already loaded in memory with existing one
 func (c *Config) Merge() error {
 	return c.vConfig.MergeInConfig()
@@ -117,6 +113,11 @@ func (c *Config) GetString(key string) string {
 // GetInt returns int value by key
 func (c *Config) GetInt(key string) int {
 	return c.vConfig.GetInt(key)
+}
+
+// GetModuleVarDir returns module var directiry absolute path
+func (c *Config) GetModuleVarAbsDir(id string) string {
+	return filepath.Join(c.GetVarDirAbsPath(), "modules", fmt.Sprintf("%s-module", id))
 }
 
 // ToMap returns all settings as map

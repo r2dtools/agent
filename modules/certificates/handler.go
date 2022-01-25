@@ -10,6 +10,8 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
+const MODULE_ID = "certificates"
+
 // Handler handles requests to the module
 type Handler struct{}
 

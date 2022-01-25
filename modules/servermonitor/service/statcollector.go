@@ -315,8 +315,7 @@ func GetStatCollector(provider StatProvider) (*StatCollector, error) {
 }
 
 func getDataFolder() string {
-	varDirPath := config.GetConfig().GetVarDirAbsPath()
-	return filepath.Join(varDirPath, "modules", "servermonitor-module", "statistics")
+	return filepath.Join(config.GetConfig().GetModuleVarAbsDir("servermonitor"), "statistics")
 }
 
 func ensureFolderExists(folder string) error {

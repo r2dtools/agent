@@ -27,7 +27,7 @@ const (
 
 // CertificateManager manages certificates: issue, renew, ....
 type CertificateManager struct {
-	legoBinPath string
+	legoBinPath, dataPath string
 }
 
 // Issue issues a certificate
@@ -72,8 +72,8 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		return nil, err
 	}
 
-	certPath := getVhostCertificatePath(serverName, "crt")
-	keyPath := getVhostCertificateKeyPath(serverName)
+	certPath := c.getVhostCertificatePath(serverName, "crt")
+	keyPath := c.getVhostCertificateKeyPath(serverName)
 
 	return c.deployCertificate(serverName, certData.WebServer, certPath, keyPath)
 }
@@ -85,9 +85,9 @@ func (c *CertificateManager) Upload(certData *agentintegration.CertificateUpload
 		return nil, fmt.Errorf("uploaded certificate is invalid: %v", err)
 	}
 
-	certPath := getVhostCertificatePath(certData.ServerName, "pem")
-	keyPath := getVhostCertificateKeyPath(certData.ServerName)
-	ensureCertificatesDirPathExists()
+	certPath := c.getVhostCertificatePath(certData.ServerName, "pem")
+	keyPath := c.getVhostCertificateKeyPath(certData.ServerName)
+	c.ensureCertificatesDirPathExists()
 
 	if err = os.WriteFile(certPath, []byte(certData.PemCertificate), 0644); err != nil {
 		return nil, fmt.Errorf("could not save certificate data: %v", err)
@@ -128,9 +128,8 @@ func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, 
 }
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {
-	ensureDataPathExists()
-	dataPath := getDataPath()
-	aParams := []string{"--server=" + c.getCAServer(), "--accept-tos", "--path=" + dataPath}
+	c.ensureDataPathExists()
+	aParams := []string{"--server=" + c.getCAServer(), "--accept-tos", "--path=" + c.dataPath}
 	params = append(params, aParams...)
 	params = append(params, command)
 	cmd := exec.Command(c.legoBinPath, params...)
@@ -161,6 +160,7 @@ func (c *CertificateManager) getCAServer() string {
 func GetCertificateManager() (*CertificateManager, error) {
 	aConfig := config.GetConfig()
 	legoBinPath := filepath.Join(aConfig.ExecutablePath, "lego")
+	dataPath := aConfig.GetModuleVarAbsDir("certificates")
 
 	if aConfig.IsSet("LegoBinPath") {
 		legoBinPath = aConfig.GetString("LegoBinPath")
@@ -168,28 +168,23 @@ func GetCertificateManager() (*CertificateManager, error) {
 
 	certManager := &CertificateManager{
 		legoBinPath: legoBinPath,
+		dataPath:    dataPath,
 	}
 
 	return certManager, nil
 }
 
-// getDataPath returns directory path to store data
-func getDataPath() string {
-	return config.GetConfig().GetModuleVarAbsDir("certificates")
-}
-
 // getCertificatesDirPath returns path to directory where certificates are stored
-func getCertificatesDirPath() string {
-	dataPath := getDataPath()
-	return filepath.Join(dataPath, "certificates")
+func (c *CertificateManager) getCertificatesDirPath() string {
+	return filepath.Join(c.dataPath, "certificates")
 }
 
-func getVhostCertificatePath(serverName, extension string) string {
-	return filepath.Join(getCertificatesDirPath(), serverName+"."+extension)
+func (c *CertificateManager) getVhostCertificatePath(serverName, extension string) string {
+	return filepath.Join(c.getCertificatesDirPath(), serverName+"."+extension)
 }
 
-func getVhostCertificateKeyPath(serverName string) string {
-	return filepath.Join(getCertificatesDirPath(), serverName+".key")
+func (c *CertificateManager) getVhostCertificateKeyPath(serverName string) string {
+	return filepath.Join(c.getCertificatesDirPath(), serverName+".key")
 }
 
 // GetOutputError returns error message from the stdout
@@ -240,16 +235,14 @@ func removeRegexString(str string, regex string) string {
 	return strings.TrimSpace(str)
 }
 
-func ensureDataPathExists() {
-	dataPath := getDataPath()
-
-	if !com.IsExist(dataPath) {
-		os.MkdirAll(dataPath, 0755)
+func (c *CertificateManager) ensureDataPathExists() {
+	if !com.IsExist(c.dataPath) {
+		os.MkdirAll(c.dataPath, 0755)
 	}
 }
 
-func ensureCertificatesDirPathExists() {
-	certsDirPath := getCertificatesDirPath()
+func (c *CertificateManager) ensureCertificatesDirPathExists() {
+	certsDirPath := c.getCertificatesDirPath()
 
 	if !com.IsExist(certsDirPath) {
 		os.MkdirAll(certsDirPath, 0755)

@@ -10,8 +10,6 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-const MODULE_ID = "certificates"
-
 // Handler handles requests to the module
 type Handler struct{}
 
@@ -79,5 +77,16 @@ func upload(data interface{}) (*agentintegration.Certificate, error) {
 }
 
 func certNameList(data interface{}) (*agentintegration.StorageCertificateNameList, error) {
-	return nil, nil
+	certificateManager, err := GetCertificateManager()
+	if err != nil {
+		return nil, err
+	}
+	certList, err := certificateManager.GetStorageCertList()
+	if err != nil {
+		return nil, err
+	}
+	certNameList := agentintegration.StorageCertificateNameList{
+		CertNameList: certList,
+	}
+	return &certNameList, nil
 }

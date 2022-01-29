@@ -100,6 +100,29 @@ func (c *CertificateManager) Upload(certData *agentintegration.CertificateUpload
 	return c.deployCertificate(certData.ServerName, certData.WebServer, certPath, keyPath)
 }
 
+// GetStorageCertList returns names of all certificates in the storage
+func (c *CertificateManager) GetStorageCertList() ([]string, error) {
+	certExtensions := []string{".crt", ".pem"}
+	certNameList := []string{}
+	certPath := filepath.Join(c.dataPath, "certificates")
+	entries, err := os.ReadDir(certPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not get the list of certificates in the storage: %v", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		certExt := filepath.Ext(name)
+		if !com.IsSliceContainsStr(certExtensions, certExt) {
+			continue
+		}
+		certNameList = append(certNameList, name[:len(name)-len(certExt)])
+	}
+	return certNameList, nil
+}
+
 func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, keyPath string) (*agentintegration.Certificate, error) {
 	webserver, err := webserver.GetWebServer(webServer, config.GetConfig().ToMap())
 	if err != nil {

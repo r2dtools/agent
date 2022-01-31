@@ -3,10 +3,15 @@ package certificate
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
+	"errors"
+	"fmt"
 	"net"
+	"os"
 	"time"
 
 	"github.com/r2dtools/agentintegration"
+	"github.com/unknwon/com"
 )
 
 // GetX509CertificateFromRequest retrieves certificate from http request to domain
@@ -55,7 +60,6 @@ func ConvertX509CertificateToIntCert(certificate *x509.Certificate, roots []*x50
 // GetCertificateForDomainFromRequest returns a certificate for a domain
 func GetCertificateForDomainFromRequest(domain string) (*agentintegration.Certificate, error) {
 	certs, err := GetX509CertificateFromRequest(domain)
-
 	if err != nil {
 		return nil, err
 	}
@@ -71,4 +75,41 @@ func GetCertificateForDomainFromRequest(domain string) (*agentintegration.Certif
 	}
 
 	return ConvertX509CertificateToIntCert(certs[0], roots), nil
+}
+
+// GetCertificateFromFile read and parse certificate from file
+func GetCertificateFromFile(path string) (*agentintegration.Certificate, error) {
+	if !com.IsFile(path) {
+		return nil, fmt.Errorf("certificate file '%s' does not exists", path)
+	}
+	certContent, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("could not read certificate content: %v", err)
+	}
+
+	var bCert []byte
+	for {
+		block, rest := pem.Decode([]byte(certContent))
+		if block == nil {
+			break
+		}
+		// get first certificate in the chain
+		if block.Type == "CERTIFICATE" {
+			bCert = block.Bytes
+			break
+		}
+		certContent = rest
+	}
+
+	if len(bCert) == 0 {
+		return nil, errors.New("could not parse certificate")
+	}
+
+	x509Cert, err := x509.ParseCertificate(bCert)
+	if err != nil {
+		return nil, err
+	}
+	cert := ConvertX509CertificateToIntCert(x509Cert, nil)
+
+	return cert, nil
 }

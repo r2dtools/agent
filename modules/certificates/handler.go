@@ -1,6 +1,7 @@
 package certificates
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
@@ -24,7 +25,9 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 	case "upload":
 		response, err = upload(request.Data)
 	case "storagecertnamelist":
-		response, err = certNameList(request.Data)
+		response, err = storageCertNameList(request.Data)
+	case "storagecertdata":
+		response, err = storageCertData(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -76,7 +79,7 @@ func upload(data interface{}) (*agentintegration.Certificate, error) {
 	return certManager.Upload(&requestData)
 }
 
-func certNameList(data interface{}) (*agentintegration.StorageCertificateNameList, error) {
+func storageCertNameList(data interface{}) (*agentintegration.StorageCertificateNameList, error) {
 	certificateManager, err := GetCertificateManager()
 	if err != nil {
 		return nil, err
@@ -89,4 +92,17 @@ func certNameList(data interface{}) (*agentintegration.StorageCertificateNameLis
 		CertNameList: certList,
 	}
 	return &certNameList, nil
+}
+
+func storageCertData(data interface{}) (*agentintegration.Certificate, error) {
+	certName, ok := data.(string)
+	if !ok {
+		return nil, errors.New("invalid certificate name data is provided")
+	}
+	certificateManager, err := GetCertificateManager()
+	if err != nil {
+		return nil, err
+	}
+
+	return certificateManager.GetStorageCertData(certName)
 }

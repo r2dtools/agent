@@ -102,9 +102,37 @@ func (c *CertificateManager) Upload(certData *agentintegration.CertificateUpload
 
 // GetStorageCertList returns names of all certificates in the storage
 func (c *CertificateManager) GetStorageCertList() ([]string, error) {
-	certExtensions := []string{".crt", ".pem"}
 	certNameList := []string{}
-	certPath := filepath.Join(c.dataPath, "certificates")
+	certNameMap, err := c.getStorageCertNameMap()
+	if err != nil {
+		return certNameList, err
+	}
+	for name, _ := range certNameMap {
+		certNameList = append(certNameList, name)
+	}
+
+	return certNameList, err
+}
+
+// GetStorageCertData returns certificate by name
+func (c *CertificateManager) GetStorageCertData(certName string) (*agentintegration.Certificate, error) {
+	certNameMap, err := c.getStorageCertNameMap()
+	if err != nil {
+		return nil, err
+	}
+	certExt, ok := certNameMap[certName]
+	if !ok {
+		return nil, fmt.Errorf("could not find certificate '%s'", certName)
+	}
+	certPath := filepath.Join(c.getCertificatesDirPath(), certName+certExt)
+
+	return certificate.GetCertificateFromFile(certPath)
+}
+
+func (c *CertificateManager) getStorageCertNameMap() (map[string]string, error) {
+	certExtensions := []string{".crt", ".pem"}
+	certNameMap := make(map[string]string)
+	certPath := c.getCertificatesDirPath()
 	entries, err := os.ReadDir(certPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get the list of certificates in the storage: %v", err)
@@ -118,9 +146,10 @@ func (c *CertificateManager) GetStorageCertList() ([]string, error) {
 		if !com.IsSliceContainsStr(certExtensions, certExt) {
 			continue
 		}
-		certNameList = append(certNameList, name[:len(name)-len(certExt)])
+
+		certNameMap[name[:len(name)-len(certExt)]] = certExt
 	}
-	return certNameList, nil
+	return certNameMap, nil
 }
 
 func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, keyPath string) (*agentintegration.Certificate, error) {

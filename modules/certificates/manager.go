@@ -13,7 +13,6 @@ import (
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/modules/certificates/deploy"
-	"github.com/r2dtools/agent/modules/certificates/utils"
 	"github.com/r2dtools/agent/webserver"
 	"github.com/r2dtools/agentintegration"
 	"github.com/unknwon/com"
@@ -28,6 +27,7 @@ const (
 // CertificateManager manages certificates: issue, renew, ....
 type CertificateManager struct {
 	legoBinPath, dataPath string
+	CertStorage           *Storage
 }
 
 // Issue issues a certificate
@@ -72,84 +72,31 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		return nil, err
 	}
 
-	certPath := c.getVhostCertificatePath(serverName, "crt")
-	keyPath := c.getVhostCertificateKeyPath(serverName)
+	certPath := c.CertStorage.GetVhostCertificatePath(serverName, "crt")
+	keyPath := c.CertStorage.GetVhostCertificateKeyPath(serverName)
 
 	return c.deployCertificate(serverName, certData.WebServer, certPath, keyPath)
 }
 
 // Upload deploys an existed certificate
-func (c *CertificateManager) Upload(certData *agentintegration.CertificateUploadRequestData) (*agentintegration.Certificate, error) {
-	cert, err := utils.LoadCertficateAndKeyFromPem(certData.PemCertificate)
-	if err != nil {
-		return nil, fmt.Errorf("uploaded certificate is invalid: %v", err)
+func (c *CertificateManager) Upload(certName, webServer, pemData string) (*agentintegration.Certificate, error) {
+	var certPath, keyPath string
+	var err error
+	if certPath, keyPath, err = c.CertStorage.AddPemCertificate(certName, pemData); err != nil {
+		return nil, err
 	}
 
-	certPath := c.getVhostCertificatePath(certData.ServerName, "pem")
-	keyPath := c.getVhostCertificateKeyPath(certData.ServerName)
-	c.ensureCertificatesDirPathExists()
-
-	if err = os.WriteFile(certPath, []byte(certData.PemCertificate), 0644); err != nil {
-		return nil, fmt.Errorf("could not save certificate data: %v", err)
-	}
-
-	if err = os.WriteFile(keyPath, cert.PrivateKey, 0644); err != nil {
-		return nil, fmt.Errorf("could not save certificate private key: %v", err)
-	}
-
-	return c.deployCertificate(certData.ServerName, certData.WebServer, certPath, keyPath)
+	return c.deployCertificate(certName, webServer, certPath, keyPath)
 }
 
 // GetStorageCertList returns names of all certificates in the storage
 func (c *CertificateManager) GetStorageCertList() ([]string, error) {
-	certNameList := []string{}
-	certNameMap, err := c.getStorageCertNameMap()
-	if err != nil {
-		return certNameList, err
-	}
-	for name, _ := range certNameMap {
-		certNameList = append(certNameList, name)
-	}
-
-	return certNameList, err
+	return c.CertStorage.GetCertificateNameList()
 }
 
 // GetStorageCertData returns certificate by name
 func (c *CertificateManager) GetStorageCertData(certName string) (*agentintegration.Certificate, error) {
-	certNameMap, err := c.getStorageCertNameMap()
-	if err != nil {
-		return nil, err
-	}
-	certExt, ok := certNameMap[certName]
-	if !ok {
-		return nil, fmt.Errorf("could not find certificate '%s'", certName)
-	}
-	certPath := filepath.Join(c.getCertificatesDirPath(), certName+certExt)
-
-	return certificate.GetCertificateFromFile(certPath)
-}
-
-func (c *CertificateManager) getStorageCertNameMap() (map[string]string, error) {
-	certExtensions := []string{".crt", ".pem"}
-	certNameMap := make(map[string]string)
-	certPath := c.getCertificatesDirPath()
-	entries, err := os.ReadDir(certPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not get the list of certificates in the storage: %v", err)
-	}
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		certExt := filepath.Ext(name)
-		if !com.IsSliceContainsStr(certExtensions, certExt) {
-			continue
-		}
-
-		certNameMap[name[:len(name)-len(certExt)]] = certExt
-	}
-	return certNameMap, nil
+	return c.CertStorage.GetCertificate(certName)
 }
 
 func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, keyPath string) (*agentintegration.Certificate, error) {
@@ -219,24 +166,12 @@ func GetCertificateManager() (*CertificateManager, error) {
 	}
 
 	certManager := &CertificateManager{
+		CertStorage: GetDefaultCertStorage(),
 		legoBinPath: legoBinPath,
 		dataPath:    dataPath,
 	}
 
 	return certManager, nil
-}
-
-// getCertificatesDirPath returns path to directory where certificates are stored
-func (c *CertificateManager) getCertificatesDirPath() string {
-	return filepath.Join(c.dataPath, "certificates")
-}
-
-func (c *CertificateManager) getVhostCertificatePath(serverName, extension string) string {
-	return filepath.Join(c.getCertificatesDirPath(), serverName+"."+extension)
-}
-
-func (c *CertificateManager) getVhostCertificateKeyPath(serverName string) string {
-	return filepath.Join(c.getCertificatesDirPath(), serverName+".key")
 }
 
 // GetOutputError returns error message from the stdout
@@ -290,13 +225,5 @@ func removeRegexString(str string, regex string) string {
 func (c *CertificateManager) ensureDataPathExists() {
 	if !com.IsExist(c.dataPath) {
 		os.MkdirAll(c.dataPath, 0755)
-	}
-}
-
-func (c *CertificateManager) ensureCertificatesDirPathExists() {
-	certsDirPath := c.getCertificatesDirPath()
-
-	if !com.IsExist(certsDirPath) {
-		os.MkdirAll(certsDirPath, 0755)
 	}
 }

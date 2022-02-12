@@ -28,6 +28,8 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 		response, err = storageCertNameList(request.Data)
 	case "storagecertdata":
 		response, err = storageCertData(request.Data)
+	case "storagecertupload":
+		response, err = uploadCertToStorage(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -65,6 +67,10 @@ func upload(data interface{}) (*agentintegration.Certificate, error) {
 		return nil, fmt.Errorf("invalid certificate request data: %v", err)
 	}
 
+	if requestData.ServerName == "" {
+		return nil, errors.New("domain name is missed")
+	}
+
 	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
 		logger.Error(fmt.Sprintf("certificate issue: increase privilege failed: %v", err))
 	}
@@ -76,7 +82,7 @@ func upload(data interface{}) (*agentintegration.Certificate, error) {
 		return nil, err
 	}
 
-	return certManager.Upload(&requestData)
+	return certManager.Upload(requestData.ServerName, requestData.WebServer, requestData.PemCertificate)
 }
 
 func storageCertNameList(data interface{}) (*agentintegration.StorageCertificateNameList, error) {
@@ -105,4 +111,25 @@ func storageCertData(data interface{}) (*agentintegration.Certificate, error) {
 	}
 
 	return certificateManager.GetStorageCertData(certName)
+}
+
+func uploadCertToStorage(data interface{}) (*agentintegration.Certificate, error) {
+	var requestData agentintegration.CertificateUploadRequestData
+	err := mapstructure.Decode(data, &requestData)
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid certificate request data: %v", err)
+	}
+
+	if requestData.CertName == "" {
+		return nil, errors.New("certificate name is missed")
+	}
+
+	storage := GetDefaultCertStorage()
+	_, _, err = storage.AddPemCertificate(requestData.CertName, requestData.PemCertificate)
+	if err != nil {
+		return nil, err
+	}
+
+	return storage.GetCertificate(requestData.CertName)
 }

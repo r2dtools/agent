@@ -99,6 +99,11 @@ func (c *CertificateManager) GetStorageCertData(certName string) (*agentintegrat
 	return c.CertStorage.GetCertificate(certName)
 }
 
+// GetStorageCertData returns certificate by name
+func (c *CertificateManager) RemoveCertificate(certName string) error {
+	return c.CertStorage.RemoveCertificate(certName)
+}
+
 func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, keyPath string) (*agentintegration.Certificate, error) {
 	webserver, err := webserver.GetWebServer(webServer, config.GetConfig().ToMap())
 	if err != nil {

@@ -30,6 +30,8 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 		response, err = storageCertData(request.Data)
 	case "storagecertupload":
 		response, err = uploadCertToStorage(request.Data)
+	case "storagecertremove":
+		err = removeCertFromStorage(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -132,4 +134,14 @@ func uploadCertToStorage(data interface{}) (*agentintegration.Certificate, error
 	}
 
 	return storage.GetCertificate(requestData.CertName)
+}
+
+func removeCertFromStorage(data interface{}) error {
+	certName, ok := data.(string)
+	if !ok {
+		return errors.New("invalid certificate name data is provided")
+	}
+	storage := GetDefaultCertStorage()
+
+	return storage.RemoveCertificate(certName)
 }

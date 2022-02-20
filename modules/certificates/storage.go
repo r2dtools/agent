@@ -73,7 +73,7 @@ func (s *Storage) GetCertificateNameList() ([]string, error) {
 	if err != nil {
 		return certNameList, err
 	}
-	for name, _ := range certNameMap {
+	for name := range certNameMap {
 		certNameList = append(certNameList, name)
 	}
 
@@ -82,17 +82,27 @@ func (s *Storage) GetCertificateNameList() ([]string, error) {
 
 // GetStorageCertData returns certificate by name
 func (s *Storage) GetCertificate(certName string) (*agentintegration.Certificate, error) {
-	certNameMap, err := s.getStorageCertNameMap()
+	certPath, err := s.getCertificatePath(certName)
 	if err != nil {
 		return nil, err
 	}
-	certExt, ok := certNameMap[certName]
-	if !ok {
-		return nil, fmt.Errorf("could not find certificate '%s'", certName)
-	}
-	certPath := s.GetVhostCertificatePath(certName, strings.TrimPrefix(certExt, "."))
 
 	return certificate.GetCertificateFromFile(certPath)
+}
+
+// GetCertificateAsString returns certificate file path and content
+func (s *Storage) GetCertificateAsString(certName string) (string, string, error) {
+	certPath, err := s.getCertificatePath(certName)
+	if err != nil {
+		return "", "", err
+	}
+
+	certContent, err := os.ReadFile(certPath)
+	if err != nil {
+		return "", "", fmt.Errorf("could not read certificate content: %v", err)
+	}
+
+	return certPath, string(certContent), nil
 }
 
 func (s *Storage) getStorageCertNameMap() (map[string]string, error) {
@@ -142,6 +152,20 @@ func (s *Storage) ensureCertificatesDirPathExists() {
 	if !com.IsExist(certsDirPath) {
 		os.MkdirAll(certsDirPath, 0755)
 	}
+}
+
+func (s *Storage) getCertificatePath(certName string) (string, error) {
+	certNameMap, err := s.getStorageCertNameMap()
+	if err != nil {
+		return "", err
+	}
+	certExt, ok := certNameMap[certName]
+	if !ok {
+		return "", fmt.Errorf("could not find certificate '%s'", certName)
+	}
+	certPath := s.GetVhostCertificatePath(certName, strings.TrimPrefix(certExt, "."))
+
+	return certPath, nil
 }
 
 func GetDefaultCertStorage() *Storage {

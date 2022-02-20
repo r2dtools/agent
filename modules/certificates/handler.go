@@ -3,6 +3,7 @@ package certificates
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/r2dtools/agent/logger"
@@ -32,6 +33,8 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 		response, err = uploadCertToStorage(request.Data)
 	case "storagecertremove":
 		err = removeCertFromStorage(request.Data)
+	case "storagecertdownload":
+		response, err = downloadCertFromStorage(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -144,4 +147,22 @@ func removeCertFromStorage(data interface{}) error {
 	storage := GetDefaultCertStorage()
 
 	return storage.RemoveCertificate(certName)
+}
+
+func downloadCertFromStorage(data interface{}) (*agentintegration.CertificateDownloadResponseData, error) {
+	certName, ok := data.(string)
+	if !ok {
+		return nil, errors.New("invalid certificate name data is provided")
+	}
+	storage := GetDefaultCertStorage()
+	certPath, certContent, err := storage.GetCertificateAsString(certName)
+	if err != nil {
+		return nil, err
+	}
+
+	var certDownloadResponse agentintegration.CertificateDownloadResponseData
+	certDownloadResponse.CertFileName = filepath.Base(certPath)
+	certDownloadResponse.CertContent = certContent
+
+	return &certDownloadResponse, nil
 }

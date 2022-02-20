@@ -6,7 +6,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/r2dtools/a2conf v0.1.0
-	github.com/r2dtools/agentintegration v1.1.1-0.20220219162527-24aac9f145be
+	github.com/r2dtools/agentintegration v1.1.1-0.20220220063244-13eaeecb907b
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0

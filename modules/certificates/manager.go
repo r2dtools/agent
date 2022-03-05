@@ -72,10 +72,13 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		return nil, err
 	}
 
-	certPath := c.CertStorage.GetVhostCertificatePath(serverName, "crt")
-	keyPath := c.CertStorage.GetVhostCertificateKeyPath(serverName)
+	if certData.Assign {
+		certPath := c.CertStorage.GetVhostCertificatePath(serverName, "crt")
+		keyPath := c.CertStorage.GetVhostCertificateKeyPath(serverName)
+		return c.deployCertificate(serverName, certData.WebServer, certPath, keyPath)
+	}
 
-	return c.deployCertificate(serverName, certData.WebServer, certPath, keyPath)
+	return c.CertStorage.GetCertificate(serverName)
 }
 
 // Assign assign certificate from the storage to a domain

@@ -78,6 +78,17 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 	return c.deployCertificate(serverName, certData.WebServer, certPath, keyPath)
 }
 
+// Assign assign certificate from the storage to a domain
+func (c *CertificateManager) Assign(certData agentintegration.CertificateAssignRequestData) (*agentintegration.Certificate, error) {
+	certPath, err := c.CertStorage.GetCertificatePath(certData.CertName)
+	if err != nil {
+		return nil, fmt.Errorf("could not assign certificate to the domain '%s': %v", certData.ServerName, err)
+	}
+	keyPath := c.CertStorage.GetVhostCertificateKeyPath(certData.CertName)
+
+	return c.deployCertificate(certData.ServerName, certData.WebServer, certPath, keyPath)
+}
+
 // Upload deploys an existed certificate
 func (c *CertificateManager) Upload(certName, webServer, pemData string) (*agentintegration.Certificate, error) {
 	var certPath, keyPath string

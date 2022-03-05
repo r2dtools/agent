@@ -22,9 +22,9 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 
 	switch action := request.GetAction(); action {
 	case "issue":
-		response, err = issue(request.Data)
+		response, err = issueCertificateToDomain(request.Data)
 	case "upload":
-		response, err = upload(request.Data)
+		response, err = uploadCertificateToDomain(request.Data)
 	case "storagecertnamelist":
 		response, err = storageCertNameList(request.Data)
 	case "storagecertdata":
@@ -35,6 +35,8 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 		err = removeCertFromStorage(request.Data)
 	case "storagecertdownload":
 		response, err = downloadCertFromStorage(request.Data)
+	case "domainassign":
+		response, err = assignCertificateToDomain(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -42,7 +44,7 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 	return response, err
 }
 
-func issue(data interface{}) (*agentintegration.Certificate, error) {
+func issueCertificateToDomain(data interface{}) (*agentintegration.Certificate, error) {
 	var certData agentintegration.CertificateIssueRequestData
 	err := mapstructure.Decode(data, &certData)
 
@@ -64,7 +66,7 @@ func issue(data interface{}) (*agentintegration.Certificate, error) {
 	return certManager.Issue(certData)
 }
 
-func upload(data interface{}) (*agentintegration.Certificate, error) {
+func uploadCertificateToDomain(data interface{}) (*agentintegration.Certificate, error) {
 	var requestData agentintegration.CertificateUploadRequestData
 	err := mapstructure.Decode(data, &requestData)
 
@@ -165,4 +167,25 @@ func downloadCertFromStorage(data interface{}) (*agentintegration.CertificateDow
 	certDownloadResponse.CertContent = certContent
 
 	return &certDownloadResponse, nil
+}
+
+func assignCertificateToDomain(data interface{}) (*agentintegration.Certificate, error) {
+	var certData agentintegration.CertificateAssignRequestData
+	err := mapstructure.Decode(data, &certData)
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid certificate request data: %v", err)
+	}
+
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("certificate issue: increase privilege failed: %v", err))
+	}
+
+	defer system.GetPrivilege().DropPrivilege()
+	certManager, err := GetCertificateManager()
+	if err != nil {
+		return nil, err
+	}
+
+	return certManager.Assign(certData)
 }

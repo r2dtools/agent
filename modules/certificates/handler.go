@@ -55,10 +55,9 @@ func issueCertificateToDomain(data interface{}) (*agentintegration.Certificate, 
 	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
 		logger.Error(fmt.Sprintf("certificate issue: increase privilege failed: %v", err))
 	}
-
 	defer system.GetPrivilege().DropPrivilege()
-	certManager, err := GetCertificateManager()
 
+	certManager, err := GetCertificateManager()
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +96,12 @@ func storageCertNameList(data interface{}) (*agentintegration.StorageCertificate
 	if err != nil {
 		return nil, err
 	}
+
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("storageCertNameList: increase privilege failed: %v", err))
+	}
+	defer system.GetPrivilege().DropPrivilege()
+
 	certList, err := certificateManager.GetStorageCertList()
 	if err != nil {
 		return nil, err
@@ -117,6 +122,11 @@ func storageCertData(data interface{}) (*agentintegration.Certificate, error) {
 		return nil, err
 	}
 
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("storageCertData: increase privilege failed: %v", err))
+	}
+	defer system.GetPrivilege().DropPrivilege()
+
 	return certificateManager.GetStorageCertData(certName)
 }
 
@@ -132,6 +142,11 @@ func uploadCertToStorage(data interface{}) (*agentintegration.Certificate, error
 		return nil, errors.New("certificate name is missed")
 	}
 
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("uploadCertToStorage: increase privilege failed: %v", err))
+	}
+	defer system.GetPrivilege().DropPrivilege()
+
 	storage := GetDefaultCertStorage()
 	_, _, err = storage.AddPemCertificate(requestData.CertName, requestData.PemCertificate)
 	if err != nil {
@@ -146,8 +161,13 @@ func removeCertFromStorage(data interface{}) error {
 	if !ok {
 		return errors.New("invalid certificate name data is provided")
 	}
-	storage := GetDefaultCertStorage()
 
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("removeCertFromStorage: increase privilege failed: %v", err))
+	}
+	defer system.GetPrivilege().DropPrivilege()
+
+	storage := GetDefaultCertStorage()
 	return storage.RemoveCertificate(certName)
 }
 
@@ -156,6 +176,12 @@ func downloadCertFromStorage(data interface{}) (*agentintegration.CertificateDow
 	if !ok {
 		return nil, errors.New("invalid certificate name data is provided")
 	}
+
+	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
+		logger.Error(fmt.Sprintf("downloadCertFromStorage: increase privilege failed: %v", err))
+	}
+	defer system.GetPrivilege().DropPrivilege()
+
 	storage := GetDefaultCertStorage()
 	certPath, certContent, err := storage.GetCertificateAsString(certName)
 	if err != nil {
@@ -180,8 +206,8 @@ func assignCertificateToDomain(data interface{}) (*agentintegration.Certificate,
 	if err := system.GetPrivilege().IncreasePrivilege(); err != nil {
 		logger.Error(fmt.Sprintf("certificate issue: increase privilege failed: %v", err))
 	}
-
 	defer system.GetPrivilege().DropPrivilege()
+
 	certManager, err := GetCertificateManager()
 	if err != nil {
 		return nil, err

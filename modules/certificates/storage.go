@@ -109,6 +109,7 @@ func (s *Storage) getStorageCertNameMap() (map[string]string, error) {
 	certExtensions := []string{".crt", ".pem"}
 	certNameMap := make(map[string]string)
 	certPath := s.GetCertificatesDirPath()
+	s.ensureCertificatesDirPathExists()
 	entries, err := os.ReadDir(certPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get the list of certificates in the storage: %v", err)

@@ -54,7 +54,7 @@ func (s *Server) Serve() error {
 		}
 
 		logger.Info(fmt.Sprintf("accepted connection from the remote address: %v", conn.RemoteAddr()))
-		go handleConn(conn)
+		handleConn(conn)
 	}
 }
 

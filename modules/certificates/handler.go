@@ -148,7 +148,7 @@ func uploadCertToStorage(data interface{}) (*agentintegration.Certificate, error
 	defer system.GetPrivilege().DropPrivilege()
 
 	storage := GetDefaultCertStorage()
-	_, _, err = storage.AddPemCertificate(requestData.CertName, requestData.PemCertificate)
+	_, err = storage.AddPemCertificate(requestData.CertName, requestData.PemCertificate)
 	if err != nil {
 		return nil, err
 	}

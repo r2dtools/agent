@@ -8,7 +8,6 @@ import (
 
 	"github.com/r2dtools/agent/certificate"
 	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/modules/certificates/utils"
 	"github.com/r2dtools/agentintegration"
 	"github.com/unknwon/com"
 )
@@ -18,25 +17,15 @@ type Storage struct {
 }
 
 // AddCertificate add .pem certificate to the storage
-func (s *Storage) AddPemCertificate(certName, pemData string) (string, string, error) {
-	cert, err := utils.LoadCertficateAndKeyFromPem(pemData)
-	if err != nil {
-		return "", "", fmt.Errorf("uploaded certificate is invalid: %v", err)
-	}
-
+func (s *Storage) AddPemCertificate(certName, pemData string) (string, error) {
 	certPath := s.GetVhostCertificatePath(certName, "pem")
-	keyPath := s.GetVhostCertificateKeyPath(certName)
 	s.ensureCertificatesDirPathExists()
 
 	if err := os.WriteFile(certPath, []byte(pemData), 0644); err != nil {
-		return "", "", fmt.Errorf("could not save certificate data to the storage: %v", err)
+		return "", fmt.Errorf("could not save certificate data to the storage: %v", err)
 	}
 
-	if err := os.WriteFile(keyPath, cert.PrivateKey, 0644); err != nil {
-		return "", "", fmt.Errorf("could not save certificate private key to the storage: %v", err)
-	}
-
-	return certPath, keyPath, nil
+	return certPath, nil
 }
 
 // RemoveCertificate remove certificate from the storage
@@ -106,7 +95,7 @@ func (s *Storage) GetCertificateAsString(certName string) (string, string, error
 }
 
 func (s *Storage) getStorageCertNameMap() (map[string]string, error) {
-	certExtensions := []string{".crt", ".pem"}
+	certExtensions := []string{".pem"}
 	certNameMap := make(map[string]string)
 	certPath := s.GetCertificatesDirPath()
 	if !com.IsExist(certPath) {

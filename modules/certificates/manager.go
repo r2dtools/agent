@@ -73,9 +73,8 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 	}
 
 	if certData.Assign {
-		certPath := c.CertStorage.GetVhostCertificatePath(serverName, "crt")
-		keyPath := c.CertStorage.GetVhostCertificateKeyPath(serverName)
-		return c.deployCertificate(serverName, certData.WebServer, certPath, keyPath)
+		certPath := c.CertStorage.GetVhostCertificatePath(serverName, "pem")
+		return c.deployCertificate(serverName, certData.WebServer, certPath, certPath)
 	}
 
 	return c.CertStorage.GetCertificate(serverName)
@@ -87,20 +86,19 @@ func (c *CertificateManager) Assign(certData agentintegration.CertificateAssignR
 	if err != nil {
 		return nil, fmt.Errorf("could not assign certificate to the domain '%s': %v", certData.ServerName, err)
 	}
-	keyPath := c.CertStorage.GetVhostCertificateKeyPath(certData.CertName)
 
-	return c.deployCertificate(certData.ServerName, certData.WebServer, certPath, keyPath)
+	return c.deployCertificate(certData.ServerName, certData.WebServer, certPath, certPath)
 }
 
 // Upload deploys an existed certificate
 func (c *CertificateManager) Upload(certName, webServer, pemData string) (*agentintegration.Certificate, error) {
-	var certPath, keyPath string
+	var certPath string
 	var err error
-	if certPath, keyPath, err = c.CertStorage.AddPemCertificate(certName, pemData); err != nil {
+	if certPath, err = c.CertStorage.AddPemCertificate(certName, pemData); err != nil {
 		return nil, err
 	}
 
-	return c.deployCertificate(certName, webServer, certPath, keyPath)
+	return c.deployCertificate(certName, webServer, certPath, certPath)
 }
 
 // GetStorageCertList returns names of all certificates in the storage
@@ -147,7 +145,7 @@ func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, 
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {
 	c.ensureDataPathExists()
-	aParams := []string{"--server=" + c.getCAServer(), "--accept-tos", "--path=" + c.dataPath}
+	aParams := []string{"--server=" + c.getCAServer(), "--accept-tos", "--path=" + c.dataPath, "--pem"}
 	params = append(params, aParams...)
 	params = append(params, command)
 	cmd := exec.Command(c.legoBinPath, params...)

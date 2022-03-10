@@ -15,11 +15,17 @@ func RegisterHandlers(router *router.Router) {
 }
 
 func RegisterSercices(serviceManager *service.ServiceManager) error {
-	smService, err := serverMonitorService.GetService()
+	smService, err := serverMonitorService.GetStatCollectorService()
+	if err != nil {
+		return err
+	}
+	scService, err := serverMonitorService.GetStatCleanerService()
 	if err != nil {
 		return err
 	}
 
 	serviceManager.AddService("servermonitor.statcollector", smService)
+	serviceManager.AddService("servermonitor.statcleaner", scService)
+
 	return nil
 }

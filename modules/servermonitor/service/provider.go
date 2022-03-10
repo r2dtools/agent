@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/r2dtools/agent/logger"
 	"github.com/r2dtools/agent/modules/servermonitor/service/disk"
@@ -18,8 +17,6 @@ const (
 	DISK_USAGE_PROVIDER_CODE      = "diskusage"
 	DISK_IO_PROVIDER_CODE         = "diskio"
 	OVERALL_NETWORK_PROVIDER_CODE = "networkoverall"
-
-	DEFAULT_COLLECT_INTERVALL = time.Minute
 )
 
 type StatProvider interface {

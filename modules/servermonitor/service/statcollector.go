@@ -100,6 +100,96 @@ func (sc *StatCollector) Load(filter StatProviderFilter) ([][]string, error) {
 	return data, nil
 }
 
+func (sc *StatCollector) Clean(filter StatProviderFilter) error {
+	sc.mu.Lock()
+	defer sc.mu.Unlock()
+
+	file, err := os.Open(sc.FilePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Comma = '|'
+	reader.FieldsPerRecord = -1
+	recordsToRemove := [][]string{}
+
+	for {
+		record, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				logger.Debug(fmt.Sprintf("could not read record from '%s' collector when data cleaning: %v", sc.Provider.GetCode(), err))
+				continue
+			}
+
+		}
+
+		if sc.Provider.CheckRecord(record, filter) {
+			recordsToRemove = append(recordsToRemove, record)
+		} else {
+			break
+		}
+	}
+
+	if len(recordsToRemove) == 0 {
+		return nil
+	}
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+
+	var pos int64
+	linesCount := 0
+	bReader := bufio.NewReader(file)
+
+	for {
+		bRecord, err := bReader.ReadBytes('\n')
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		pos += int64(len(bRecord))
+		linesCount++
+		if linesCount >= len(recordsToRemove) {
+			break
+		}
+	}
+
+	_, err = file.Seek(pos, 0)
+	if err != nil {
+		return err
+	}
+
+	nFilePath := sc.FilePath + ".tmp"
+	nFile, err := os.Create(nFilePath)
+	if err != nil {
+		return err
+	}
+	defer nFile.Close()
+
+	_, err = io.Copy(nFile, file)
+	if err != nil {
+		return err
+	}
+	if err := nFile.Sync(); err != nil {
+		return err
+	}
+
+	if err := os.Rename(nFilePath, sc.FilePath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (sc *StatCollector) averageRecords(records [][]string, fromTime, toTime int) [][]string {
 	if len(records) == 0 {
 		return records

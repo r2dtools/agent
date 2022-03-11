@@ -1,7 +1,11 @@
 package service
 
 import (
+	"fmt"
+	"io"
+	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -88,6 +92,68 @@ func TestGetExtendedRecords(t *testing.T) {
 			if !com.CompareSliceStr(extendedRecord, item.expectedRecords[index]) {
 				t.Errorf("invalid extended record. Expected %s, got %s", strings.Join(item.expectedRecords[index], ","), strings.Join(extendedRecord, ","))
 			}
+		}
+	}
+}
+
+func TestClean(t *testing.T) {
+	cpuFilePath := "../testdata/cpu"
+
+	toTimes := []int{1646920735, 1646753350}
+	for _, toTime := range toTimes {
+		originFile, err := os.Open("../testdata/cpu.origin")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		file, err := os.Create(cpuFilePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_, err = io.Copy(file, originFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		statCollector := StatCollector{
+			Provider: &OverallCPUStatPrivider{},
+			FilePath: cpuFilePath,
+			mu:       &sync.RWMutex{},
+		}
+
+		filter := StatProviderTimeFilter{
+			FromTime: 0,
+			ToTime:   toTime,
+		}
+		if err := statCollector.Clean(&filter); err != nil {
+			t.Fatal(err)
+		}
+
+		bytes, err := os.ReadFile(cpuFilePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		records := string(bytes)
+
+		bytes, err = os.ReadFile(fmt.Sprintf("../testdata/cpu.%d.expected", toTime))
+		if err != nil {
+			t.Fatal(err)
+		}
+		expectedRecords := string(bytes)
+
+		if records != expectedRecords {
+			t.Errorf("invalid records after statistics data cleaning. Expected %s, got %s", expectedRecords, records)
+		}
+
+		if err := file.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove(cpuFilePath); err != nil {
+			t.Fatal(err)
+		}
+		if err := originFile.Close(); err != nil {
+			t.Fatal(err)
 		}
 	}
 }

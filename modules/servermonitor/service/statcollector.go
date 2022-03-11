@@ -117,14 +117,12 @@ func (sc *StatCollector) Clean(filter StatProviderFilter) error {
 
 	for {
 		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				logger.Debug(fmt.Sprintf("could not read record from '%s' collector when data cleaning: %v", sc.Provider.GetCode(), err))
-				continue
-			}
-
+			logger.Debug(fmt.Sprintf("could not read record from '%s' collector when data cleaning: %v", sc.Provider.GetCode(), err))
+			continue
 		}
 
 		if sc.Provider.CheckRecord(record, filter) {

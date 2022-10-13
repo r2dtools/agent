@@ -33,11 +33,11 @@ jobs:
       run: go test ./...
 
     - name: Build
-      run: go build -o r2dtools -v main.go
+      run: go build -o r2dtools -v cmd/main.go
         
     - name: Prepare build directory
       run: |
-        mkdir build build/config
+        mkdir -p build build/config
         mv r2dtools .version LICENSE build/
         mv config/params.yaml build/config/
 

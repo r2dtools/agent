@@ -9,7 +9,6 @@ import (
 	"github.com/r2dtools/agent/config"
 )
 
-// GetAgentVersion returns agent version
 func GetAgentVersion() (string, error) {
 	config := config.GetConfig()
 	output, err := ioutil.ReadFile(filepath.Join(config.ExecutablePath, ".version"))

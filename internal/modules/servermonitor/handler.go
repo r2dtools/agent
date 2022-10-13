@@ -10,12 +10,10 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-// Handler handles requests to the module
 type Handler struct {
-	Logger logger.LoggerInterface
+	logger logger.LoggerInterface
 }
 
-// Handle handles request to the module
 func (h *Handler) Handle(request router.Request) (interface{}, error) {
 	var response interface{}
 	var err error
@@ -42,13 +40,13 @@ func (h *Handler) loadStatisticsData(data interface{}) (interface{}, error) {
 
 	switch requestData.Category {
 	case "cpu":
-		responseData, err = handler.LoadCpuTimeLineData(&requestData, h.Logger)
+		responseData, err = handler.LoadCpuTimeLineData(&requestData, h.logger)
 	case "memory":
-		responseData, err = handler.LoadMemoryTimeLineData(&requestData, h.Logger)
+		responseData, err = handler.LoadMemoryTimeLineData(&requestData, h.logger)
 	case "disk":
-		responseData, err = handler.LoadDiskUsageTimeLineData(&requestData, h.Logger)
+		responseData, err = handler.LoadDiskUsageTimeLineData(&requestData, h.logger)
 	case "network":
-		responseData, err = handler.LoadNetworkTimeLineData(&requestData, h.Logger)
+		responseData, err = handler.LoadNetworkTimeLineData(&requestData, h.logger)
 	case "process":
 		responseData, err = handler.LoadProcessStatisticsData(&requestData)
 	default:
@@ -56,4 +54,8 @@ func (h *Handler) loadStatisticsData(data interface{}) (interface{}, error) {
 	}
 
 	return responseData, err
+}
+
+func GetHandler(logger logger.LoggerInterface) router.HandlerInterface {
+	return &Handler{logger}
 }

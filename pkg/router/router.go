@@ -2,25 +2,25 @@ package router
 
 import "fmt"
 
-type Handler interface {
+type HandlerInterface interface {
 	Handle(request Request) (interface{}, error)
 }
 
 type Router struct {
-	handlers map[string]Handler
+	handlers map[string]HandlerInterface
 }
 
-func (r *Router) RegisterHandler(module string, handler Handler) {
+func (r *Router) RegisterHandler(module string, handler HandlerInterface) {
 	if r.handlers == nil {
-		r.handlers = make(map[string]Handler)
+		r.handlers = make(map[string]HandlerInterface)
 	}
 
 	r.handlers[module] = handler
 }
 
-func (r *Router) GetHandler(request Request) Handler {
+func (r *Router) GetHandler(request Request) HandlerInterface {
 	if r.handlers == nil {
-		r.handlers = make(map[string]Handler)
+		r.handlers = make(map[string]HandlerInterface)
 	}
 
 	return r.handlers[request.GetModule()]

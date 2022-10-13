@@ -37,7 +37,7 @@ jobs:
         
     - name: Prepare build directory
       run: |
-        mkdir -p build build/config
+        mkdir -p build/config
         mv r2dtools .version LICENSE build/
         mv config/params.yaml build/config/
 

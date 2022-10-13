@@ -11,12 +11,11 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-// Handler handles requests to the module
 type Handler struct {
-	Logger logger.LoggerInterface
+	certificateManager *CertificateManager
+	logger             logger.LoggerInterface
 }
 
-// Handle handles request to the module
 func (h *Handler) Handle(request router.Request) (interface{}, error) {
 	var response interface{}
 	var err error
@@ -53,12 +52,7 @@ func (h *Handler) issueCertificateToDomain(data interface{}) (*agentintegration.
 		return nil, fmt.Errorf("invalid certificate request data: %v", err)
 	}
 
-	certManager, err := GetCertificateManager(h.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	return certManager.Issue(certData)
+	return h.certificateManager.Issue(certData)
 }
 
 func (h *Handler) uploadCertificateToDomain(data interface{}) (*agentintegration.Certificate, error) {
@@ -73,22 +67,11 @@ func (h *Handler) uploadCertificateToDomain(data interface{}) (*agentintegration
 		return nil, errors.New("domain name is missed")
 	}
 
-	certManager, err := GetCertificateManager(h.Logger)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return certManager.Upload(requestData.ServerName, requestData.WebServer, requestData.PemCertificate)
+	return h.certificateManager.Upload(requestData.ServerName, requestData.WebServer, requestData.PemCertificate)
 }
 
 func (h *Handler) storageCertNameList(data interface{}) (*agentintegration.StorageCertificateNameList, error) {
-	certificateManager, err := GetCertificateManager(h.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	certList, err := certificateManager.GetStorageCertList()
+	certList, err := h.certificateManager.GetStorageCertList()
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +86,8 @@ func (h *Handler) storageCertData(data interface{}) (*agentintegration.Certifica
 	if !ok {
 		return nil, errors.New("invalid certificate name data is provided")
 	}
-	certificateManager, err := GetCertificateManager(h.Logger)
-	if err != nil {
-		return nil, err
-	}
 
-	return certificateManager.GetStorageCertData(certName)
+	return h.certificateManager.GetStorageCertData(certName)
 }
 
 func (h *Handler) uploadCertToStorage(data interface{}) (*agentintegration.Certificate, error) {
@@ -169,10 +148,14 @@ func (h *Handler) assignCertificateToDomain(data interface{}) (*agentintegration
 		return nil, fmt.Errorf("invalid certificate request data: %v", err)
 	}
 
-	certManager, err := GetCertificateManager(h.Logger)
+	return h.certificateManager.Assign(certData)
+}
+
+func GetHandler(logger logger.LoggerInterface) (router.HandlerInterface, error) {
+	certManager, err := GetCertificateManager(logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return certManager.Assign(certData)
+	return &Handler{logger: logger, certificateManager: certManager}, nil
 }

@@ -173,7 +173,6 @@ func (c *CertificateManager) getCAServer() string {
 	return aConfig.GetString("CAServer")
 }
 
-// GetCertificateManager creates CertificateManager instance
 func GetCertificateManager(logger logger.LoggerInterface) (*CertificateManager, error) {
 	aConfig := config.GetConfig()
 	legoBinPath := filepath.Join(aConfig.ExecutablePath, "lego")

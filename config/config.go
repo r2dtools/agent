@@ -10,10 +10,9 @@ import (
 )
 
 const (
-	prodMode = true
+	prodMode = false
 	port     = 60150
 	logFile  = "var/log/r2dtools.log"
-	logLevel = 4
 )
 
 // Config stores agent configuration params
@@ -22,8 +21,9 @@ type Config struct {
 	ExecutablePath,
 	ConfigPath,
 	Token string
-	LogLevel, Port int
-	vConfig        *viper.Viper
+	Port       int
+	IsProdMode bool
+	vConfig    *viper.Viper
 }
 
 var config *Config
@@ -56,7 +56,6 @@ func GetConfig() *Config {
 	vConfig := viper.New()
 	vConfig.SetDefault("Port", port)
 	vConfig.SetDefault("LogFile", logFile)
-	vConfig.SetDefault("LogLevel", logLevel)
 
 	configPath := filepath.Join(executablePath, "config")
 	configFilePath := filepath.Join(configPath, "params.yaml")
@@ -75,10 +74,10 @@ func GetConfig() *Config {
 	config = &Config{
 		Port:           vConfig.GetInt("Port"),
 		LogFile:        vConfig.GetString("LogFile"),
-		LogLevel:       vConfig.GetInt("LogLevel"),
 		Token:          vConfig.GetString("Token"),
 		ExecutablePath: executablePath,
 		ConfigPath:     configPath,
+		IsProdMode:     prodMode,
 		vConfig:        vConfig,
 	}
 

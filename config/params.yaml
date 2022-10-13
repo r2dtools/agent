@@ -1,5 +1,4 @@
 Port: 60150
 LogFile: "var/log/r2dtools.log"
-LogLevel: 4
-Token: "25da207c44f95990ad681a704cc4f22ec32999c270e73ca7"
+Token: "f3075968d9f23e04ccfe671c0a305e80e67ded637c5eaace"
 CAServer: "https://acme-v02.api.letsencrypt.org/directory"

@@ -13,6 +13,8 @@ var rootCmd = &cobra.Command{
 
 func main() {
 	rootCmd.AddCommand(server.ServeCmd)
+	rootCmd.AddCommand(server.VersionCmd)
+
 	if err := rootCmd.Execute(); err != nil {
 		panic(err)
 	}

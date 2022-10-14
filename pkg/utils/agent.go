@@ -2,16 +2,15 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/r2dtools/agent/config"
 )
 
-func GetAgentVersion() (string, error) {
-	config := config.GetConfig()
-	output, err := ioutil.ReadFile(filepath.Join(config.ExecutablePath, ".version"))
+func GetAgentVersion(config *config.Config) (string, error) {
+	output, err := os.ReadFile(filepath.Join(config.ExecutablePath, ".version"))
 
 	if err != nil {
 		return "", fmt.Errorf("could not detect agent version: %v", err)

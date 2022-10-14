@@ -39,7 +39,10 @@ var ServeCmd = &cobra.Command{
 		servermonitorHandler := servermonitor.GetHandler(logger)
 
 		router := router.Router{}
-		router.RegisterHandler("main", &server.MainHandler{Logger: logger})
+		router.RegisterHandler("main", &server.MainHandler{
+			Config: config,
+			Logger: logger,
+		})
 		router.RegisterHandler("certificates", certificatesHandler)
 		router.RegisterHandler("servermonitor", servermonitorHandler)
 

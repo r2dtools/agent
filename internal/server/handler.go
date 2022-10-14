@@ -17,6 +17,7 @@ import (
 
 // MainHandler handles common agent requests
 type MainHandler struct {
+	Config *config.Config
 	Logger logger.LoggerInterface
 }
 
@@ -55,7 +56,7 @@ func (h *MainHandler) refresh(data interface{}) (*agentintegration.ServerData, e
 	serverData.PlatformVersion = info.PlatformVersion
 	serverData.Os = info.OS
 
-	version, err := utils.GetAgentVersion()
+	version, err := utils.GetAgentVersion(h.Config)
 	if err != nil {
 		return nil, err
 	}

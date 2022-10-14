@@ -30,24 +30,14 @@ jobs:
         fi
 
     - name: Run unit tests
-      run: go test ./...
+      run: make test
 
     - name: Build
-      run: go build -o r2dtools -v cmd/main.go
+      run: make build
         
     - name: Prepare build directory
-      run: |
-        mkdir -p build/config
-        mv r2dtools .version LICENSE build/
-        mv config/params.yaml build/config/
-
-    - name: Build lego
-      run: |
-        go get github.com/go-acme/lego/v4/cmd/lego@v4.9.0
-        cd `go env GOPATH`/pkg/mod/github.com/go-acme/lego/v4@v4.9.0
-        sudo make build
-        sudo mv dist/lego $GITHUB_WORKSPACE/build/
-        
+      run: rm -rf build/.gitkeep
+    
     - name: Create build archive
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
     
@@ -62,4 +52,3 @@ jobs:
         ssh_options: ''
         src: $BUILD_ARCHIVE_NAME
         dest: 'root@134.0.115.60:/var/www/r2dtools.com/builds'
-

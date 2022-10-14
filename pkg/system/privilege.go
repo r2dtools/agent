@@ -3,51 +3,46 @@ package system
 import (
 	"fmt"
 	"syscall"
+
+	"github.com/r2dtools/agent/pkg/logger"
 )
 
-type Privilege struct {
+type PrivilegeManagerInterface interface {
+	Increase() error
+	Drop() error
+}
+
+type PrivilegeManager struct {
 	uid, gid, euid, egid int
-	initilised           bool
+	logger               logger.LoggerInterface
 }
 
-var privilige *Privilege
+func (p *PrivilegeManager) Increase() error {
+	p.logger.Debug("increase sys privilege: euid: %d", p.uid)
 
-// IncreasePrivilege increases privileges for the current process
-func (p *Privilege) IncreasePrivilege() error {
 	if err := syscall.Seteuid(p.uid); err != nil {
-		return fmt.Errorf("could not increase privilege (uid): %v", err)
+		return fmt.Errorf("could not increase sys privilege (uid): %v", err)
 	}
 
 	return nil
 }
 
-// DropPrivilege drops privileges for the current process
-func (p *Privilege) DropPrivilege() error {
+func (p *PrivilegeManager) Drop() error {
+	p.logger.Debug("drop sys privilege: euid: %d", p.euid)
+
 	if err := syscall.Seteuid(p.euid); err != nil {
-		return fmt.Errorf("could not drop privilege: %v", err)
+		return fmt.Errorf("could not drop sys privilege: %v", err)
 	}
 
 	return nil
 }
 
-// Init initialises privilege object
-func (p *Privilege) Init() {
-	if p.initilised {
-		return
+func GetPrivilegeManager(logger logger.LoggerInterface) PrivilegeManagerInterface {
+	return &PrivilegeManager{
+		logger: logger,
+		uid:    syscall.Getuid(),
+		gid:    syscall.Getgid(),
+		euid:   syscall.Geteuid(),
+		egid:   syscall.Getegid(),
 	}
-
-	p.uid = syscall.Getuid()
-	p.gid = syscall.Getgid()
-	p.euid = syscall.Geteuid()
-	p.egid = syscall.Getegid()
-	p.initilised = true
-}
-
-// GetPrivilege returns privilege structure
-func GetPrivilege() *Privilege {
-	if privilige == nil {
-		privilige = &Privilege{}
-	}
-
-	return privilige
 }

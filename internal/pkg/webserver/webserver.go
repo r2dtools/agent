@@ -7,9 +7,7 @@ import (
 )
 
 const (
-	// WebServerNginxCode nginx web server code
-	WebServerNginxCode = "nginx"
-	// WebServerApacheCode apache web server code
+	WebServerNginxCode  = "nginx"
 	WebServerApacheCode = "apache"
 )
 

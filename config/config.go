@@ -68,7 +68,6 @@ func GetConfig() *Config {
 		vConfig.SetConfigType("yaml")
 		vConfig.SetConfigName("params")
 		vConfig.AddConfigPath(configPath)
-		viper.AutomaticEnv()
 
 		if err := vConfig.ReadInConfig(); err != nil {
 			panic(err)

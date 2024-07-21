@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	prodMode = true
-	port     = 60150
-	logFile  = "var/log/r2dtools.log"
+	devMode = "development"
+	port    = 60150
+	logFile = "var/log/r2dtools.log"
 )
 
 // Config stores agent configuration params
@@ -34,10 +34,19 @@ func GetConfig() *Config {
 		return config
 	}
 
+	env := os.Getenv("R2DTOOLS_AGENT_MODE")
+	isDevMode := env == devMode
+
 	var executablePath string
 	var err error
 
-	if prodMode {
+	if isDevMode {
+		executablePath, err = os.Getwd()
+
+		if err != nil {
+			panic(err)
+		}
+	} else {
 		executable, err := os.Executable()
 
 		if err != nil {
@@ -45,12 +54,7 @@ func GetConfig() *Config {
 		}
 
 		executablePath = filepath.Dir(executable)
-	} else {
-		executablePath, err = os.Getwd()
 
-		if err != nil {
-			panic(err)
-		}
 	}
 
 	vConfig := viper.New()
@@ -77,7 +81,7 @@ func GetConfig() *Config {
 		Token:          vConfig.GetString("Token"),
 		ExecutablePath: executablePath,
 		ConfigPath:     configPath,
-		IsProdMode:     prodMode,
+		IsProdMode:     !isDevMode,
 		vConfig:        vConfig,
 	}
 

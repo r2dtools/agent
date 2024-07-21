@@ -1,4 +1,4 @@
-package utils
+package server
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -7,7 +7,7 @@ import (
 	"github.com/r2dtools/agentintegration"
 )
 
-func FilterVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.VirtualHost {
+func filterVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.VirtualHost {
 	var fVhosts []agentintegration.VirtualHost
 
 	for _, vhost := range vhosts {
@@ -22,7 +22,7 @@ func FilterVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.Virt
 }
 
 // MergeVhosts merge similar vhosts. For example, vhost:443 will be merged with vhost:80
-func MergeVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.VirtualHost {
+func mergeVhosts(vhosts []agentintegration.VirtualHost) []agentintegration.VirtualHost {
 	var fVhosts []agentintegration.VirtualHost
 	vhostsMap := make(map[string]agentintegration.VirtualHost)
 

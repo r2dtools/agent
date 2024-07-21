@@ -5,12 +5,11 @@ import (
 	"fmt"
 
 	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/pkg/utils/certificate"
+	"github.com/r2dtools/agent/internal/pkg/agent"
+	"github.com/r2dtools/agent/internal/pkg/certificate"
+	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/router"
 	"github.com/r2dtools/agent/internal/pkg/webserver"
-	serverutils "github.com/r2dtools/agent/internal/server/utils"
-	"github.com/r2dtools/agent/pkg/logger"
-	"github.com/r2dtools/agent/pkg/router"
-	"github.com/r2dtools/agent/pkg/utils"
 	"github.com/r2dtools/agentintegration"
 	"github.com/shirou/gopsutil/host"
 )
@@ -18,7 +17,7 @@ import (
 // MainHandler handles common agent requests
 type MainHandler struct {
 	Config *config.Config
-	Logger logger.LoggerInterface
+	Logger logger.Logger
 }
 
 // Handle handles request
@@ -28,9 +27,9 @@ func (h *MainHandler) Handle(request router.Request) (interface{}, error) {
 
 	switch action := request.GetAction(); action {
 	case "refresh":
-		response, err = h.refresh(request.Data)
+		response, err = h.refresh()
 	case "getVhosts":
-		response, err = h.getVhosts(request.Data)
+		response, err = h.getVhosts()
 	case "getVhostCertificate":
 		response, err = h.getVhostCertificate(request.Data)
 	default:
@@ -40,7 +39,7 @@ func (h *MainHandler) Handle(request router.Request) (interface{}, error) {
 	return response, err
 }
 
-func (h *MainHandler) refresh(data interface{}) (*agentintegration.ServerData, error) {
+func (h *MainHandler) refresh() (*agentintegration.ServerData, error) {
 	info, err := host.Info()
 	if err != nil {
 		return nil, fmt.Errorf("could not get system info: %v", err)
@@ -56,7 +55,7 @@ func (h *MainHandler) refresh(data interface{}) (*agentintegration.ServerData, e
 	serverData.PlatformVersion = info.PlatformVersion
 	serverData.Os = info.OS
 
-	version, err := utils.GetAgentVersion(h.Config)
+	version, err := agent.GetAgentVersion(h.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +64,10 @@ func (h *MainHandler) refresh(data interface{}) (*agentintegration.ServerData, e
 	return &serverData, nil
 }
 
-func (h *MainHandler) getVhosts(data interface{}) ([]agentintegration.VirtualHost, error) {
+func (h *MainHandler) getVhosts() ([]agentintegration.VirtualHost, error) {
 	webServerCodes := webserver.GetSupportedWebServers()
 	var vhosts []agentintegration.VirtualHost
-	options := config.GetConfig().ToMap()
+	options := h.Config.ToMap()
 
 	for _, webServerCode := range webServerCodes {
 		webserver, err := webserver.GetWebServer(webServerCode, options)
@@ -86,8 +85,8 @@ func (h *MainHandler) getVhosts(data interface{}) ([]agentintegration.VirtualHos
 		}
 
 		vhosts = append(vhosts, wVhosts...)
-		vhosts = serverutils.FilterVhosts(vhosts)
-		vhosts = serverutils.MergeVhosts(vhosts)
+		vhosts = filterVhosts(vhosts)
+		vhosts = mergeVhosts(vhosts)
 	}
 
 	return vhosts, nil

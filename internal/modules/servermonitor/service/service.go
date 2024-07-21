@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/r2dtools/agent/pkg/logger"
+	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 var statCollectors []*StatCollector
 
 type StatCollectorService struct {
-	logger         logger.LoggerInterface
+	logger         logger.Logger
 	statCollectors []*StatCollector
 }
 
@@ -33,21 +34,23 @@ func (s *StatCollectorService) Run() error {
 	}
 }
 
-func GetStatCollectorService(logger logger.LoggerInterface) (*StatCollectorService, error) {
-	collectors, err := getStatCollectors(logger)
+func GetStatCollectorService(config *config.Config, logger logger.Logger) (*StatCollectorService, error) {
+	collectors, err := getStatCollectors(config, logger)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return &StatCollectorService{statCollectors: collectors, logger: logger}, nil
 }
 
 type StatCleanerService struct {
-	logger         logger.LoggerInterface
+	logger         logger.Logger
 	statCollectors []*StatCollector
 }
 
-func GetStatCleanerService(logger logger.LoggerInterface) (*StatCleanerService, error) {
-	collectors, err := getStatCollectors(logger)
+func GetStatCleanerService(config *config.Config, logger logger.Logger) (*StatCleanerService, error) {
+	collectors, err := getStatCollectors(config, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +75,7 @@ func (s *StatCleanerService) Run() error {
 	}
 }
 
-func getStatCollectors(logger logger.LoggerInterface) ([]*StatCollector, error) {
+func getStatCollectors(config *config.Config, logger logger.Logger) ([]*StatCollector, error) {
 	if statCollectors != nil {
 		return statCollectors, nil
 	}
@@ -80,49 +83,49 @@ func getStatCollectors(logger logger.LoggerInterface) ([]*StatCollector, error) 
 	var collectors []*StatCollector
 
 	// cpu overall statistics
-	cpuStatCollector, err := GetStatCollector(&OverallCPUStatPrivider{}, logger)
+	cpuStatCollector, err := GetStatCollector(&OverallCPUStatPrivider{}, config, logger)
 	if err != nil {
 		return nil, err
 	}
 	collectors = append(collectors, cpuStatCollector)
 
 	// cpu cores statistics
-	cpuCoreStatCollectors, err := GetCoreCpuStatCollectors(logger)
+	cpuCoreStatCollectors, err := GetCoreCpuStatCollectors(config, logger)
 	if err != nil {
 		return nil, err
 	}
 	collectors = append(collectors, cpuCoreStatCollectors...)
 
 	// virtual memory statistics
-	virtualMemoryStatCollector, err := GetStatCollector(&VirtualMemoryStatPrivider{}, logger)
+	virtualMemoryStatCollector, err := GetStatCollector(&VirtualMemoryStatPrivider{}, config, logger)
 	if err != nil {
 		return nil, err
 	}
 	collectors = append(collectors, virtualMemoryStatCollector)
 
 	// swap statistics
-	swapMemoryStatCollector, err := GetStatCollector(&SwapMemoryStatPrivider{}, logger)
+	swapMemoryStatCollector, err := GetStatCollector(&SwapMemoryStatPrivider{}, config, logger)
 	if err != nil {
 		return nil, err
 	}
 	collectors = append(collectors, swapMemoryStatCollector)
 
 	// disk usage statistics
-	diskUsageStatCollector, err := GetDiskUsageStatCollector(logger)
+	diskUsageStatCollector, err := GetDiskUsageStatCollector(config, logger)
 	if err != nil {
 		return nil, err
 	}
 	collectors = append(collectors, diskUsageStatCollector)
 
 	// disk io statistics
-	diskIOStatCollectors, err := GetDiskIOStatCollectors(logger)
+	diskIOStatCollectors, err := GetDiskIOStatCollectors(config, logger)
 	if err != nil {
 		return nil, err
 	}
 	collectors = append(collectors, diskIOStatCollectors...)
 
 	// network overall statistics
-	networkStatCollector, err := GetStatCollector(&OverallNetworkStatProvider{}, logger)
+	networkStatCollector, err := GetStatCollector(&OverallNetworkStatProvider{}, config, logger)
 	if err != nil {
 		return nil, err
 	}

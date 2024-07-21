@@ -5,7 +5,7 @@ import "github.com/r2dtools/agent/cmd/server"
 
 var rootCmd = &cobra.Command{
 	Use:   "r2dtools",
-	Short: "R2D tools agent",
+	Short: "R2DTools agent",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Usage()
 	},

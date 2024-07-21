@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/r2dtools/a2conf"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agent/internal/pkg/webserver"
-	"github.com/r2dtools/agent/pkg/logger"
 	"github.com/r2dtools/agentintegration"
 )
 
 // ApacheCertificateDeployer certificate deployer to apache virtual host
 type ApacheCertificateDeployer struct {
-	logger    logger.LoggerInterface
+	logger    logger.Logger
 	webServer *webserver.ApacheWebServer
 }
 

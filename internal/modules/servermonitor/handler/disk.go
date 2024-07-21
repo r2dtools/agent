@@ -4,12 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/servermonitor/service"
-	"github.com/r2dtools/agent/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agentintegration"
 )
 
-func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorStatisticsRequestData, logger logger.LoggerInterface) (*agentintegration.ServerMonitorDiskResponseData, error) {
+func LoadDiskUsageTimeLineData(
+	requestData *agentintegration.ServerMonitorStatisticsRequestData,
+	config *config.Config,
+	logger logger.Logger,
+) (*agentintegration.ServerMonitorDiskResponseData, error) {
 	var responseData agentintegration.ServerMonitorDiskResponseData
 	responseData.DiskUsageTimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	responseData.DiskIOTimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
@@ -18,18 +23,25 @@ func LoadDiskUsageTimeLineData(requestData *agentintegration.ServerMonitorStatis
 		FromTime: requestData.FromTime,
 		ToTime:   requestData.ToTime,
 	}
-	if err := loadDiskUsageData(&responseData, filter, logger); err != nil {
+
+	if err := loadDiskUsageData(&responseData, filter, config, logger); err != nil {
 		return nil, err
 	}
-	if err := loadDiskIOData(&responseData, filter, logger); err != nil {
+
+	if err := loadDiskIOData(&responseData, filter, config, logger); err != nil {
 		return nil, err
 	}
 
 	return &responseData, nil
 }
 
-func loadDiskIOData(responseData *agentintegration.ServerMonitorDiskResponseData, filter service.StatProviderFilter, logger logger.LoggerInterface) error {
-	diskIOStatCollectors, err := service.GetDiskIOStatCollectors(logger)
+func loadDiskIOData(
+	responseData *agentintegration.ServerMonitorDiskResponseData,
+	filter service.StatProviderFilter,
+	config *config.Config,
+	logger logger.Logger,
+) error {
+	diskIOStatCollectors, err := service.GetDiskIOStatCollectors(config, logger)
 	if err != nil {
 		return err
 	}
@@ -50,11 +62,17 @@ func loadDiskIOData(responseData *agentintegration.ServerMonitorDiskResponseData
 		}
 		responseData.DiskIOTimeLineData[provider.Device] = diskIoData
 	}
+
 	return nil
 }
 
-func loadDiskUsageData(responseData *agentintegration.ServerMonitorDiskResponseData, filter service.StatProviderFilter, logger logger.LoggerInterface) error {
-	diskUsageStatCollector, err := service.GetDiskUsageStatCollector(logger)
+func loadDiskUsageData(
+	responseData *agentintegration.ServerMonitorDiskResponseData,
+	filter service.StatProviderFilter,
+	config *config.Config,
+	logger logger.Logger,
+) error {
+	diskUsageStatCollector, err := service.GetDiskUsageStatCollector(config, logger)
 	if err != nil {
 		return err
 	}

@@ -5,10 +5,10 @@ import (
 	"github.com/r2dtools/agent/internal/modules/certificates"
 	"github.com/r2dtools/agent/internal/modules/servermonitor"
 	serverMonitorService "github.com/r2dtools/agent/internal/modules/servermonitor/service"
+	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/router"
 	"github.com/r2dtools/agent/internal/pkg/service"
 	"github.com/r2dtools/agent/internal/server"
-	"github.com/r2dtools/agent/pkg/logger"
-	"github.com/r2dtools/agent/pkg/router"
 	"github.com/spf13/cobra"
 )
 
@@ -16,9 +16,14 @@ var ServeCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts TCP server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config := config.GetConfig()
+		config, err := config.GetConfig()
+
+		if err != nil {
+			return err
+		}
 
 		logger, err := logger.NewLogger(config)
+
 		if err != nil {
 			return err
 		}
@@ -27,16 +32,17 @@ var ServeCmd = &cobra.Command{
 			Logger: logger,
 		}
 
-		if err := registerSercices(&serviceManager, logger); err != nil {
+		if err := registerSercices(&serviceManager, config, logger); err != nil {
 			return err
 		}
 
-		certificatesHandler, err := certificates.GetHandler(logger)
+		certificatesHandler, err := certificates.GetHandler(config, logger)
+
 		if err != nil {
 			return err
 		}
 
-		servermonitorHandler := servermonitor.GetHandler(logger)
+		servermonitorHandler := servermonitor.GetHandler(config, logger)
 
 		router := router.Router{}
 		router.RegisterHandler("main", &server.MainHandler{
@@ -51,6 +57,7 @@ var ServeCmd = &cobra.Command{
 			ServiceManager: serviceManager,
 			Router:         router,
 			Logger:         logger,
+			Config:         config,
 		}
 
 		if err := server.Serve(); err != nil {
@@ -61,13 +68,15 @@ var ServeCmd = &cobra.Command{
 	},
 }
 
-func registerSercices(serviceManager *service.ServiceManager, logger logger.LoggerInterface) error {
-	smService, err := serverMonitorService.GetStatCollectorService(logger)
+func registerSercices(serviceManager *service.ServiceManager, config *config.Config, logger logger.Logger) error {
+	smService, err := serverMonitorService.GetStatCollectorService(config, logger)
+
 	if err != nil {
 		return err
 	}
 
-	scService, err := serverMonitorService.GetStatCleanerService(logger)
+	scService, err := serverMonitorService.GetStatCleanerService(config, logger)
+
 	if err != nil {
 		return err
 	}

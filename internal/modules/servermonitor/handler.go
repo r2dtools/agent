@@ -4,14 +4,16 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/servermonitor/handler"
-	"github.com/r2dtools/agent/pkg/logger"
-	"github.com/r2dtools/agent/pkg/router"
+	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/router"
 	"github.com/r2dtools/agentintegration"
 )
 
 type Handler struct {
-	logger logger.LoggerInterface
+	config *config.Config
+	logger logger.Logger
 }
 
 func (h *Handler) Handle(request router.Request) (interface{}, error) {
@@ -40,13 +42,13 @@ func (h *Handler) loadStatisticsData(data interface{}) (interface{}, error) {
 
 	switch requestData.Category {
 	case "cpu":
-		responseData, err = handler.LoadCpuTimeLineData(&requestData, h.logger)
+		responseData, err = handler.LoadCpuTimeLineData(&requestData, h.config, h.logger)
 	case "memory":
-		responseData, err = handler.LoadMemoryTimeLineData(&requestData, h.logger)
+		responseData, err = handler.LoadMemoryTimeLineData(&requestData, h.config, h.logger)
 	case "disk":
-		responseData, err = handler.LoadDiskUsageTimeLineData(&requestData, h.logger)
+		responseData, err = handler.LoadDiskUsageTimeLineData(&requestData, h.config, h.logger)
 	case "network":
-		responseData, err = handler.LoadNetworkTimeLineData(&requestData, h.logger)
+		responseData, err = handler.LoadNetworkTimeLineData(&requestData, h.config, h.logger)
 	case "process":
 		responseData, err = handler.LoadProcessStatisticsData(&requestData)
 	default:
@@ -56,6 +58,6 @@ func (h *Handler) loadStatisticsData(data interface{}) (interface{}, error) {
 	return responseData, err
 }
 
-func GetHandler(logger logger.LoggerInterface) router.HandlerInterface {
-	return &Handler{logger}
+func GetHandler(config *config.Config, logger logger.Logger) router.HandlerInterface {
+	return &Handler{config, logger}
 }

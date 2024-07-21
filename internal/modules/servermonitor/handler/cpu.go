@@ -3,30 +3,42 @@ package handler
 import (
 	"fmt"
 
+	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/servermonitor/service"
-	"github.com/r2dtools/agent/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agentintegration"
 )
 
-func LoadCpuTimeLineData(requestData *agentintegration.ServerMonitorStatisticsRequestData, logger logger.LoggerInterface) (*agentintegration.ServerMonitorStatisticsResponseData, error) {
+func LoadCpuTimeLineData(
+	requestData *agentintegration.ServerMonitorStatisticsRequestData,
+	config *config.Config,
+	logger logger.Logger,
+) (*agentintegration.ServerMonitorStatisticsResponseData, error) {
 	var responseData agentintegration.ServerMonitorStatisticsResponseData
 	responseData.Data = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	filter := &service.StatProviderTimeFilter{
 		FromTime: requestData.FromTime,
 		ToTime:   requestData.ToTime,
 	}
-	if err := loadOverallCpuTimeLineData(&responseData, filter, logger); err != nil {
+
+	if err := loadOverallCpuTimeLineData(&responseData, filter, config, logger); err != nil {
 		return nil, err
 	}
-	if err := loadCoreCpuTimeLineData(&responseData, filter, logger); err != nil {
+
+	if err := loadCoreCpuTimeLineData(&responseData, filter, config, logger); err != nil {
 		return nil, err
 	}
 
 	return &responseData, nil
 }
 
-func loadOverallCpuTimeLineData(responseData *agentintegration.ServerMonitorStatisticsResponseData, filter service.StatProviderFilter, logger logger.LoggerInterface) error {
-	overallCpuStatCollector, err := service.GetStatCollector(&service.OverallCPUStatPrivider{}, logger)
+func loadOverallCpuTimeLineData(
+	responseData *agentintegration.ServerMonitorStatisticsResponseData,
+	filter service.StatProviderFilter,
+	config *config.Config,
+	logger logger.Logger,
+) error {
+	overallCpuStatCollector, err := service.GetStatCollector(&service.OverallCPUStatPrivider{}, config, logger)
 	if err != nil {
 		return err
 	}
@@ -45,8 +57,13 @@ func loadOverallCpuTimeLineData(responseData *agentintegration.ServerMonitorStat
 	return nil
 }
 
-func loadCoreCpuTimeLineData(responseData *agentintegration.ServerMonitorStatisticsResponseData, filter service.StatProviderFilter, logger logger.LoggerInterface) error {
-	coreCpuStatCollectors, err := service.GetCoreCpuStatCollectors(logger)
+func loadCoreCpuTimeLineData(
+	responseData *agentintegration.ServerMonitorStatisticsResponseData,
+	filter service.StatProviderFilter,
+	config *config.Config,
+	logger logger.Logger,
+) error {
+	coreCpuStatCollectors, err := service.GetCoreCpuStatCollectors(config, logger)
 	if err != nil {
 		return err
 	}

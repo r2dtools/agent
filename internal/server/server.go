@@ -9,9 +9,9 @@ import (
 	"strconv"
 
 	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/router"
 	"github.com/r2dtools/agent/internal/pkg/service"
-	"github.com/r2dtools/agent/pkg/logger"
-	"github.com/r2dtools/agent/pkg/router"
 )
 
 const HEADER_DATA_LENGTH = 4 // bytes
@@ -21,7 +21,8 @@ type Server struct {
 	Port           int
 	ServiceManager service.ServiceManager
 	Router         router.Router
-	Logger         logger.LoggerInterface
+	Logger         logger.Logger
+	Config         *config.Config
 	listener       net.Listener
 }
 
@@ -72,6 +73,7 @@ func prepareResponse(data interface{}, err error) router.Response {
 
 func (s *Server) getResponse(reader io.Reader) router.Response {
 	dataLen, err := s.readDataLen(reader)
+
 	if err != nil {
 		return prepareResponse(nil, err)
 	}
@@ -110,6 +112,7 @@ func (s *Server) handleConn(conn net.Conn) {
 	var response router.Response
 
 	response = s.getResponse(conn)
+
 	if response.Error != "" {
 		s.Logger.Error(response.Error)
 	}
@@ -138,7 +141,7 @@ func (s *Server) handleRequest(data []byte) (interface{}, error) {
 		return nil, fmt.Errorf("could not decode request data: %v", err)
 	}
 
-	if request.Token == "" || request.Token != config.GetConfig().Token {
+	if request.Token == "" || request.Token != s.Config.Token {
 		return nil, fmt.Errorf("invalid request token is specified: %s", request.Token)
 	}
 

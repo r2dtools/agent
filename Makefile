@@ -1,4 +1,4 @@
-legoVersion=4.9.0
+legoVersion=4.17.4
 legoArchive=lego.tar.gz
 
 test:
@@ -8,7 +8,7 @@ build_agent:
 	go build -o ./build/r2dtools -v cmd/main.go
 
 build_lego:
-	wget "https://github.com/go-acme/lego/releases/download/v4.9.0/lego_v$(legoVersion)_linux_amd64.tar.gz" -O $(legoArchive); \
+	wget "https://github.com/go-acme/lego/releases/download/v${legoVersion}/lego_v$(legoVersion)_linux_amd64.tar.gz" -O $(legoArchive); \
 	tar -xvzf $(legoArchive) -C build lego; \
 	rm $(legoArchive)
 

@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/unknwon/com"
 )
 
@@ -22,7 +22,8 @@ type StatCollector struct {
 	mu       *sync.RWMutex
 	Provider StatProvider
 	FilePath string
-	Logger   logger.LoggerInterface
+	Logger   logger.Logger
+	Config   *config.Config
 }
 
 func (sc *StatCollector) Collect() error {
@@ -335,19 +336,19 @@ func (sc *StatCollector) parseRecord(record []string) (int, []string, error) {
 	return time, record[1:], nil
 }
 
-func GetCoreCpuStatCollectors(logger logger.LoggerInterface) ([]*StatCollector, error) {
-	providers, err := GetCoreCpuStatProviders(logger)
+func GetCoreCpuStatCollectors(config *config.Config, logger logger.Logger) ([]*StatCollector, error) {
+	providers, err := GetCoreCpuStatProviders(config, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return GetStatCollectors(providers, logger)
+	return GetStatCollectors(providers, config, logger)
 }
 
-func GetStatCollectors(providers []StatProvider, logger logger.LoggerInterface) ([]*StatCollector, error) {
+func GetStatCollectors(providers []StatProvider, config *config.Config, logger logger.Logger) ([]*StatCollector, error) {
 	var collectors []*StatCollector
 	for _, provider := range providers {
-		collector, err := GetStatCollector(provider, logger)
+		collector, err := GetStatCollector(provider, config, logger)
 		if err != nil {
 			logger.Debug(err.Error())
 			continue
@@ -358,17 +359,18 @@ func GetStatCollectors(providers []StatProvider, logger logger.LoggerInterface) 
 	return collectors, nil
 }
 
-func GetDiskUsageStatCollector(logger logger.LoggerInterface) (*StatCollector, error) {
-	provider, err := GetDiskUsageStatProvider()
+func GetDiskUsageStatCollector(config *config.Config, logger logger.Logger) (*StatCollector, error) {
+	provider, err := GetDiskUsageStatProvider(config)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not create statistics provider for disk usage: %v", err)
 	}
 
-	return GetStatCollector(provider, logger)
+	return GetStatCollector(provider, config, logger)
 }
 
-func GetDiskIOStatCollectors(logger logger.LoggerInterface) ([]*StatCollector, error) {
-	dataFolder := getDataFolder()
+func GetDiskIOStatCollectors(config *config.Config, logger logger.Logger) ([]*StatCollector, error) {
+	dataFolder := getDataFolder(config)
 	if err := ensureFolderExists(dataFolder); err != nil {
 		return nil, err
 	}
@@ -383,16 +385,18 @@ func GetDiskIOStatCollectors(logger logger.LoggerInterface) ([]*StatCollector, e
 		providers = append(providers, &DiskIOStatProvider{Device: device})
 	}
 
-	return GetStatCollectors(providers, logger)
+	return GetStatCollectors(providers, config, logger)
 }
 
-func GetStatCollector(provider StatProvider, logger logger.LoggerInterface) (*StatCollector, error) {
-	dataFolderPath := getDataFolder()
+func GetStatCollector(provider StatProvider, config *config.Config, logger logger.Logger) (*StatCollector, error) {
+	dataFolderPath := getDataFolder(config)
+
 	if err := ensureFolderExists(dataFolderPath); err != nil {
 		return nil, fmt.Errorf("could not create statistics collector '%s': %v", provider.GetCode(), err)
 	}
 
 	statFilePath := filepath.Join(dataFolderPath, provider.GetCode())
+
 	if !com.IsFile(statFilePath) {
 		_, err := os.Create(statFilePath)
 		if err != nil {
@@ -400,11 +404,11 @@ func GetStatCollector(provider StatProvider, logger logger.LoggerInterface) (*St
 		}
 	}
 
-	return &StatCollector{&sync.RWMutex{}, provider, statFilePath, logger}, nil
+	return &StatCollector{&sync.RWMutex{}, provider, statFilePath, logger, config}, nil
 }
 
-func getDataFolder() string {
-	return filepath.Join(config.GetConfig().GetModuleVarAbsDir("servermonitor"), "statistics")
+func getDataFolder(config *config.Config) string {
+	return filepath.Join(config.GetModuleVarAbsDir("servermonitor"), "statistics")
 }
 
 func ensureFolderExists(folder string) error {

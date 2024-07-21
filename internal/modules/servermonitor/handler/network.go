@@ -1,12 +1,17 @@
 package handler
 
 import (
+	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/servermonitor/service"
-	"github.com/r2dtools/agent/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agentintegration"
 )
 
-func LoadNetworkTimeLineData(requestData *agentintegration.ServerMonitorStatisticsRequestData, logger logger.LoggerInterface) (*agentintegration.ServerMonitorNetworkResponseData, error) {
+func LoadNetworkTimeLineData(
+	requestData *agentintegration.ServerMonitorStatisticsRequestData,
+	config *config.Config,
+	logger logger.Logger,
+) (*agentintegration.ServerMonitorNetworkResponseData, error) {
 	var responseData agentintegration.ServerMonitorNetworkResponseData
 	responseData.TimeLineData = make(map[string][]agentintegration.ServerMonitorTimeLinePoint)
 	responseData.InterfacesInfo = make([]map[string]string, 0)
@@ -15,7 +20,7 @@ func LoadNetworkTimeLineData(requestData *agentintegration.ServerMonitorStatisti
 		ToTime:   requestData.ToTime,
 	}
 
-	if err := loadOverallNetworkTimeLineData(&responseData, filter, logger); err != nil {
+	if err := loadOverallNetworkTimeLineData(&responseData, filter, config, logger); err != nil {
 		return nil, err
 	}
 	if err := loadNetworkInterfaceInfo(&responseData); err != nil {
@@ -25,8 +30,13 @@ func LoadNetworkTimeLineData(requestData *agentintegration.ServerMonitorStatisti
 	return &responseData, nil
 }
 
-func loadOverallNetworkTimeLineData(responseData *agentintegration.ServerMonitorNetworkResponseData, filter service.StatProviderFilter, logger logger.LoggerInterface) error {
-	overallNetworkStatCollector, err := service.GetStatCollector(&service.OverallNetworkStatProvider{}, logger)
+func loadOverallNetworkTimeLineData(
+	responseData *agentintegration.ServerMonitorNetworkResponseData,
+	filter service.StatProviderFilter,
+	config *config.Config,
+	logger logger.Logger,
+) error {
+	overallNetworkStatCollector, err := service.GetStatCollector(&service.OverallNetworkStatProvider{}, config, logger)
 	if err != nil {
 		return err
 	}

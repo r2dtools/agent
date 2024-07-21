@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/servermonitor/service/disk"
-	"github.com/r2dtools/agent/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/shirou/gopsutil/cpu"
 )
 
@@ -29,14 +30,20 @@ type StatProvider interface {
 }
 
 type BaseStatProvider struct {
-	Logger logger.LoggerInterface
+	Config *config.Config
+	Logger logger.Logger
 }
 
 func (p *BaseStatProvider) GetEmptyRecordValue(index int) string {
 	return ""
 }
 
-func (p *BaseStatProvider) getAverageRecord(records [][]string, fieldsCount int, formatFloat bool, getRecordEmptyValue func(int) string) []string {
+func (p *BaseStatProvider) getAverageRecord(
+	records [][]string,
+	fieldsCount int,
+	formatFloat bool,
+	getRecordEmptyValue func(int) string,
+) []string {
 	averageRecord := make([]string, fieldsCount)
 	for i := 0; i < fieldsCount; i += 1 {
 		var averageValue float64
@@ -66,7 +73,7 @@ func (p *BaseStatProvider) getAverageRecord(records [][]string, fieldsCount int,
 }
 
 // GetCoreCpuStatProviders creates statistics providers for cpu cores
-func GetCoreCpuStatProviders(logger logger.LoggerInterface) ([]StatProvider, error) {
+func GetCoreCpuStatProviders(config *config.Config, logger logger.Logger) ([]StatProvider, error) {
 	cores, err := cpu.Counts(false)
 	if err != nil {
 		return nil, fmt.Errorf("could not create statisitcs providers for cpu cores: %v", err)
@@ -81,8 +88,8 @@ func GetCoreCpuStatProviders(logger logger.LoggerInterface) ([]StatProvider, err
 	return providers, nil
 }
 
-func GetDiskUsageStatProvider() (StatProvider, error) {
-	dataFolder := getDataFolder()
+func GetDiskUsageStatProvider(config *config.Config) (StatProvider, error) {
+	dataFolder := getDataFolder(config)
 	if err := ensureFolderExists(dataFolder); err != nil {
 		return nil, err
 	}

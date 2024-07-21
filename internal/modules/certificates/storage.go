@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/pkg/utils/certificate"
+	"github.com/r2dtools/agent/internal/pkg/certificate"
 	"github.com/r2dtools/agentintegration"
 	"github.com/unknwon/com"
 )
@@ -160,9 +160,8 @@ func (s *Storage) ensureCertificatesDirPathExists() {
 	}
 }
 
-func GetDefaultCertStorage() *Storage {
-	aConfig := config.GetConfig()
-	dataPath := aConfig.GetModuleVarAbsDir("certificates")
+func GetDefaultCertStorage(config *config.Config) *Storage {
+	dataPath := config.GetModuleVarAbsDir("certificates")
 
 	return &Storage{dataPath}
 }

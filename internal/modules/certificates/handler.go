@@ -6,14 +6,16 @@ import (
 	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/r2dtools/agent/pkg/logger"
-	"github.com/r2dtools/agent/pkg/router"
+	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/router"
 	"github.com/r2dtools/agentintegration"
 )
 
 type Handler struct {
 	certificateManager *CertificateManager
-	logger             logger.LoggerInterface
+	logger             logger.Logger
+	config             *config.Config
 }
 
 func (h *Handler) Handle(request router.Request) (interface{}, error) {
@@ -26,7 +28,7 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 	case "upload":
 		response, err = h.uploadCertificateToDomain(request.Data)
 	case "storagecertnamelist":
-		response, err = h.storageCertNameList(request.Data)
+		response, err = h.storageCertNameList()
 	case "storagecertdata":
 		response, err = h.storageCertData(request.Data)
 	case "storagecertupload":
@@ -70,7 +72,7 @@ func (h *Handler) uploadCertificateToDomain(data interface{}) (*agentintegration
 	return h.certificateManager.Upload(requestData.ServerName, requestData.WebServer, requestData.PemCertificate)
 }
 
-func (h *Handler) storageCertNameList(data interface{}) (*agentintegration.StorageCertificateNameList, error) {
+func (h *Handler) storageCertNameList() (*agentintegration.StorageCertificateNameList, error) {
 	certList, err := h.certificateManager.GetStorageCertList()
 	if err != nil {
 		return nil, err
@@ -102,7 +104,7 @@ func (h *Handler) uploadCertToStorage(data interface{}) (*agentintegration.Certi
 		return nil, errors.New("certificate name is missed")
 	}
 
-	storage := GetDefaultCertStorage()
+	storage := GetDefaultCertStorage(h.config)
 	_, err = storage.AddPemCertificate(requestData.CertName, requestData.PemCertificate)
 	if err != nil {
 		return nil, err
@@ -117,7 +119,7 @@ func (h *Handler) removeCertFromStorage(data interface{}) error {
 		return errors.New("invalid certificate name data is provided")
 	}
 
-	storage := GetDefaultCertStorage()
+	storage := GetDefaultCertStorage(h.config)
 	return storage.RemoveCertificate(certName)
 }
 
@@ -127,7 +129,7 @@ func (h *Handler) downloadCertFromStorage(data interface{}) (*agentintegration.C
 		return nil, errors.New("invalid certificate name data is provided")
 	}
 
-	storage := GetDefaultCertStorage()
+	storage := GetDefaultCertStorage(h.config)
 	certPath, certContent, err := storage.GetCertificateAsString(certName)
 	if err != nil {
 		return nil, err
@@ -151,11 +153,12 @@ func (h *Handler) assignCertificateToDomain(data interface{}) (*agentintegration
 	return h.certificateManager.Assign(certData)
 }
 
-func GetHandler(logger logger.LoggerInterface) (router.HandlerInterface, error) {
-	certManager, err := GetCertificateManager(logger)
+func GetHandler(config *config.Config, logger logger.Logger) (router.HandlerInterface, error) {
+	certManager, err := GetCertificateManager(config, logger)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &Handler{logger: logger, certificateManager: certManager}, nil
+	return &Handler{logger: logger, certificateManager: certManager, config: config}, nil
 }

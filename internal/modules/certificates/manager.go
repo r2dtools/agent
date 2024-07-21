@@ -11,9 +11,9 @@ import (
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/certificates/deploy"
-	"github.com/r2dtools/agent/internal/pkg/utils/certificate"
+	"github.com/r2dtools/agent/internal/pkg/certificate"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agent/internal/pkg/webserver"
-	"github.com/r2dtools/agent/pkg/logger"
 	"github.com/r2dtools/agentintegration"
 	"github.com/unknwon/com"
 )
@@ -28,7 +28,8 @@ const (
 type CertificateManager struct {
 	legoBinPath, dataPath string
 	CertStorage           *Storage
-	Logger                logger.LoggerInterface
+	Logger                logger.Logger
+	Config                *config.Config
 }
 
 // Issue issues a certificate
@@ -118,7 +119,7 @@ func (c *CertificateManager) RemoveCertificate(certName string) error {
 }
 
 func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, keyPath string) (*agentintegration.Certificate, error) {
-	webserver, err := webserver.GetWebServer(webServer, config.GetConfig().ToMap())
+	webserver, err := webserver.GetWebServer(webServer, c.Config.ToMap())
 	if err != nil {
 		return nil, err
 	}
@@ -164,27 +165,24 @@ func (c *CertificateManager) execCmd(command string, params []string) ([]byte, e
 }
 
 func (c *CertificateManager) getCAServer() string {
-	aConfig := config.GetConfig()
-
-	if !aConfig.IsSet("CAServer") {
+	if !c.Config.IsSet("CAServer") {
 		return caServer
 	}
 
-	return aConfig.GetString("CAServer")
+	return c.Config.GetString("CAServer")
 }
 
-func GetCertificateManager(logger logger.LoggerInterface) (*CertificateManager, error) {
-	aConfig := config.GetConfig()
-	legoBinPath := filepath.Join(aConfig.ExecutablePath, "lego")
-	dataPath := aConfig.GetModuleVarAbsDir("certificates")
+func GetCertificateManager(config *config.Config, logger logger.Logger) (*CertificateManager, error) {
+	legoBinPath := filepath.Join(config.ExecutablePath, "lego")
+	dataPath := config.GetModuleVarAbsDir("certificates")
 
-	if aConfig.IsSet("LegoBinPath") {
-		legoBinPath = aConfig.GetString("LegoBinPath")
+	if config.IsSet("LegoBinPath") {
+		legoBinPath = config.GetString("LegoBinPath")
 	}
 
 	certManager := &CertificateManager{
 		Logger:      logger,
-		CertStorage: GetDefaultCertStorage(),
+		CertStorage: GetDefaultCertStorage(config),
 		legoBinPath: legoBinPath,
 		dataPath:    dataPath,
 	}

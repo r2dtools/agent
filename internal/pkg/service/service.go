@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/r2dtools/agent/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 )
 
 // Service is implemeted by services that are started with starting agent tcp server
@@ -10,7 +10,7 @@ type Service interface {
 }
 
 type ServiceManager struct {
-	Logger   logger.LoggerInterface
+	Logger   logger.Logger
 	services map[string]Service
 }
 

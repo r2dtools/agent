@@ -21,19 +21,13 @@ type Config struct {
 	ExecutablePath,
 	ConfigPath,
 	Token string
-	Port       int
-	IsProdMode bool
-	vConfig    *viper.Viper
+	Port      int
+	IsDevMode bool
+	vConfig   *viper.Viper
 }
 
-var config *Config
-
 // GetConfig returns agent config
-func GetConfig() *Config {
-	if config != nil {
-		return config
-	}
-
+func GetConfig() (*Config, error) {
 	env := os.Getenv("R2DTOOLS_AGENT_MODE")
 	isDevMode := env == devMode
 
@@ -44,13 +38,13 @@ func GetConfig() *Config {
 		executablePath, err = os.Getwd()
 
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	} else {
 		executable, err := os.Executable()
 
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		executablePath = filepath.Dir(executable)
@@ -74,17 +68,15 @@ func GetConfig() *Config {
 		}
 	}
 
-	config = &Config{
+	return &Config{
 		Port:           vConfig.GetInt("Port"),
 		LogFile:        vConfig.GetString("LogFile"),
 		Token:          vConfig.GetString("Token"),
 		ExecutablePath: executablePath,
 		ConfigPath:     configPath,
-		IsProdMode:     !isDevMode,
+		IsDevMode:      isDevMode,
 		vConfig:        vConfig,
-	}
-
-	return config
+	}, nil
 }
 
 // GetLoggerFileAbsPath returns absolute path to logger file

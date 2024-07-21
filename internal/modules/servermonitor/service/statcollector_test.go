@@ -97,11 +97,11 @@ func TestGetExtendedRecords(t *testing.T) {
 }
 
 func TestClean(t *testing.T) {
-	cpuFilePath := "../testdata/cpu"
+	cpuFilePath := "../../../../test/modules/servermonitor/cpu"
 
 	toTimes := []int{1646920735, 1646753350}
 	for _, toTime := range toTimes {
-		originFile, err := os.Open("../testdata/cpu.origin")
+		originFile, err := os.Open("../../../../test/modules/servermonitor/cpu.origin")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -136,7 +136,7 @@ func TestClean(t *testing.T) {
 		}
 		records := string(bytes)
 
-		bytes, err = os.ReadFile(fmt.Sprintf("../testdata/cpu.%d.expected", toTime))
+		bytes, err = os.ReadFile(fmt.Sprintf("../../../../test/modules/servermonitor/cpu.%d.expected", toTime))
 		if err != nil {
 			t.Fatal(err)
 		}

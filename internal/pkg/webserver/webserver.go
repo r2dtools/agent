@@ -31,6 +31,8 @@ func GetWebServer(webServerCode string, options map[string]string) (WebServer, e
 	switch webServerCode {
 	case WebServerApacheCode:
 		webServer, err = GetApacheWebServer(options)
+	case WebServerNginxCode:
+		webServer, err = GetNginxWebServer(options)
 	default:
 		err = fmt.Errorf("web server '%s' is not supported", webServerCode)
 	}

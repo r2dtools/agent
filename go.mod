@@ -7,6 +7,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/r2dtools/a2conf v0.1.0
 	github.com/r2dtools/agentintegration v1.2.0
+	github.com/r2dtools/gonginx v0.0.0-20240722072815-b890cb5125d0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
@@ -17,6 +18,7 @@ require (
 
 require (
 	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/alecthomas/participle/v2 v2.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect

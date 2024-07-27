@@ -54,8 +54,8 @@ github.com/r2dtools/a2conf v0.1.0 h1:+NnrrS1Hv9KtqAbBcqmHofCZXb40qqnZaxfYEl0aqpI
 github.com/r2dtools/a2conf v0.1.0/go.mod h1:FGbYeKrBOrOIS6QJKm9ezEpOHADunpj4Xhqu/OJvzNA=
 github.com/r2dtools/agentintegration v1.2.0 h1:KCMV5Lxdf7VUoGLdEyZP4IieMT+JTXnRuGmrP5Rx9qk=
 github.com/r2dtools/agentintegration v1.2.0/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
-github.com/r2dtools/gonginx v0.0.0-20240722072815-b890cb5125d0 h1:ruYtpnL4bZUbimGzdGeDmEeHJ826hhbeGsfS04q+Zrg=
-github.com/r2dtools/gonginx v0.0.0-20240722072815-b890cb5125d0/go.mod h1:HjgpvGAj7m9URplCCtTmIf17Gm1NgzIz3xzEdPKcmNk=
+github.com/r2dtools/gonginx v0.2.1 h1:S5UM4xFpY4jMxoBd+GD13659SyvWBBNleam3Sy4zItE=
+github.com/r2dtools/gonginx v0.2.1/go.mod h1:HjgpvGAj7m9URplCCtTmIf17Gm1NgzIz3xzEdPKcmNk=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

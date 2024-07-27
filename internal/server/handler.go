@@ -85,8 +85,6 @@ func (h *MainHandler) getVhosts() ([]agentintegration.VirtualHost, error) {
 		}
 
 		vhosts = append(vhosts, wVhosts...)
-		vhosts = filterVhosts(vhosts)
-		vhosts = mergeVhosts(vhosts)
 	}
 
 	return vhosts, nil

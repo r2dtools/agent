@@ -59,16 +59,19 @@ func (nws *NginxWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 		}
 
 		vhost := agentintegration.VirtualHost{
-			FilePath:   "",
+			FilePath:   nVhost.FilePath,
 			ServerName: serverNames[0],
 			DocRoot:    nVhost.GetDocumentRoot(),
 			Aliases:    aliases,
 			Ssl:        nVhost.HasSSL(),
-			WebServer:  WebServerApacheCode,
+			WebServer:  WebServerNginxCode,
 			Addresses:  addresses,
 		}
 		vhosts = append(vhosts, vhost)
 	}
+
+	vhosts = filterVhosts(vhosts)
+	vhosts = mergeVhosts(vhosts)
 
 	return vhosts, nil
 }

@@ -13,7 +13,7 @@ const (
 
 // GetSupportedWebServers returns the codes of supported web servers
 func GetSupportedWebServers() []string {
-	return []string{WebServerApacheCode}
+	return []string{WebServerApacheCode, WebServerNginxCode}
 }
 
 // WebServer is an interface for a webserver like nginx, apache

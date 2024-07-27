@@ -1,4 +1,4 @@
-package server
+package webserver
 
 import (
 	"github.com/google/go-cmp/cmp"

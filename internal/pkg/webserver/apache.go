@@ -70,6 +70,9 @@ func (aws *ApacheWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) 
 		vhosts = append(vhosts, vhost)
 	}
 
+	vhosts = filterVhosts(vhosts)
+	vhosts = mergeVhosts(vhosts)
+
 	return vhosts, nil
 }
 

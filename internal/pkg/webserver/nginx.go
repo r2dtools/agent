@@ -2,7 +2,9 @@ package webserver
 
 import (
 	"fmt"
+	"path/filepath"
 
+	"github.com/r2dtools/agent/internal/pkg/webserver/hostmng"
 	"github.com/r2dtools/agentintegration"
 	nginxConfig "github.com/r2dtools/gonginx/config"
 )
@@ -12,7 +14,8 @@ const (
 )
 
 type NginxWebServer struct {
-	config  *nginxConfig.Config
+	Config  *nginxConfig.Config
+	root    string
 	options map[string]string
 }
 
@@ -33,7 +36,7 @@ func (nws *NginxWebServer) GetVhostByName(serverName string) (*agentintegration.
 func (nws *NginxWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 	var vhosts []agentintegration.VirtualHost
 
-	nVhosts := nws.config.FindServerBlocks()
+	nVhosts := nws.Config.FindServerBlocks()
 
 	for _, nVhost := range nVhosts {
 		var addresses []agentintegration.VirtualHostAddress
@@ -76,18 +79,29 @@ func (nws *NginxWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 	return vhosts, nil
 }
 
-func GetNginxWebServer(options map[string]string) (*NginxWebServer, error) {
-	root, ok := options["NginxRoot"]
-
-	if !ok {
-		root = defaultNginxRoot
+func (nws *NginxWebServer) GetVhostManager() HostManager {
+	return &hostmng.NginxHostManager{
+		AvailableConfigRootPath: filepath.Join(nws.root, "sites-available"),
 	}
+}
 
+func GetNginxWebServer(options map[string]string) (*NginxWebServer, error) {
+	root := getNginxRoot(options)
 	config, err := nginxConfig.GetConfig(root, "", false)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not parse nginx config: %v", err)
 	}
 
-	return &NginxWebServer{config, options}, nil
+	return &NginxWebServer{config, root, options}, nil
+}
+
+func getNginxRoot(options map[string]string) string {
+	root, ok := options["NginxRoot"]
+
+	if !ok {
+		root = defaultNginxRoot
+	}
+
+	return root
 }

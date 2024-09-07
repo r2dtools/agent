@@ -11,9 +11,14 @@ const (
 	WebServerApacheCode = "apache"
 )
 
+type HostManager interface {
+	Enable(configFilePath string) error
+	Disable(configFilePath string) error
+}
+
 // GetSupportedWebServers returns the codes of supported web servers
 func GetSupportedWebServers() []string {
-	return []string{WebServerApacheCode, WebServerNginxCode}
+	return []string{WebServerNginxCode}
 }
 
 // WebServer is an interface for a webserver like nginx, apache
@@ -21,6 +26,7 @@ type WebServer interface {
 	GetVhostByName(serverName string) (*agentintegration.VirtualHost, error)
 	GetVhosts() ([]agentintegration.VirtualHost, error)
 	GetCode() string
+	GetVhostManager() HostManager
 }
 
 // GetWebServer returns WebServer object by code
@@ -29,8 +35,6 @@ func GetWebServer(webServerCode string, options map[string]string) (WebServer, e
 	var err error
 
 	switch webServerCode {
-	case WebServerApacheCode:
-		webServer, err = GetApacheWebServer(options)
 	case WebServerNginxCode:
 		webServer, err = GetNginxWebServer(options)
 	default:

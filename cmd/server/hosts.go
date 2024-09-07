@@ -77,9 +77,3 @@ var HostsCmd = &cobra.Command{
 		return writeOutput(cmd, strings.Join(outputParts, "\n"))
 	},
 }
-
-var webServerCode string
-
-func init() {
-	HostsCmd.PersistentFlags().StringVarP(&webServerCode, "webserver", "w", "", "webserver code (nginx|apache)")
-}

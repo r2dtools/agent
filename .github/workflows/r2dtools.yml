@@ -36,14 +36,14 @@ jobs:
     - name: Create build archive
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
     
-    - name: Deploy to server
-      id: deploy
-      uses: Pendect/action-rsyncer@v1.1.0
-      env:
-        DEPLOY_KEY: ${{secrets.r2stDeploy}}
-      with:
-        flags: '-avz'
-        options: ''
-        ssh_options: ''
-        src: $BUILD_ARCHIVE_NAME
-        dest: 'root@134.0.115.60:/var/www/r2dtools.com/builds'
+    #- name: Deploy to server
+    #  id: deploy
+    #3  uses: Pendect/action-rsyncer@v1.1.0
+    #  env:
+    #    DEPLOY_KEY: ${{secrets.r2stDeploy}}
+    #  with:
+    #    flags: '-avz'
+    #    options: ''
+    #    ssh_options: ''
+    #    src: $BUILD_ARCHIVE_NAME
+    #    dest: 'root@134.0.115.60:/var/www/r2dtools.com/builds'

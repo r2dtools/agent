@@ -5,7 +5,6 @@ import (
 )
 
 func main() {
-
 	if err := server.RootCmd.Execute(); err != nil {
 		panic(err)
 	}

@@ -70,3 +70,17 @@ func NewLogger(config *config.Config) (Logger, error) {
 
 	return &logger{zapLogger: zLogger.Sugar()}, nil
 }
+
+type NilLogger struct{}
+
+func (l *NilLogger) Error(message string, args ...interface{}) {
+}
+
+func (l *NilLogger) Warning(message string, args ...interface{}) {
+}
+
+func (l *NilLogger) Info(message string, args ...interface{}) {
+}
+
+func (l *NilLogger) Debug(message string, args ...interface{}) {
+}

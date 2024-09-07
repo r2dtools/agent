@@ -14,6 +14,7 @@ import (
 	"github.com/r2dtools/agent/internal/pkg/certificate"
 	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agent/internal/pkg/webserver"
+	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
 	"github.com/r2dtools/agentintegration"
 	"github.com/unknwon/com"
 )
@@ -129,11 +130,16 @@ func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, 
 		return nil, err
 	}
 
+	webServerReverter := reverter.Reverter{
+		HostMng: webserver.GetVhostManager(),
+		Logger:  c.Logger,
+	}
+
 	if vhost == nil {
 		return nil, fmt.Errorf("could not find virtual host '%s'", serverName)
 	}
 
-	deployer, err := deploy.GetCertificateDeployer(webserver, c.Logger)
+	deployer, err := deploy.GetCertificateDeployer(webserver, webServerReverter, c.Logger)
 	if err != nil {
 		return nil, err
 	}

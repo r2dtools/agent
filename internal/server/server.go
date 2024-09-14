@@ -11,19 +11,17 @@ import (
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agent/internal/pkg/router"
-	"github.com/r2dtools/agent/internal/pkg/service"
 )
 
 const HEADER_DATA_LENGTH = 4 // bytes
 
 // Server structure
 type Server struct {
-	Port           int
-	ServiceManager service.ServiceManager
-	Router         router.Router
-	Logger         logger.Logger
-	Config         *config.Config
-	listener       net.Listener
+	Port     int
+	Router   router.Router
+	Logger   logger.Logger
+	Config   *config.Config
+	listener net.Listener
 }
 
 // Serve starts TCP server
@@ -40,8 +38,6 @@ func (s *Server) Serve() error {
 	s.listener = listener
 	s.Logger.Info("TCP server successfully started")
 	defer listener.Close()
-
-	s.ServiceManager.RunServices()
 
 	for {
 		s.Logger.Info("listening to a remote conection ...")

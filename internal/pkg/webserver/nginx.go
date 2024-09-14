@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/r2dtools/agent/internal/pkg/webserver/hostmng"
+	"github.com/r2dtools/agent/internal/pkg/webserver/processmng"
 	"github.com/r2dtools/agentintegration"
 	nginxConfig "github.com/r2dtools/gonginx/config"
 )
@@ -85,6 +86,10 @@ func (nws *NginxWebServer) GetVhostManager() HostManager {
 	}
 }
 
+func (nws *NginxWebServer) GetProcessManager() (ProcessManager, error) {
+	return processmng.GetNginxProcessManager()
+}
+
 func GetNginxWebServer(options map[string]string) (*NginxWebServer, error) {
 	root := getNginxRoot(options)
 	config, err := nginxConfig.GetConfig(root, "", false)
@@ -93,7 +98,11 @@ func GetNginxWebServer(options map[string]string) (*NginxWebServer, error) {
 		return nil, fmt.Errorf("could not parse nginx config: %v", err)
 	}
 
-	return &NginxWebServer{config, root, options}, nil
+	return &NginxWebServer{
+		Config:  config,
+		root:    root,
+		options: options,
+	}, nil
 }
 
 func getNginxRoot(options map[string]string) string {

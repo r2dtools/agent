@@ -16,20 +16,22 @@ type HostManager interface {
 	Disable(configFilePath string) error
 }
 
-// GetSupportedWebServers returns the codes of supported web servers
+type ProcessManager interface {
+	Reload() error
+}
+
 func GetSupportedWebServers() []string {
 	return []string{WebServerNginxCode}
 }
 
-// WebServer is an interface for a webserver like nginx, apache
 type WebServer interface {
 	GetVhostByName(serverName string) (*agentintegration.VirtualHost, error)
 	GetVhosts() ([]agentintegration.VirtualHost, error)
 	GetCode() string
 	GetVhostManager() HostManager
+	GetProcessManager() (ProcessManager, error)
 }
 
-// GetWebServer returns WebServer object by code
 func GetWebServer(webServerCode string, options map[string]string) (WebServer, error) {
 	var webServer WebServer
 	var err error

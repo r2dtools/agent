@@ -14,20 +14,21 @@ import (
 	nginxConfig "github.com/r2dtools/gonginx/config"
 )
 
-// NginxCertificateDeployer certificate deployer to apache virtual host
+const certKeyDirective = "ssl_certificate_key"
+const certDirective = "ssl_certificate"
+
 type NginxCertificateDeployer struct {
 	logger    logger.Logger
 	webServer *webserver.NginxWebServer
-	reverter  reverter.Reverter
+	reverter  *reverter.Reverter
 }
 
-// DeployCertificate deploys certificate to nginx domain
-func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath, chainPath, fullChainPath string) error {
+func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath string) (string, error) {
 	wConfig := d.webServer.Config
 	serverBlocks := wConfig.FindServerBlocksByServerName(vhost.ServerName)
 
 	if len(serverBlocks) == 0 {
-		return fmt.Errorf("nginx host %s does not exixst", vhost.ServerName)
+		return "", fmt.Errorf("nginx host %s does not exixst", vhost.ServerName)
 	}
 
 	var sslServerBlock *nginxConfig.ServerBlock
@@ -41,32 +42,37 @@ func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.Vir
 	}
 
 	if sslServerBlock == nil {
-		sslServerBlock, err = d.createSslhost(vhost, serverBlock)
+		sslServerBlock, err = d.createSslHost(vhost, serverBlock)
 
 		if err != nil {
-			return err
+			return "", err
 		}
+
+		d.reverter.AddConfigToDeletion(sslServerBlock.FilePath)
+	} else {
+		d.reverter.BackupConfig(sslServerBlock.FilePath)
 	}
 
-	certKeyDirective := nginxConfig.NewDirective("ssl_certificate_key", []string{certKeyPath})
+	sslServerBlock.DeleteDirectiveByName(certKeyDirective)
+	sslServerBlock.DeleteDirectiveByName(certDirective)
+
+	certKeyDirective := nginxConfig.NewDirective(certKeyDirective, []string{certKeyPath})
 	sslServerBlock.AddDirective(certKeyDirective, false)
 
-	certDirective := nginxConfig.NewDirective("ssl_certificate", []string{certPath})
+	certDirective := nginxConfig.NewDirective(certDirective, []string{certPath})
 	sslServerBlock.AddDirective(certDirective, false)
 
 	sslServerBlockFileName := filepath.Base(sslServerBlock.FilePath)
 	configFile := wConfig.GetConfigFile(sslServerBlockFileName)
 
-	err = configFile.Dump()
-
-	if err != nil {
-		return err
+	if err = configFile.Dump(); err != nil {
+		return "", err
 	}
 
-	return nil
+	return sslServerBlock.FilePath, nil
 }
 
-func (d *NginxCertificateDeployer) createSslhost(
+func (d *NginxCertificateDeployer) createSslHost(
 	vhost *agentintegration.VirtualHost,
 	serverBlock nginxConfig.ServerBlock,
 ) (*nginxConfig.ServerBlock, error) {
@@ -77,10 +83,9 @@ func (d *NginxCertificateDeployer) createSslhost(
 	fileName := strings.TrimSuffix(filepath.Base(filePath), extension)
 	directory := filepath.Dir(filePath)
 
-	sslFileName := fmt.Sprintf("%s-ssl.%s", fileName, extension)
+	sslFileName := fmt.Sprintf("%s-ssl%s", fileName, extension)
 	sslFilePath := filepath.Join(directory, sslFileName)
 
-	// todo: implment reverter
 	if _, err := os.Stat(sslFilePath); errors.Is(err, os.ErrNotExist) {
 		file, err := os.Create(sslFilePath)
 
@@ -108,15 +113,17 @@ func (d *NginxCertificateDeployer) createSslhost(
 		}
 
 		serverBlock := serverBlocks[0]
+		isIpv4Enabled := serverBlock.IsIpv4Enabled()
+		isIpv6Enabled := serverBlock.IsIpv6Enabled()
 		serverBlock.DeleteDirectiveByName("listen")
 
-		if serverBlock.IsIpv4Enabled() {
-			listenDirective := nginxConfig.NewDirective("listen", []string{"443", "ssl"})
+		if isIpv6Enabled {
+			listenDirective := nginxConfig.NewDirective("listen", []string{"[::]:443", "ssl"})
 			serverBlock.AddDirective(listenDirective, true)
 		}
 
-		if serverBlock.IsIpv6Enabled() {
-			listenDirective := nginxConfig.NewDirective("listen", []string{"[::]:443", "ssl"})
+		if isIpv4Enabled {
+			listenDirective := nginxConfig.NewDirective("listen", []string{"443", "ssl"})
 			serverBlock.AddDirective(listenDirective, true)
 		}
 

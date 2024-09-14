@@ -48,13 +48,19 @@ var DeployCertificateCmd = &cobra.Command{
 			return err
 		}
 
+		processManager, err := webServer.GetProcessManager()
+
+		if err != nil {
+			return err
+		}
+
 		vhost, err := webServer.GetVhostByName(serverName)
 
 		if err != nil {
 			return err
 		}
 
-		webServerReverter := reverter.Reverter{
+		webServerReverter := &reverter.Reverter{
 			HostMng: webServer.GetVhostManager(),
 			Logger:  log,
 		}
@@ -69,12 +75,48 @@ var DeployCertificateCmd = &cobra.Command{
 			return err
 		}
 
-		return deployer.DeployCertificate(vhost, "/path/to/cert", "/path/to/cert-key", "", "")
+		sslConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, certKeyPath)
+
+		if err != nil {
+			if rErr := webServerReverter.Rollback(); rErr != nil {
+				log.Error(fmt.Sprintf("failed to rallback webserver configuration on cert deploy: %v", rErr))
+			}
+
+			return err
+		}
+
+		if err = webServer.GetVhostManager().Enable(sslConfigFilePath); err != nil {
+			if rErr := webServerReverter.Rollback(); rErr != nil {
+				log.Error(fmt.Sprintf("failed to rallback webserver configuration on host enabling: %v", rErr))
+			}
+
+			return err
+		}
+
+		if err = processManager.Reload(); err != nil {
+			if rErr := webServerReverter.Rollback(); rErr != nil {
+				log.Error(fmt.Sprintf("failed to rallback webserver configuration on webserver reload: %v", rErr))
+			}
+
+			return err
+		}
+
+		if err = webServerReverter.Commit(); err != nil {
+			if rErr := webServerReverter.Rollback(); rErr != nil {
+				log.Error(fmt.Sprintf("failed to commit webserver configuration: %v", rErr))
+			}
+		}
+
+		return nil
 	},
 }
 
 var serverName string
+var certPath string
+var certKeyPath string
 
 func init() {
 	DeployCertificateCmd.PersistentFlags().StringVarP(&serverName, "domain", "s", "", "domain to deploy a certificate")
+	DeployCertificateCmd.PersistentFlags().StringVarP(&certPath, "cert", "c", "", "path to a certificate file")
+	DeployCertificateCmd.PersistentFlags().StringVarP(&certKeyPath, "key", "k", "", "path to a certificate key path")
 }

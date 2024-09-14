@@ -29,7 +29,7 @@ const (
 type CertificateManager struct {
 	legoBinPath, dataPath string
 	CertStorage           *Storage
-	Logger                logger.Logger
+	logger                logger.Logger
 	Config                *config.Config
 }
 
@@ -37,6 +37,12 @@ type CertificateManager struct {
 func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueRequestData) (*agentintegration.Certificate, error) {
 	serverName := certData.ServerName
 	var challengeType ChallengeType
+
+	wServer, err := webserver.GetWebServer(certData.WebServer, c.Config.ToMap())
+
+	if err != nil {
+		return nil, err
+	}
 
 	if certData.ChallengeType == "" {
 		return nil, errors.New("challenge type is not specified")
@@ -68,16 +74,17 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 	}
 
 	params = append(params, challengeType.GetParams()...)
-	_, err := c.execCmd("run", params)
+	_, err = c.execCmd("run", params)
 
 	if err != nil {
-		c.Logger.Debug("%v", err)
+		c.logger.Debug("%v", err)
 		return nil, err
 	}
 
 	if certData.Assign {
 		certPath := c.CertStorage.GetVhostCertificatePath(serverName, "pem")
-		return c.deployCertificate(serverName, certData.WebServer, certPath, certPath)
+
+		return c.deployCertificate(wServer, serverName, certPath, certPath)
 	}
 
 	return c.CertStorage.GetCertificate(serverName)
@@ -90,7 +97,13 @@ func (c *CertificateManager) Assign(certData agentintegration.CertificateAssignR
 		return nil, fmt.Errorf("could not assign certificate to the domain '%s': %v", certData.ServerName, err)
 	}
 
-	return c.deployCertificate(certData.ServerName, certData.WebServer, certPath, certPath)
+	wServer, err := webserver.GetWebServer(certData.WebServer, c.Config.ToMap())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return c.deployCertificate(wServer, certData.ServerName, certPath, certPath)
 }
 
 // Upload deploys an existed certificate
@@ -101,7 +114,13 @@ func (c *CertificateManager) Upload(certName, webServer, pemData string) (*agent
 		return nil, err
 	}
 
-	return c.deployCertificate(certName, webServer, certPath, certPath)
+	wServer, err := webserver.GetWebServer(webServer, c.Config.ToMap())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return c.deployCertificate(wServer, certName, certPath, certPath)
 }
 
 // GetStorageCertList returns names of all certificates in the storage
@@ -119,33 +138,62 @@ func (c *CertificateManager) RemoveCertificate(certName string) error {
 	return c.CertStorage.RemoveCertificate(certName)
 }
 
-func (c *CertificateManager) deployCertificate(serverName, webServer, certPath, keyPath string) (*agentintegration.Certificate, error) {
-	webserver, err := webserver.GetWebServer(webServer, c.Config.ToMap())
+func (c *CertificateManager) deployCertificate(wServer webserver.WebServer, serverName, certPath, keyPath string) (*agentintegration.Certificate, error) {
+	processManager, err := wServer.GetProcessManager()
+
 	if err != nil {
 		return nil, err
 	}
 
-	vhost, err := webserver.GetVhostByName(serverName)
+	vhost, err := wServer.GetVhostByName(serverName)
 	if err != nil {
 		return nil, err
 	}
 
-	webServerReverter := reverter.Reverter{
-		HostMng: webserver.GetVhostManager(),
-		Logger:  c.Logger,
+	webServerReverter := &reverter.Reverter{
+		HostMng: wServer.GetVhostManager(),
+		Logger:  c.logger,
 	}
 
 	if vhost == nil {
 		return nil, fmt.Errorf("could not find virtual host '%s'", serverName)
 	}
 
-	deployer, err := deploy.GetCertificateDeployer(webserver, webServerReverter, c.Logger)
+	deployer, err := deploy.GetCertificateDeployer(wServer, webServerReverter, c.logger)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = deployer.DeployCertificate(vhost, certPath, keyPath, "", certPath); err != nil {
+	sslConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, keyPath)
+
+	if err != nil {
+		if rErr := webServerReverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to rallback webserver configuration on cert deploy: %v", rErr))
+		}
+
 		return nil, err
+	}
+
+	if err = wServer.GetVhostManager().Enable(sslConfigFilePath); err != nil {
+		if rErr := webServerReverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to rallback webserver configuration on host enabling: %v", rErr))
+		}
+
+		return nil, err
+	}
+
+	if err = processManager.Reload(); err != nil {
+		if rErr := webServerReverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to rallback webserver configuration on webserver reload: %v", rErr))
+		}
+
+		return nil, err
+	}
+
+	if err = webServerReverter.Commit(); err != nil {
+		if rErr := webServerReverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to commit webserver configuration: %v", rErr))
+		}
 	}
 
 	return certificate.GetCertificateForDomainFromRequest(serverName)
@@ -187,7 +235,7 @@ func GetCertificateManager(config *config.Config, logger logger.Logger) (*Certif
 	}
 
 	certManager := &CertificateManager{
-		Logger:      logger,
+		logger:      logger,
 		CertStorage: GetDefaultCertStorage(config),
 		legoBinPath: legoBinPath,
 		dataPath:    dataPath,
@@ -209,7 +257,7 @@ func getOutputError(output string) string {
 	var errorParts []string
 
 	for _, part := range parts {
-		if strings.Index(part, "[INFO]") != -1 || strings.Index(part, "[WARN]") != -1 {
+		if strings.Contains(part, "[INFO]") || strings.Contains(part, "[WARN]") {
 			continue
 		}
 

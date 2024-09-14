@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agentintegration"
 	"github.com/spf13/cobra"
@@ -17,7 +18,13 @@ var HostsCmd = &cobra.Command{
 	Use:   "hosts",
 	Short: "Show virtual hosts of web servers",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_, err := config.GetConfig()
+		conf, err := config.GetConfig()
+
+		if err != nil {
+			return err
+		}
+
+		log, err := logger.NewLogger(conf)
 
 		if err != nil {
 			return err
@@ -40,7 +47,9 @@ var HostsCmd = &cobra.Command{
 			webServer, err := webserver.GetWebServer(webServerCode, map[string]string{})
 
 			if err != nil {
-				return err
+				log.Info(fmt.Sprintf("failed to get %s webserver: %v", webServerCode, err))
+
+				continue
 			}
 
 			hosts, err := webServer.GetVhosts()

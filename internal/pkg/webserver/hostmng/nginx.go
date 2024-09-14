@@ -19,7 +19,11 @@ func (m *NginxHostManager) Enable(configFilePath string) error {
 	fileName := filepath.Base(configFilePath)
 	availableConfigFilePath := filepath.Join(m.AvailableConfigRootPath, fileName)
 
-	return os.Symlink(configFilePath, availableConfigFilePath)
+	if _, err := os.Lstat(availableConfigFilePath); errors.Is(err, os.ErrNotExist) {
+		return os.Symlink(configFilePath, availableConfigFilePath)
+	}
+
+	return nil
 }
 
 func (m *NginxHostManager) Disable(configFilePath string) error {

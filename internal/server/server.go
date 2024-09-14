@@ -13,9 +13,8 @@ import (
 	"github.com/r2dtools/agent/internal/pkg/router"
 )
 
-const HEADER_DATA_LENGTH = 4 // bytes
+const headerDataLength = 4 // bytes
 
-// Server structure
 type Server struct {
 	Port     int
 	Router   router.Router
@@ -49,7 +48,7 @@ func (s *Server) Serve() error {
 		}
 
 		s.Logger.Info("accepted connection from the remote address: %v", conn.RemoteAddr())
-		s.handleConn(conn)
+		go s.handleConn(conn)
 	}
 }
 
@@ -146,7 +145,7 @@ func (s *Server) handleRequest(data []byte) (interface{}, error) {
 
 func (s *Server) writeData(writer io.Writer, data []byte) error {
 	// First, write sending data length
-	header := make([]byte, HEADER_DATA_LENGTH)
+	header := make([]byte, headerDataLength)
 	dataLen := len(data)
 	binary.BigEndian.PutUint32(header, uint32(dataLen))
 
@@ -163,7 +162,7 @@ func (s *Server) writeData(writer io.Writer, data []byte) error {
 
 // readDataLen reads first bytes where data length is stored
 func (s *Server) readDataLen(reader io.Reader) (int, error) {
-	header := make([]byte, HEADER_DATA_LENGTH)
+	header := make([]byte, headerDataLength)
 	if _, err := reader.Read(header); err != nil {
 		return 0, fmt.Errorf("could not read data length: %v", err)
 	}

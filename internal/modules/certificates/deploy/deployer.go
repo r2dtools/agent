@@ -10,10 +10,10 @@ import (
 )
 
 type CertificateDeployer interface {
-	DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath, chainPath, fullChainPath string) error
+	DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath string) (string, error)
 }
 
-func GetCertificateDeployer(webServer webserver.WebServer, reverter reverter.Reverter, logger logger.Logger) (CertificateDeployer, error) {
+func GetCertificateDeployer(webServer webserver.WebServer, reverter *reverter.Reverter, logger logger.Logger) (CertificateDeployer, error) {
 	switch w := webServer.(type) {
 	case *webserver.NginxWebServer:
 		return &NginxCertificateDeployer{logger: logger, webServer: w, reverter: reverter}, nil

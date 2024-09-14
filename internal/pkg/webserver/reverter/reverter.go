@@ -3,6 +3,7 @@ package reverter
 import (
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/unknwon/com"
@@ -53,7 +54,7 @@ func (r *Reverter) BackupConfig(filePath string) error {
 	}
 
 	// Skip file backup if it should be removed
-	if com.IsSliceContainsStr(r.configsToDelete, filePath) {
+	if slices.Contains(r.configsToDelete, filePath) {
 		r.Logger.Debug(fmt.Sprintf("file '%s' will be removed on rollback. Skip its backup.", filePath))
 		return nil
 	}

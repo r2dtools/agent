@@ -2,7 +2,7 @@ legoVersion=4.18.0
 legoArchive=lego.tar.gz
 
 test:
-	go test ./...
+	docker run --volume="$(shell pwd):/opt/r2dtools" agent-tests
 
 build_agent:
 	go build -o ./build/r2dtools -v cmd/main.go
@@ -17,6 +17,8 @@ build: build_agent build_lego
     cp .version LICENSE build/; \
     cp config/params.yaml build/config/
 
+build_test:
+	docker build -t agent-tests . 
 clean:
 	cd build; \
 	rm -rf config; \
@@ -24,3 +26,5 @@ clean:
 
 serve:
 	go run cmd/main.go serve
+
+.PHONY: test

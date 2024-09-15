@@ -7,19 +7,9 @@ R2DTools makes it possible to issue a Let`s Encrypt certificate for a website in
 
 If you have an already issued certificate ( with .pem extension ) you can just upload it and R2DTools will secure your website with the uploaded certificate.
 
-## Server Monitoring
-
-Simple server monitoring helps you track your server parameters such as CPU, Memory, Network, Disk I/O, Processes and detect performance problems.
-
-## Suported OS
-
-* Linux Ubuntu 18.04+
-* Linux Debian 8+
-* Linux CentOS 7+
-
 ## Suported web servers
 
-* Apache 2.4+
+* Nginx
 
 ## How to install
 

@@ -57,10 +57,10 @@ func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.Vir
 	sslServerBlock.DeleteDirectiveByName(certDirective)
 
 	certKeyDirective := nginxConfig.NewDirective(certKeyDirective, []string{certKeyPath})
-	sslServerBlock.AddDirective(certKeyDirective, false)
+	sslServerBlock.AddDirective(certKeyDirective, false, true)
 
 	certDirective := nginxConfig.NewDirective(certDirective, []string{certPath})
-	sslServerBlock.AddDirective(certDirective, false)
+	sslServerBlock.AddDirective(certDirective, false, true)
 
 	sslServerBlockFileName := filepath.Base(sslServerBlock.FilePath)
 	configFile := wConfig.GetConfigFile(sslServerBlockFileName)
@@ -78,7 +78,12 @@ func (d *NginxCertificateDeployer) createSslHost(
 ) (*nginxConfig.ServerBlock, error) {
 	content := serverBlock.Dump()
 
-	filePath := filepath.Clean(serverBlock.FilePath)
+	filePath, err := filepath.EvalSymlinks(serverBlock.FilePath)
+
+	if err != nil {
+		return nil, err
+	}
+
 	extension := filepath.Ext(filePath)
 	fileName := strings.TrimSuffix(filepath.Base(filePath), extension)
 	directory := filepath.Dir(filePath)
@@ -119,12 +124,12 @@ func (d *NginxCertificateDeployer) createSslHost(
 
 		if isIpv6Enabled {
 			listenDirective := nginxConfig.NewDirective("listen", []string{"[::]:443", "ssl"})
-			serverBlock.AddDirective(listenDirective, true)
+			serverBlock.AddDirective(listenDirective, true, true)
 		}
 
 		if isIpv4Enabled {
 			listenDirective := nginxConfig.NewDirective("listen", []string{"443", "ssl"})
-			serverBlock.AddDirective(listenDirective, true)
+			serverBlock.AddDirective(listenDirective, true, false)
 		}
 
 		return &serverBlock, nil

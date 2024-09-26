@@ -1,7 +1,6 @@
 name: r2dtools
 on: [push]
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -18,7 +17,7 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
-    - name: Get dependencies
+    - name: Install dependencies
       run: go install ./...
 
     - name: Build image for tests
@@ -27,7 +26,7 @@ jobs:
     - name: Run tests
       run: make test
 
-    - name: Build
+    - name: Build agent
       run: make build
         
     - name: Prepare build directory
@@ -35,15 +34,9 @@ jobs:
     
     - name: Create build archive
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
-    
-    #- name: Deploy to server
-    #  id: deploy
-    #3  uses: Pendect/action-rsyncer@v1.1.0
-    #  env:
-    #    DEPLOY_KEY: ${{secrets.r2stDeploy}}
-    #  with:
-    #    flags: '-avz'
-    #    options: ''
-    #    ssh_options: ''
-    #    src: $BUILD_ARCHIVE_NAME
-    #    dest: 'root@134.0.115.60:/var/www/r2dtools.com/builds'
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: $BUILD_ARCHIVE_NAME

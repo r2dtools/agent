@@ -21,7 +21,10 @@ jobs:
     - name: Get dependencies
       run: go install ./...
 
-    - name: Run unit tests
+    - name: Build image for tests
+      run: make build_test
+
+    - name: Run tests
       run: make test
 
     - name: Build

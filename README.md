@@ -7,7 +7,7 @@ R2DTools makes it possible to issue a Let`s Encrypt certificate for a website in
 
 If you have an already issued certificate ( with .pem extension ) you can just upload it and R2DTools will secure your website with the uploaded certificate.
 
-## Suported web servers
+## Supported web servers
 
 * Nginx
 

@@ -111,12 +111,11 @@ var DeployCertificateCmd = &cobra.Command{
 	},
 }
 
-var serverName string
 var certPath string
 var certKeyPath string
 
 func init() {
-	DeployCertificateCmd.PersistentFlags().StringVarP(&serverName, "domain", "s", "", "domain to deploy a certificate")
+	DeployCertificateCmd.PersistentFlags().StringVarP(&serverName, "domain", "d", "", "domain to deploy a certificate")
 	DeployCertificateCmd.PersistentFlags().StringVarP(&certPath, "cert", "c", "", "path to a certificate file")
 	DeployCertificateCmd.PersistentFlags().StringVarP(&certKeyPath, "key", "k", "", "path to a certificate key path")
 }

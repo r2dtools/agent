@@ -18,6 +18,7 @@ func init() {
 	RootCmd.AddCommand(VersionCmd)
 	RootCmd.AddCommand(HostsCmd)
 	RootCmd.AddCommand(DeployCertificateCmd)
+	RootCmd.AddCommand(IssueCertificateCmd)
 }
 
 func writeOutput(cmd *cobra.Command, output string) error {
@@ -31,6 +32,7 @@ func writeOutput(cmd *cobra.Command, output string) error {
 }
 
 var webServerCode string
+var serverName string
 
 func init() {
 	RootCmd.PersistentFlags().StringVarP(&webServerCode, "webserver", "w", "", "webserver code (nginx|apache)")

@@ -3,8 +3,8 @@ package certificates
 import "fmt"
 
 const (
-	httpChallengeType = "http"
-	dnsChallengeType  = "dns"
+	HttpChallengeTypeCode = "http"
+	DnsChallengeTypeCode  = "dns"
 )
 
 // ChallengeType should be implemented by object to specify challenge type during certificate issuence

@@ -48,13 +48,13 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		return nil, errors.New("challenge type is not specified")
 	}
 
-	if certData.ChallengeType == httpChallengeType {
+	if certData.ChallengeType == HttpChallengeTypeCode {
 		challengeType = &HTTPChallengeType{
 			HTTPPort: httpPort,
 			TLSPort:  tlsPort,
 			WebRoot:  certData.DocRoot,
 		}
-	} else if certData.ChallengeType == dnsChallengeType {
+	} else if certData.ChallengeType == DnsChallengeTypeCode {
 		provider := certData.GetAdditionalParam("provider")
 		if provider == "" {
 			return nil, errors.New("dns provider is not specified")
@@ -237,6 +237,7 @@ func GetCertificateManager(config *config.Config, logger logger.Logger) (*Certif
 	certManager := &CertificateManager{
 		logger:      logger,
 		CertStorage: GetDefaultCertStorage(config),
+		Config:      config,
 		legoBinPath: legoBinPath,
 		dataPath:    dataPath,
 	}

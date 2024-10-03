@@ -3,6 +3,7 @@ package webserver
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/r2dtools/agent/internal/pkg/webserver/hostmng"
 	"github.com/r2dtools/agent/internal/pkg/webserver/processmng"
@@ -63,9 +64,9 @@ func (nws *NginxWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 		}
 
 		vhost := agentintegration.VirtualHost{
-			FilePath:   nVhost.FilePath,
+			FilePath:   strings.Trim(nVhost.FilePath, "\""),
 			ServerName: serverNames[0],
-			DocRoot:    nVhost.GetDocumentRoot(),
+			DocRoot:    strings.Trim(nVhost.GetDocumentRoot(), "\""),
 			Aliases:    aliases,
 			Ssl:        nVhost.HasSSL(),
 			WebServer:  WebServerNginxCode,

@@ -38,7 +38,7 @@ func (l *logger) Debug(message string, args ...interface{}) {
 }
 
 func NewLogger(config *config.Config) (Logger, error) {
-	logDir := path.Dir(config.GetLoggerFileAbsPath())
+	logDir := path.Dir(config.LogFile)
 
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		err := os.MkdirAll(logDir, 0755)
@@ -49,7 +49,7 @@ func NewLogger(config *config.Config) (Logger, error) {
 	}
 
 	var loggerConfig zap.Config
-	outputPaths := []string{config.GetLoggerFileAbsPath()}
+	outputPaths := []string{config.LogFile}
 
 	if config.IsDevMode {
 		loggerConfig = zap.NewDevelopmentConfig()

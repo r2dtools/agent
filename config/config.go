@@ -12,7 +12,6 @@ import (
 const (
 	devMode = "development"
 	port    = 60150
-	logFile = "var/log/r2dtools.log"
 )
 
 // Config stores agent configuration params
@@ -53,7 +52,6 @@ func GetConfig() (*Config, error) {
 
 	vConfig := viper.New()
 	vConfig.SetDefault("Port", port)
-	vConfig.SetDefault("LogFile", logFile)
 
 	configPath := filepath.Join(executablePath, "config")
 	configFilePath := filepath.Join(configPath, "params.yaml")
@@ -70,18 +68,13 @@ func GetConfig() (*Config, error) {
 
 	return &Config{
 		Port:           vConfig.GetInt("Port"),
-		LogFile:        vConfig.GetString("LogFile"),
+		LogFile:        filepath.Join(executablePath, "r2dtools.log"),
 		Token:          vConfig.GetString("Token"),
 		ExecutablePath: executablePath,
 		ConfigPath:     configPath,
 		IsDevMode:      isDevMode,
 		vConfig:        vConfig,
 	}, nil
-}
-
-// GetLoggerFileAbsPath returns absolute path to logger file
-func (c *Config) GetLoggerFileAbsPath() string {
-	return filepath.Join(c.ExecutablePath, c.LogFile)
 }
 
 // Merge merges config already loaded in memory with existing one
@@ -91,7 +84,7 @@ func (c *Config) Merge() error {
 
 // GetVarDirAbsPath returns absolute path to var directory
 func (c *Config) GetVarDirAbsPath() string {
-	return filepath.Join(c.ExecutablePath, "var")
+	return "/usr/local/r2dtools/var"
 }
 
 // IsSet checks if key exists in config

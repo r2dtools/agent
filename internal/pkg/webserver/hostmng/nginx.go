@@ -10,11 +10,10 @@ import (
 )
 
 type NginxHostManager struct {
-	AvailableConfigRootPath string
-	EnabledConfigRootPath   string
+	EnabledConfigRootPath string
 }
 
-func (m *NginxHostManager) Enable(configFilePath, originConfigFilePath string) error {
+func (m *NginxHostManager) Enable(configFilePath, enabledConfigRootPath string) error {
 	if _, err := os.Stat(configFilePath); errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("config file not found: %s", configFilePath)
 	}
@@ -33,11 +32,10 @@ func (m *NginxHostManager) Enable(configFilePath, originConfigFilePath string) e
 	var enabledConfigFilePath string
 	fileName := filepath.Base(configFilePath)
 
-	if originConfigFilePath == "" {
+	if enabledConfigRootPath == "" {
 		enabledConfigFilePath = filepath.Join(m.EnabledConfigRootPath, fileName)
 	} else {
-		enabledConfigDir := filepath.Dir(originConfigFilePath)
-		enabledConfigFilePath = filepath.Join(enabledConfigDir, fileName)
+		enabledConfigFilePath = filepath.Join(enabledConfigRootPath, fileName)
 	}
 
 	if _, err := os.Lstat(enabledConfigFilePath); errors.Is(err, os.ErrNotExist) {
@@ -52,8 +50,6 @@ func (m *NginxHostManager) Disable(enabledConfigFilePath string) error {
 		if err = os.Remove(enabledConfigFilePath); err != nil {
 			return fmt.Errorf("failed to remove config file symlink: %s", enabledConfigFilePath)
 		}
-	} else if errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("config file symlink not found: %s", enabledConfigFilePath)
 	}
 
 	return nil

@@ -9,8 +9,7 @@ import (
 
 func TestNginxHost(t *testing.T) {
 	hostManager := NginxHostManager{
-		AvailableConfigRootPath: "/etc/nginx/sites-available",
-		EnabledConfigRootPath:   "/etc/nginx/sites-enabled",
+		EnabledConfigRootPath: "/etc/nginx/sites-enabled",
 	}
 
 	enabledConfigFilePath := "/etc/nginx/sites-enabled/example3.com.conf"

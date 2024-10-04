@@ -83,8 +83,7 @@ func (nws *NginxWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 
 func (nws *NginxWebServer) GetVhostManager() HostManager {
 	return &hostmng.NginxHostManager{
-		AvailableConfigRootPath: filepath.Join(nws.root, "sites-available"),
-		EnabledConfigRootPath:   filepath.Join(nws.root, "sites-enabled"),
+		EnabledConfigRootPath: filepath.Join(nws.root, "sites-enabled"),
 	}
 }
 

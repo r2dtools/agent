@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/certificates/deploy"
@@ -75,7 +76,7 @@ var DeployCertificateCmd = &cobra.Command{
 			return err
 		}
 
-		sslConfigFilePath, originConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, certKeyPath)
+		sslConfigFilePath, originEnabledConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, certKeyPath)
 
 		if err != nil {
 			if rErr := webServerReverter.Rollback(); rErr != nil {
@@ -85,7 +86,7 @@ var DeployCertificateCmd = &cobra.Command{
 			return err
 		}
 
-		if err = webServer.GetVhostManager().Enable(sslConfigFilePath, originConfigFilePath); err != nil {
+		if err = webServer.GetVhostManager().Enable(sslConfigFilePath, filepath.Dir(originEnabledConfigFilePath)); err != nil {
 			if rErr := webServerReverter.Rollback(); rErr != nil {
 				log.Error(fmt.Sprintf("failed to rallback webserver configuration on host enabling: %v", rErr))
 			}

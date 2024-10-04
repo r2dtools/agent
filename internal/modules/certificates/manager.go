@@ -196,7 +196,7 @@ func (c *CertificateManager) deployCertificate(wServer webserver.WebServer, serv
 		}
 	}
 
-	return certificate.GetCertificateForDomainFromRequest(serverName)
+	return certificate.GetCertificateFromFile(certPath)
 }
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {

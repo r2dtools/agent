@@ -65,7 +65,7 @@ func (nws *NginxWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 
 		vhost := agentintegration.VirtualHost{
 			FilePath:   strings.Trim(nVhost.FilePath, "\""),
-			ServerName: serverNames[0],
+			ServerName: strings.Trim(serverNames[0], "\""),
 			DocRoot:    strings.Trim(nVhost.GetDocumentRoot(), "\""),
 			Aliases:    aliases,
 			Ssl:        nVhost.HasSSL(),

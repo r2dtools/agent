@@ -11,7 +11,7 @@ import (
 
 type stubHostManager struct{}
 
-func (m stubHostManager) Enable(configFilePath string) error {
+func (m stubHostManager) Enable(configFilePath, originSslConfigFilePath string) error {
 	return nil
 }
 

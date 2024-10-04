@@ -18,7 +18,7 @@ func (re *rollbackError) Error() string {
 }
 
 type hostManager interface {
-	Enable(configFilePath string) error
+	Enable(configFilePath, originConfigFilePath string) error
 	Disable(configFilePath string) error
 }
 

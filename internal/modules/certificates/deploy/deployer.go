@@ -10,7 +10,7 @@ import (
 )
 
 type CertificateDeployer interface {
-	DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath string) (string, error)
+	DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath string) (string, string, error)
 }
 
 func GetCertificateDeployer(webServer webserver.WebServer, reverter *reverter.Reverter, logger logger.Logger) (CertificateDeployer, error) {

@@ -21,7 +21,7 @@ func TestDeployCertificateToNonSslHost(t *testing.T) {
 	host := findHost(servername, hosts)
 	assert.NotNilf(t, host, "host %s not found", servername)
 
-	configPath, err := deployer.DeployCertificate(host, "test/certificate/example.com.key", "test/certificate/example.com.crt")
+	configPath, _, err := deployer.DeployCertificate(host, "test/certificate/example.com.key", "test/certificate/example.com.crt")
 	assert.Nilf(t, err, "deploy certificate error: %v", err)
 	assert.Equal(t, "/etc/nginx/sites-available/example3.com-ssl.conf", configPath)
 
@@ -44,7 +44,7 @@ func TestDeployCertificateToSslHost(t *testing.T) {
 	assert.NotNilf(t, host, "host %s not found", servername)
 	assert.True(t, host.Ssl)
 
-	configPath, err := deployer.DeployCertificate(host, "test/certificate/example2.com.key", "test/certificate/example2.com.crt")
+	configPath, _, err := deployer.DeployCertificate(host, "test/certificate/example2.com.key", "test/certificate/example2.com.crt")
 	assert.Nilf(t, err, "deploy certificate error: %v", err)
 	assert.Equal(t, "/etc/nginx/sites-enabled/example2.com.conf", configPath)
 

@@ -164,7 +164,7 @@ func (c *CertificateManager) deployCertificate(wServer webserver.WebServer, serv
 		return nil, err
 	}
 
-	sslConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, keyPath)
+	sslConfigFilePath, originConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, keyPath)
 
 	if err != nil {
 		if rErr := webServerReverter.Rollback(); rErr != nil {
@@ -174,7 +174,7 @@ func (c *CertificateManager) deployCertificate(wServer webserver.WebServer, serv
 		return nil, err
 	}
 
-	if err = wServer.GetVhostManager().Enable(sslConfigFilePath); err != nil {
+	if err = wServer.GetVhostManager().Enable(sslConfigFilePath, originConfigFilePath); err != nil {
 		if rErr := webServerReverter.Rollback(); rErr != nil {
 			c.logger.Error(fmt.Sprintf("failed to rallback webserver configuration on host enabling: %v", rErr))
 		}

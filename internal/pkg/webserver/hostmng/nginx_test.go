@@ -24,7 +24,7 @@ func TestNginxHost(t *testing.T) {
 	_, err = os.Lstat(enabledConfigFilePath)
 	assert.NotNil(t, err)
 
-	err = hostManager.Enable(availableConfigFilePath)
+	err = hostManager.Enable(availableConfigFilePath, "")
 	assert.Nil(t, err)
 	_, err = os.Lstat(enabledConfigFilePath)
 	assert.Nil(t, err)

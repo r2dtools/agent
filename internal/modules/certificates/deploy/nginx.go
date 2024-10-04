@@ -23,12 +23,12 @@ type NginxCertificateDeployer struct {
 	reverter  *reverter.Reverter
 }
 
-func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath string) (string, error) {
+func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.VirtualHost, certPath, certKeyPath string) (string, string, error) {
 	wConfig := d.webServer.Config
 	serverBlocks := wConfig.FindServerBlocksByServerName(vhost.ServerName)
 
 	if len(serverBlocks) == 0 {
-		return "", fmt.Errorf("nginx host %s does not exixst", vhost.ServerName)
+		return "", "", fmt.Errorf("nginx host %s does not exixst", vhost.ServerName)
 	}
 
 	var sslServerBlock *nginxConfig.ServerBlock
@@ -45,7 +45,7 @@ func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.Vir
 		sslServerBlock, err = d.createSslHost(vhost, serverBlock)
 
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 
 		d.reverter.AddConfigToDeletion(sslServerBlock.FilePath)
@@ -66,10 +66,10 @@ func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.Vir
 	configFile := wConfig.GetConfigFile(sslServerBlockFileName)
 
 	if err = configFile.Dump(); err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return sslServerBlock.FilePath, nil
+	return sslServerBlock.FilePath, serverBlock.FilePath, nil
 }
 
 func (d *NginxCertificateDeployer) createSslHost(

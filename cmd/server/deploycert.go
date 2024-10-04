@@ -75,7 +75,7 @@ var DeployCertificateCmd = &cobra.Command{
 			return err
 		}
 
-		sslConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, certKeyPath)
+		sslConfigFilePath, originConfigFilePath, err := deployer.DeployCertificate(vhost, certPath, certKeyPath)
 
 		if err != nil {
 			if rErr := webServerReverter.Rollback(); rErr != nil {
@@ -85,7 +85,7 @@ var DeployCertificateCmd = &cobra.Command{
 			return err
 		}
 
-		if err = webServer.GetVhostManager().Enable(sslConfigFilePath); err != nil {
+		if err = webServer.GetVhostManager().Enable(sslConfigFilePath, originConfigFilePath); err != nil {
 			if rErr := webServerReverter.Rollback(); rErr != nil {
 				log.Error(fmt.Sprintf("failed to rallback webserver configuration on host enabling: %v", rErr))
 			}

@@ -27,9 +27,11 @@ jobs:
       run: make test
 
     - name: Build agent
+      if: startsWith(github.ref, 'refs/tags/')
       run: make build
         
     - name: Prepare build directory
+      if: startsWith(github.ref, 'refs/tags/')
       run: rm -rf build/.gitkeep
 
     - name: Add build version
@@ -39,6 +41,7 @@ jobs:
         echo "${{  github.ref_name }}" >> build/.version
 
     - name: Create build archive
+      if: startsWith(github.ref, 'refs/tags/')
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
 
     - name: Release

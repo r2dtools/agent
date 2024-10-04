@@ -31,7 +31,13 @@ jobs:
         
     - name: Prepare build directory
       run: rm -rf build/.gitkeep
-    
+
+    - name: Add build version
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        touch build/.version
+        echo "${{  github.ref_name }}" >> build/.version
+
     - name: Create build archive
       run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
 

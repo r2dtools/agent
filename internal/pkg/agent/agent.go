@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,7 +11,13 @@ import (
 )
 
 func GetAgentVersion(config *config.Config) (string, error) {
-	output, err := os.ReadFile(filepath.Join(config.ExecutablePath, ".version"))
+	path := filepath.Join(config.ExecutablePath, ".version")
+
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		return "dev", nil
+	}
+
+	output, err := os.ReadFile(path)
 
 	if err != nil {
 		return "", fmt.Errorf("could not detect agent version: %v", err)

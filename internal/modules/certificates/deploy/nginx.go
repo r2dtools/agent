@@ -53,14 +53,8 @@ func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.Vir
 		d.reverter.BackupConfig(sslServerBlock.FilePath)
 	}
 
-	sslServerBlock.DeleteDirectiveByName(certKeyDirective)
-	sslServerBlock.DeleteDirectiveByName(certDirective)
-
-	certKeyDirective := nginxConfig.NewDirective(certKeyDirective, []string{certKeyPath})
-	sslServerBlock.AddDirective(certKeyDirective, false, true)
-
-	certDirective := nginxConfig.NewDirective(certDirective, []string{certPath})
-	sslServerBlock.AddDirective(certDirective, false, true)
+	d.createOrUpdateSingleDirective(sslServerBlock, certKeyDirective, certKeyPath)
+	d.createOrUpdateSingleDirective(sslServerBlock, certDirective, certPath)
 
 	sslServerBlockFileName := filepath.Base(sslServerBlock.FilePath)
 	configFile := wConfig.GetConfigFile(sslServerBlockFileName)
@@ -136,4 +130,21 @@ func (d *NginxCertificateDeployer) createSslHost(
 	}
 
 	return nil, fmt.Errorf("config file already exists %s", filePath)
+}
+
+func (d *NginxCertificateDeployer) createOrUpdateSingleDirective(block *nginxConfig.ServerBlock, name, value string) {
+	directives := block.FindDirectives(name)
+
+	if len(directives) > 1 {
+		block.DeleteDirectiveByName(name)
+		directives = nil
+	}
+
+	if len(directives) == 0 {
+		directive := nginxConfig.NewDirective(name, []string{value})
+		block.AddDirective(directive, false, true)
+	} else {
+		directive := directives[0]
+		directive.SetValue(value)
+	}
 }

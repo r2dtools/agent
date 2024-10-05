@@ -2,6 +2,7 @@ package hostmng
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestNginxHost(t *testing.T) {
 	_, err = os.Lstat(enabledConfigFilePath)
 	assert.NotNil(t, err)
 
-	err = hostManager.Enable(availableConfigFilePath, "")
+	err = hostManager.Enable(availableConfigFilePath, filepath.Dir(enabledConfigFilePath))
 	assert.Nil(t, err)
 	_, err = os.Lstat(enabledConfigFilePath)
 	assert.Nil(t, err)

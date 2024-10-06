@@ -11,7 +11,7 @@ import (
 )
 
 func GetAgentVersion(config *config.Config) (string, error) {
-	path := filepath.Join(config.ExecutablePath, ".version")
+	path := filepath.Join(config.RootPath, ".version")
 
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		return "dev", nil

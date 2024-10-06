@@ -17,8 +17,8 @@ const (
 // Config stores agent configuration params
 type Config struct {
 	LogFile,
-	ExecutablePath,
-	ConfigPath,
+	RootPath,
+	ConfigFilePath,
 	Token string
 	Port      int
 	IsDevMode bool
@@ -30,15 +30,16 @@ func GetConfig() (*Config, error) {
 	env := os.Getenv("R2DTOOLS_AGENT_MODE")
 	isDevMode := env == devMode
 
-	var executablePath string
-	var err error
+	var rootPath string
 
 	if isDevMode {
-		executablePath, err = os.Getwd()
+		wd, err := os.Getwd()
 
 		if err != nil {
 			return nil, err
 		}
+
+		rootPath = wd
 	} else {
 		executable, err := os.Executable()
 
@@ -46,14 +47,13 @@ func GetConfig() (*Config, error) {
 			return nil, err
 		}
 
-		executablePath = filepath.Dir(executable)
-
+		rootPath = filepath.Dir(executable)
 	}
 
 	vConfig := viper.New()
 	vConfig.SetDefault("Port", port)
 
-	configPath := filepath.Join(executablePath, "config")
+	configPath := filepath.Join(rootPath, "config")
 	configFilePath := filepath.Join(configPath, "params.yaml")
 
 	if com.IsExist(configFilePath) {
@@ -68,10 +68,10 @@ func GetConfig() (*Config, error) {
 
 	return &Config{
 		Port:           vConfig.GetInt("Port"),
-		LogFile:        filepath.Join(executablePath, "r2dtools.log"),
+		LogFile:        filepath.Join(rootPath, "r2dtools.log"),
 		Token:          vConfig.GetString("Token"),
-		ExecutablePath: executablePath,
-		ConfigPath:     configPath,
+		RootPath:       rootPath,
+		ConfigFilePath: configFilePath,
 		IsDevMode:      isDevMode,
 		vConfig:        vConfig,
 	}, nil

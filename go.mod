@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	github.com/google/go-cmp v0.6.0
+	github.com/google/uuid v1.6.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/r2dtools/agentintegration v1.2.0
 	github.com/r2dtools/gonginx v1.0.0

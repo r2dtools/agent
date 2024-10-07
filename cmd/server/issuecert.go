@@ -7,7 +7,6 @@ import (
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/certificates"
 	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agentintegration"
 	"github.com/spf13/cobra"
 )
@@ -85,32 +84,4 @@ func init() {
 	IssueCertificateCmd.PersistentFlags().StringVarP(&email, "email", "e", "", "certificate email address")
 	IssueCertificateCmd.PersistentFlags().BoolVarP(&assign, "assign", "s", true, "assignt certificate to the domain")
 	IssueCertificateCmd.PersistentFlags().StringSliceVarP(&aliases, "alias", "a", nil, "domain aliases that need to be included in the certificate")
-}
-
-func findWebServerHost(serverName string, log logger.Logger) (webserver.WebServer, *agentintegration.VirtualHost, error) {
-	supportedWebServerCodes := webserver.GetSupportedWebServers()
-
-	for _, webServerCode := range supportedWebServerCodes {
-		webServer, err := webserver.GetWebServer(webServerCode, map[string]string{})
-
-		if err != nil {
-			log.Error("failed to get webserver %s", webServerCode)
-
-			continue
-		}
-
-		vhost, err := webServer.GetVhostByName(serverName)
-
-		if err != nil {
-			log.Error("failed to get webserver %s host %s", webServerCode, serverName)
-
-			continue
-		}
-
-		if vhost != nil {
-			return webServer, vhost, nil
-		}
-	}
-
-	return nil, nil, fmt.Errorf("could not find virtual host '%s'", serverName)
 }

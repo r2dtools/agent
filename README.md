@@ -1,9 +1,9 @@
 # R2DTools agent
-Simplify the maintenance of your websites and servers
+Simplify the maintenance of your websites
 
 ## Secure your website with SSL/TLS certificate
 
-R2DTools makes it possible to issue and deploy Let`s Encrypt certificate for a website in a few clicks via a user-friendly interface.
+R2DTools makes it possible to issue and deploy Let`s Encrypt certificate for a website in a few clicks via CLI.
 
 If you have an already issued certificate ( with .pem extension ) you can just upload it and R2DTools will secure your website with the uploaded certificate.
 
@@ -16,7 +16,7 @@ If you have an already issued certificate ( with .pem extension ) you can just u
 * Connect to the server via ssh
 * Download the latest version of the agent installer:
   ```bash 
- wget https://github.com/r2dtools/installer/releases/latest/download/installer 
+  wget https://github.com/r2dtools/installer/releases/latest/download/installer
   ```
 * Make the installer executable:
   ```bash
@@ -27,8 +27,3 @@ If you have an already issued certificate ( with .pem extension ) you can just u
   /tmp/installer install
   ```
 * The agent will be installed in the <strong>/opt/r2dtools</strong> directory
-* Add generated token to the agent configuration file <strong>/opt/r2dtools/config/params.yaml</strong>: Token: <em>token</em>
-* Restart the agent:
-  ```bash
-  systemctl restart r2dtools.service
-  ```

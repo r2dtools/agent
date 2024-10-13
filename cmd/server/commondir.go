@@ -47,7 +47,7 @@ var CommonDirCmd = &cobra.Command{
 			Logger:  log,
 		}
 
-		commonDirManager, err := commondir.GetCommonDirManager(webServer, webServerReverter, log)
+		commonDirManager, err := commondir.GetCommonDirManager(webServer, webServerReverter, log, config.ToMap())
 
 		if err != nil {
 			return err

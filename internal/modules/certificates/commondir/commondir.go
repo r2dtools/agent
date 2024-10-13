@@ -14,10 +14,12 @@ type CommonDirManager interface {
 	IsCommonDirEnabled(serverName string) bool
 }
 
-func GetCommonDirManager(webServer webserver.WebServer, reverter *reverter.Reverter, logger logger.Logger) (CommonDirManager, error) {
+func GetCommonDirManager(webServer webserver.WebServer, reverter *reverter.Reverter, logger logger.Logger, options map[string]string) (CommonDirManager, error) {
+	commonDir := options["NginxAcmeCommonDir"]
+
 	switch w := webServer.(type) {
 	case *webserver.NginxWebServer:
-		return &NginxCommonDirManager{logger: logger, webServer: w, reverter: reverter}, nil
+		return &NginxCommonDirManager{logger: logger, webServer: w, reverter: reverter, commonDir: commonDir}, nil
 	default:
 		return nil, fmt.Errorf("could not create common directory manager: webserver '%s' is not supported", webServer.GetCode())
 	}

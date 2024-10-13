@@ -56,7 +56,7 @@ func getNginxCommonDirManager(t *testing.T) (CommonDirManager, webserver.NginxWe
 	rv := &reverter.Reverter{
 		Logger: &logger.NilLogger{},
 	}
-	manager, err := GetCommonDirManager(nginxWebServer, rv, &logger.NilLogger{})
+	manager, err := GetCommonDirManager(nginxWebServer, rv, &logger.NilLogger{}, map[string]string{})
 	assert.Nil(t, err)
 
 	return manager, *nginxWebServer, rv

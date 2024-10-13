@@ -11,14 +11,15 @@ import (
 )
 
 const (
-	acmeLocation = "/.well-known/acme-challenge/"
-	acmeRoot     = "/var/www/html/"
+	acmeLocation    = "/.well-known/acme-challenge/"
+	defaulCommonDir = "/var/www/html/"
 )
 
 type NginxCommonDirManager struct {
 	webServer *webserver.NginxWebServer
 	reverter  *reverter.Reverter
 	logger    logger.Logger
+	commonDir string
 }
 
 func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
@@ -42,8 +43,14 @@ func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
 		return nil
 	}
 
+	commonDir := c.commonDir
+
+	if commonDir == "" {
+		commonDir = defaulCommonDir
+	}
+
 	commonDirLocationBlock := nonSslServerBlock.AddLocationBlock("^~", acmeLocation, true)
-	commonDirLocationBlock.AddDirective(config.NewDirective("root", []string{acmeRoot}), true, false)
+	commonDirLocationBlock.AddDirective(config.NewDirective("root", []string{commonDir}), true, false)
 	commonDirLocationBlock.AddDirective(config.NewDirective("default_type", []string{`"text/plain"`}), true, false)
 
 	if err := c.reverter.BackupConfig(nonSslServerBlock.FilePath); err != nil {

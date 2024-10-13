@@ -42,7 +42,7 @@ func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
 		return nil
 	}
 
-	commonDirLocationBlock := nonSslServerBlock.AddLocationBlock("^~", acmeLocation)
+	commonDirLocationBlock := nonSslServerBlock.AddLocationBlock("^~", acmeLocation, true)
 	commonDirLocationBlock.AddDirective(config.NewDirective("root", []string{acmeRoot}), true, false)
 	commonDirLocationBlock.AddDirective(config.NewDirective("default_type", []string{`"text/plain"`}), true, false)
 

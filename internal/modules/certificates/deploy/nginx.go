@@ -14,9 +14,6 @@ import (
 	nginxConfig "github.com/r2dtools/gonginx/config"
 )
 
-const certKeyDirective = "ssl_certificate_key"
-const certDirective = "ssl_certificate"
-
 type NginxCertificateDeployer struct {
 	logger    logger.Logger
 	webServer *webserver.NginxWebServer
@@ -53,8 +50,8 @@ func (d *NginxCertificateDeployer) DeployCertificate(vhost *agentintegration.Vir
 		d.reverter.BackupConfig(sslServerBlock.FilePath)
 	}
 
-	d.createOrUpdateSingleDirective(sslServerBlock, certKeyDirective, certKeyPath)
-	d.createOrUpdateSingleDirective(sslServerBlock, certDirective, certPath)
+	d.createOrUpdateSingleDirective(sslServerBlock, webserver.NginxCertKeyDirective, certKeyPath)
+	d.createOrUpdateSingleDirective(sslServerBlock, webserver.NginxCertDirective, certPath)
 
 	sslServerBlockFileName := filepath.Base(sslServerBlock.FilePath)
 	configFile := wConfig.GetConfigFile(sslServerBlockFileName)

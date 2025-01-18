@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/r2dtools/agent/internal/pkg/certificate"
 	"github.com/r2dtools/agent/internal/pkg/webserver/hostmng"
 	"github.com/r2dtools/agent/internal/pkg/webserver/processmng"
 	"github.com/r2dtools/agentintegration"
@@ -12,7 +13,9 @@ import (
 )
 
 const (
-	defaultNginxRoot = "/etc/nginx"
+	defaultNginxRoot      = "/etc/nginx"
+	NginxCertKeyDirective = "ssl_certificate_key"
+	NginxCertDirective    = "ssl_certificate"
 )
 
 type NginxWebServer struct {
@@ -64,13 +67,14 @@ func (nws *NginxWebServer) GetVhosts() ([]agentintegration.VirtualHost, error) {
 		}
 
 		vhost := agentintegration.VirtualHost{
-			FilePath:   strings.Trim(nVhost.FilePath, "\""),
-			ServerName: strings.Trim(serverNames[0], "\""),
-			DocRoot:    strings.Trim(nVhost.GetDocumentRoot(), "\""),
-			Aliases:    aliases,
-			Ssl:        nVhost.HasSSL(),
-			WebServer:  WebServerNginxCode,
-			Addresses:  addresses,
+			FilePath:    strings.Trim(nVhost.FilePath, "\""),
+			ServerName:  strings.Trim(serverNames[0], "\""),
+			DocRoot:     strings.Trim(nVhost.GetDocumentRoot(), "\""),
+			Aliases:     aliases,
+			Ssl:         nVhost.HasSSL(),
+			WebServer:   WebServerNginxCode,
+			Addresses:   addresses,
+			Certificate: getCertificate(nVhost),
 		}
 		vhosts = append(vhosts, vhost)
 	}
@@ -114,4 +118,17 @@ func getNginxRoot(options map[string]string) string {
 	}
 
 	return root
+}
+
+func getCertificate(serverBlock nginxConfig.ServerBlock) *agentintegration.Certificate {
+	certDirectives := serverBlock.FindDirectives(NginxCertDirective)
+
+	if len(certDirectives) == 0 {
+		return nil
+	}
+
+	certDirective := certDirectives[len(certDirectives)-1]
+	cert, _ := certificate.GetCertificateFromFile(certDirective.GetFirstValue())
+
+	return cert
 }

@@ -26,7 +26,6 @@ func GetX509CertificateFromRequest(domain string) ([]*x509.Certificate, error) {
 	return conn.ConnectionState().PeerCertificates, nil
 }
 
-// ConvertX509CertificateToIntCert converts x509 certificate to agentintegration.Certificate
 func ConvertX509CertificateToIntCert(certificate *x509.Certificate, roots []*x509.Certificate) *agentintegration.Certificate {
 	certPool := x509.NewCertPool()
 
@@ -35,7 +34,7 @@ func ConvertX509CertificateToIntCert(certificate *x509.Certificate, roots []*x50
 	}
 
 	opts := x509.VerifyOptions{
-		Roots: certPool,
+		Intermediates: certPool,
 	}
 	_, err := certificate.Verify(opts)
 	isValid := err == nil
@@ -60,7 +59,6 @@ func ConvertX509CertificateToIntCert(certificate *x509.Certificate, roots []*x50
 	return &cert
 }
 
-// GetCertificateForDomainFromRequest returns a certificate for a domain
 func GetCertificateForDomainFromRequest(domain string) (*agentintegration.Certificate, error) {
 	certs, err := GetX509CertificateFromRequest(domain)
 	if err != nil {
@@ -80,39 +78,44 @@ func GetCertificateForDomainFromRequest(domain string) (*agentintegration.Certif
 	return ConvertX509CertificateToIntCert(certs[0], roots), nil
 }
 
-// GetCertificateFromFile read and parse certificate from file
 func GetCertificateFromFile(path string) (*agentintegration.Certificate, error) {
 	if !com.IsFile(path) {
 		return nil, fmt.Errorf("certificate file '%s' does not exists", path)
 	}
+
 	certContent, err := os.ReadFile(path)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not read certificate content: %v", err)
 	}
 
-	var bCert []byte
+	var bCerts []*x509.Certificate
+
 	for {
 		block, rest := pem.Decode([]byte(certContent))
+
 		if block == nil {
 			break
 		}
-		// get first certificate in the chain
+
 		if block.Type == "CERTIFICATE" {
-			bCert = block.Bytes
-			break
+			x509Cert, err := x509.ParseCertificate(block.Bytes)
+
+			if err != nil {
+				return nil, errors.New("could not parse certificate")
+			}
+
+			bCerts = append(bCerts, x509Cert)
 		}
+
 		certContent = rest
 	}
 
-	if len(bCert) == 0 {
+	if len(bCerts) == 0 {
 		return nil, errors.New("could not parse certificate")
 	}
 
-	x509Cert, err := x509.ParseCertificate(bCert)
-	if err != nil {
-		return nil, err
-	}
-	cert := ConvertX509CertificateToIntCert(x509Cert, nil)
+	cert := ConvertX509CertificateToIntCert(bCerts[0], bCerts[1:])
 
 	return cert, nil
 }

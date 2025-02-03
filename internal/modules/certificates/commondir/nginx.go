@@ -7,7 +7,7 @@ import (
 	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
-	"github.com/r2dtools/gonginx/config"
+	"github.com/r2dtools/gonginxconf/config"
 )
 
 const (

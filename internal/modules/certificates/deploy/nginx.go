@@ -11,7 +11,7 @@ import (
 	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
 	"github.com/r2dtools/agentintegration"
-	nginxConfig "github.com/r2dtools/gonginx/config"
+	nginxConfig "github.com/r2dtools/gonginxconf/config"
 )
 
 type NginxCertificateDeployer struct {

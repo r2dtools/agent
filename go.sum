@@ -47,8 +47,8 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/r2dtools/agentintegration v1.3.0 h1:3gHp+pKDtYB5IdDZ1AM1t3j10ASQ8zpf3Sl+4wnBBl8=
 github.com/r2dtools/agentintegration v1.3.0/go.mod h1:zINos4DC49mvqNZZcwt6CSE+Q0tUhaAYgnyfJUG/JNI=
-github.com/r2dtools/gonginx v1.1.1 h1:PoVYIso6R6Iw1PsQkJqYYZQbzYVEm3JCIizAO1UKQoQ=
-github.com/r2dtools/gonginx v1.1.1/go.mod h1:HjgpvGAj7m9URplCCtTmIf17Gm1NgzIz3xzEdPKcmNk=
+github.com/r2dtools/gonginxconf v1.2.0 h1:Sb2HmsGKGyQ2x9mYWiG1uF30b7c0Tu5Qck800n6usk4=
+github.com/r2dtools/gonginxconf v1.2.0/go.mod h1:RquKILFm/m9Z8ze+8umV7/hs0I5z8ZxqOv2+0hUyaIY=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

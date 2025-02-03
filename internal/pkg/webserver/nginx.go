@@ -9,7 +9,7 @@ import (
 	"github.com/r2dtools/agent/internal/pkg/webserver/hostmng"
 	"github.com/r2dtools/agent/internal/pkg/webserver/processmng"
 	"github.com/r2dtools/agentintegration"
-	nginxConfig "github.com/r2dtools/gonginx/config"
+	nginxConfig "github.com/r2dtools/gonginxconf/config"
 )
 
 const (

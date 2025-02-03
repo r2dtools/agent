@@ -24,20 +24,20 @@ type NginxCommonDirManager struct {
 
 func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
 	wConfig := c.webServer.Config
-	nonSslServerBlock := c.findNonSslServerBlock(serverName)
+	serverBlock := c.findServerBlock(serverName)
 
-	if nonSslServerBlock == nil {
-		return fmt.Errorf("nginx host %s on 80 port does not exist", serverName)
+	if serverBlock == nil {
+		return fmt.Errorf("nginx host %s on 80 or 443 port does not exist", serverName)
 	}
 
-	nonSslServerBlockFileName := filepath.Base(nonSslServerBlock.FilePath)
-	configFile := wConfig.GetConfigFile(nonSslServerBlockFileName)
+	serverBlockFileName := filepath.Base(serverBlock.FilePath)
+	configFile := wConfig.GetConfigFile(serverBlockFileName)
 
 	if configFile == nil {
 		return fmt.Errorf("failed to find config file for host %s", serverName)
 	}
 
-	if c.findCommonDirBlock(nonSslServerBlock) != nil {
+	if c.findCommonDirBlock(serverBlock) != nil {
 		c.logger.Info("common directory is already enabled for %s host", serverName)
 
 		return nil
@@ -49,11 +49,11 @@ func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
 		commonDir = defaulCommonDir
 	}
 
-	commonDirLocationBlock := nonSslServerBlock.AddLocationBlock("^~", acmeLocation, true)
+	commonDirLocationBlock := serverBlock.AddLocationBlock("^~", acmeLocation, true)
 	commonDirLocationBlock.AddDirective(config.NewDirective("root", []string{commonDir}), true, false)
 	commonDirLocationBlock.AddDirective(config.NewDirective("default_type", []string{`"text/plain"`}), true, false)
 
-	if err := c.reverter.BackupConfig(nonSslServerBlock.FilePath); err != nil {
+	if err := c.reverter.BackupConfig(serverBlock.FilePath); err != nil {
 		return err
 	}
 
@@ -62,28 +62,28 @@ func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
 
 func (c *NginxCommonDirManager) DisableCommonDir(serverName string) error {
 	wConfig := c.webServer.Config
-	nonSslServerBlock := c.findNonSslServerBlock(serverName)
+	serverBlock := c.findServerBlock(serverName)
 
-	if nonSslServerBlock == nil {
-		return fmt.Errorf("nginx host %s on 80 port does not exist", serverName)
+	if serverBlock == nil {
+		return fmt.Errorf("nginx host %s on 80 or 443 port does not exist", serverName)
 	}
 
-	nonSslServerBlockFileName := filepath.Base(nonSslServerBlock.FilePath)
-	configFile := wConfig.GetConfigFile(nonSslServerBlockFileName)
+	serverBlockFileName := filepath.Base(serverBlock.FilePath)
+	configFile := wConfig.GetConfigFile(serverBlockFileName)
 
 	if configFile == nil {
 		return fmt.Errorf("failed to find config file for host %s", serverName)
 	}
 
-	commonDirBlock := c.findCommonDirBlock(nonSslServerBlock)
+	commonDirBlock := c.findCommonDirBlock(serverBlock)
 
 	if commonDirBlock == nil {
 		return nil
 	}
 
-	nonSslServerBlock.DeleteLocationBlock(*commonDirBlock)
+	serverBlock.DeleteLocationBlock(*commonDirBlock)
 
-	if err := c.reverter.BackupConfig(nonSslServerBlock.FilePath); err != nil {
+	if err := c.reverter.BackupConfig(serverBlock.FilePath); err != nil {
 		return err
 	}
 
@@ -91,13 +91,13 @@ func (c *NginxCommonDirManager) DisableCommonDir(serverName string) error {
 }
 
 func (c *NginxCommonDirManager) IsCommonDirEnabled(serverName string) bool {
-	nonSslServerBlock := c.findNonSslServerBlock(serverName)
+	serverBlock := c.findServerBlock(serverName)
 
-	if nonSslServerBlock == nil {
+	if serverBlock == nil {
 		return false
 	}
 
-	return c.findCommonDirBlock(nonSslServerBlock) != nil
+	return c.findCommonDirBlock(serverBlock) != nil
 }
 
 func (c *NginxCommonDirManager) findCommonDirBlock(serverBlock *config.ServerBlock) *config.LocationBlock {
@@ -112,7 +112,7 @@ func (c *NginxCommonDirManager) findCommonDirBlock(serverBlock *config.ServerBlo
 	return nil
 }
 
-func (c *NginxCommonDirManager) findNonSslServerBlock(serverName string) *config.ServerBlock {
+func (c *NginxCommonDirManager) findServerBlock(serverName string) *config.ServerBlock {
 	wConfig := c.webServer.Config
 	serverBlocks := wConfig.FindServerBlocksByServerName(serverName)
 
@@ -122,13 +122,16 @@ func (c *NginxCommonDirManager) findNonSslServerBlock(serverName string) *config
 
 	var nonSslServerBlock *config.ServerBlock
 
-out:
 	for _, serverBlock := range serverBlocks {
 		for _, address := range serverBlock.GetAddresses() {
-			if address.Port == "80" {
+			if address.Port == "80" && nonSslServerBlock == nil {
 				nonSslServerBlock = &serverBlock
 
-				break out
+				continue
+			}
+
+			if address.Port == "443" {
+				return &serverBlock
 			}
 		}
 	}

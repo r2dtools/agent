@@ -36,12 +36,6 @@ var CommonDirCmd = &cobra.Command{
 			return err
 		}
 
-		processManager, err := webServer.GetProcessManager()
-
-		if err != nil {
-			return err
-		}
-
 		webServerReverter := &reverter.Reverter{
 			HostMng: webServer.GetVhostManager(),
 			Logger:  log,
@@ -63,29 +57,7 @@ var CommonDirCmd = &cobra.Command{
 			return nil
 		}
 
-		if err != nil {
-			if rErr := webServerReverter.Rollback(); rErr != nil {
-				log.Error(fmt.Sprintf("failed to rallback webserver configuration on common directory switching: %v", rErr))
-			}
-
-			return err
-		}
-
-		if err = processManager.Reload(); err != nil {
-			if rErr := webServerReverter.Rollback(); rErr != nil {
-				log.Error(fmt.Sprintf("failed to rallback webserver configuration on webserver reload: %v", rErr))
-			}
-
-			return err
-		}
-
-		if err = webServerReverter.Commit(); err != nil {
-			if rErr := webServerReverter.Rollback(); rErr != nil {
-				log.Error(fmt.Sprintf("failed to commit webserver configuration: %v", rErr))
-			}
-		}
-
-		return nil
+		return err
 	},
 }
 

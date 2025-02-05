@@ -37,6 +37,12 @@ func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
 		return fmt.Errorf("failed to find config file for host %s", serverName)
 	}
 
+	processManager, err := c.webServer.GetProcessManager()
+
+	if err != nil {
+		return err
+	}
+
 	if c.findCommonDirBlock(serverBlock) != nil {
 		c.logger.Info("common directory is already enabled for %s host", serverName)
 
@@ -57,7 +63,28 @@ func (c *NginxCommonDirManager) EnableCommonDir(serverName string) error {
 		return err
 	}
 
-	return configFile.Dump()
+	err = configFile.Dump()
+
+	if err != nil {
+		if rErr := c.reverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to rollback webserver configuration on common directory switching: %v", rErr))
+
+		}
+
+		return err
+	}
+
+	if err := processManager.Reload(); err != nil {
+		if rErr := c.reverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to rollback webserver configuration on webserver reload: %v", rErr))
+		}
+
+		return err
+	}
+
+	c.reverter.Commit()
+
+	return nil
 }
 
 func (c *NginxCommonDirManager) DisableCommonDir(serverName string) error {
@@ -75,6 +102,12 @@ func (c *NginxCommonDirManager) DisableCommonDir(serverName string) error {
 		return fmt.Errorf("failed to find config file for host %s", serverName)
 	}
 
+	processManager, err := c.webServer.GetProcessManager()
+
+	if err != nil {
+		return err
+	}
+
 	commonDirBlock := c.findCommonDirBlock(serverBlock)
 
 	if commonDirBlock == nil {
@@ -87,7 +120,28 @@ func (c *NginxCommonDirManager) DisableCommonDir(serverName string) error {
 		return err
 	}
 
-	return configFile.Dump()
+	err = configFile.Dump()
+
+	if err != nil {
+		if rErr := c.reverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to rollback webserver configuration on common directory switching: %v", rErr))
+
+		}
+
+		return err
+	}
+
+	if err := processManager.Reload(); err != nil {
+		if rErr := c.reverter.Rollback(); rErr != nil {
+			c.logger.Error(fmt.Sprintf("failed to rollback webserver configuration on webserver reload: %v", rErr))
+		}
+
+		return err
+	}
+
+	c.reverter.Commit()
+
+	return nil
 }
 
 func (c *NginxCommonDirManager) IsCommonDirEnabled(serverName string) bool {

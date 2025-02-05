@@ -40,6 +40,10 @@ func GetConfig() (*Config, error) {
 		}
 
 		rootPath = wd
+
+		if filepath.Base(wd) == "cmd" {
+			rootPath = filepath.Dir(wd)
+		}
 	} else {
 		executable, err := os.Executable()
 

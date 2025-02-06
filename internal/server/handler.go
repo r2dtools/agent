@@ -3,7 +3,10 @@ package server
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/pkg/agent"
 	"github.com/r2dtools/agent/internal/pkg/certificate"
@@ -32,6 +35,8 @@ func (h *MainHandler) Handle(request router.Request) (interface{}, error) {
 		response, err = h.getVhosts()
 	case "getVhostCertificate":
 		response, err = h.getVhostCertificate(request.Data)
+	case "getvhostconfig":
+		response, err = h.getVhostConfig(request.Data)
 	default:
 		response, err = nil, fmt.Errorf("invalid action '%s' for module '%s'", action, request.GetModule())
 	}
@@ -119,4 +124,48 @@ func (h *MainHandler) getVhostCertificate(data interface{}) (*agentintegration.C
 	}
 
 	return cert, nil
+}
+
+func (h *MainHandler) getVhostConfig(data interface{}) (agentintegration.VirtualHostConfigResponseData, error) {
+	var response agentintegration.VirtualHostConfigResponseData
+	var request agentintegration.VirtualHostConfigRequestData
+
+	err := mapstructure.Decode(data, &request)
+
+	if err != nil {
+		return response, fmt.Errorf("invalid vhodt config request data: %v", err)
+	}
+
+	options := h.Config.ToMap()
+	wServer, err := webserver.GetWebServer(request.WebServer, options)
+
+	if err != nil {
+		return response, err
+	}
+
+	vhost, err := wServer.GetVhostByName(request.ServerName)
+
+	if err != nil {
+		return response, err
+	}
+
+	if vhost == nil {
+		return response, fmt.Errorf("vhost %s not found", request.ServerName)
+	}
+
+	configFile, err := os.Open(vhost.FilePath)
+
+	if err != nil {
+		return response, err
+	}
+
+	content, err := io.ReadAll(configFile)
+
+	if err != nil {
+		return response, err
+	}
+
+	response.Content = string(content)
+
+	return response, nil
 }

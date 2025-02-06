@@ -10,7 +10,7 @@ func TestNginxGetVHosts(t *testing.T) {
 	nginxWebServer := getNginxWebServer(t)
 	hosts, err := nginxWebServer.GetVhosts()
 	assert.Nil(t, err)
-	assert.Len(t, hosts, 6)
+	assert.Len(t, hosts, 7)
 }
 
 func TestNginxGetVHost(t *testing.T) {

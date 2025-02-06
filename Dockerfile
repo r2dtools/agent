@@ -19,5 +19,6 @@ RUN ln -s /etc/nginx/sites-available/example.com.conf /etc/nginx/sites-enabled/e
 RUN ln -s /etc/nginx/sites-available/example2.com.conf /etc/nginx/sites-enabled/example2.com.conf
 RUN ln -s /etc/nginx/sites-available/example3.com.conf /etc/nginx/sites-enabled/example3.com.conf
 RUN ln -s /etc/nginx/sites-available/example4.com.conf /etc/nginx/sites-enabled/example4.com.conf
+RUN ln -s /etc/nginx/sites-available/webmail.conf /etc/nginx/sites-enabled/webmail.conf
 
 ENTRYPOINT ["/bin/sh", "./script/testcmd.sh"]

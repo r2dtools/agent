@@ -54,6 +54,16 @@ func TestNginxGetVHost(t *testing.T) {
 	assert.Equal(t, "/var/www/html", host.DocRoot)
 	assert.Len(t, host.Addresses, 2)
 	assert.Equal(t, "example4.com", host.ServerName)
+
+	host, err = nginxWebServer.GetVhostByName("webmail.r2dtools.work.gd")
+	assert.Nil(t, err)
+	assert.NotNil(t, host)
+	assert.Len(t, host.Aliases, 0)
+	assert.Equal(t, "/etc/nginx/sites-enabled/webmail.conf", host.FilePath)
+	assert.True(t, host.Ssl)
+	assert.Equal(t, "", host.DocRoot)
+	assert.Len(t, host.Addresses, 2)
+	assert.Equal(t, "webmail.r2dtools.work.gd", host.ServerName)
 }
 
 func getNginxWebServer(t *testing.T) *NginxWebServer {

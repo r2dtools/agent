@@ -2,10 +2,12 @@ package server
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/certificates/commondir"
 	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +32,17 @@ var CommonDirCmd = &cobra.Command{
 			return fmt.Errorf("domain is not specified")
 		}
 
-		webServer, _, err := findWebServerHost(serverName, log)
+		supportedWebServerCodes := webserver.GetSupportedWebServers()
+
+		if webServerCode == "" {
+			return fmt.Errorf("webserver is not specified")
+		}
+
+		if !slices.Contains(supportedWebServerCodes, webServerCode) {
+			return fmt.Errorf("invalid webserver %s", webServerCode)
+		}
+
+		webServer, err := webserver.GetWebServer(webServerCode, map[string]string{})
 
 		if err != nil {
 			return err
@@ -52,7 +64,7 @@ var CommonDirCmd = &cobra.Command{
 		} else if disableCommonDir {
 			err = commonDirManager.DisableCommonDir(serverName)
 		} else {
-			fmt.Printf("Common directory status for host %s: %t\n", serverName, commonDirManager.IsCommonDirEnabled(serverName))
+			fmt.Printf("Common directory status for host %s: %t\n", serverName, commonDirManager.GetCommonDirStatus(serverName).Enabled)
 
 			return nil
 		}

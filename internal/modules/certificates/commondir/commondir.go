@@ -8,10 +8,15 @@ import (
 	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
 )
 
+type CommonDir struct {
+	Enabled bool
+	Root    string
+}
+
 type CommonDirManager interface {
 	EnableCommonDir(serverName string) error
 	DisableCommonDir(serverName string) error
-	IsCommonDirEnabled(serverName string) bool
+	GetCommonDirStatus(serverName string) CommonDir
 }
 
 func GetCommonDirManager(webServer webserver.WebServer, reverter *reverter.Reverter, logger logger.Logger, options map[string]string) (CommonDirManager, error) {

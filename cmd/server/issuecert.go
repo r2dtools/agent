@@ -3,10 +3,12 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/r2dtools/agent/config"
 	"github.com/r2dtools/agent/internal/modules/certificates"
 	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agentintegration"
 	"github.com/spf13/cobra"
 )
@@ -35,10 +37,14 @@ var IssueCertificateCmd = &cobra.Command{
 			return fmt.Errorf("domain is not specified")
 		}
 
-		webServer, vhost, err := findWebServerHost(serverName, log)
+		supportedWebServerCodes := webserver.GetSupportedWebServers()
 
-		if err != nil {
-			return err
+		if webServerCode == "" {
+			return fmt.Errorf("webserver is not specified")
+		}
+
+		if !slices.Contains(supportedWebServerCodes, webServerCode) {
+			return fmt.Errorf("invalid webserver %s", webServerCode)
 		}
 
 		certManager, err := certificates.GetCertificateManager(config, log)
@@ -50,8 +56,7 @@ var IssueCertificateCmd = &cobra.Command{
 		certData := agentintegration.CertificateIssueRequestData{
 			Email:         email,
 			ServerName:    serverName,
-			DocRoot:       vhost.DocRoot,
-			WebServer:     webServer.GetCode(),
+			WebServer:     webServerCode,
 			ChallengeType: certificates.HttpChallengeTypeCode,
 			Subjects:      aliases,
 			Assign:        assign,

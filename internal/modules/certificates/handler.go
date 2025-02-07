@@ -186,9 +186,9 @@ func (h *Handler) commonDirStatus(data interface{}) (*agentintegration.CommonDir
 		return nil, err
 	}
 
-	status := commonDirManager.IsCommonDirEnabled(requestData.ServerName)
+	status := commonDirManager.GetCommonDirStatus(requestData.ServerName)
 
-	return &agentintegration.CommonDirStatusResponseData{Status: status}, nil
+	return &agentintegration.CommonDirStatusResponseData{Status: status.Enabled}, nil
 }
 
 func (h *Handler) changeCommonDirStatus(data interface{}) error {

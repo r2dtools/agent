@@ -40,7 +40,7 @@ var DeployCertificateCmd = &cobra.Command{
 		}
 
 		if !slices.Contains(supportedWebServerCodes, webServerCode) {
-			return fmt.Errorf("invalid webserver code %s", webServerCode)
+			return fmt.Errorf("invalid webserver %s", webServerCode)
 		}
 
 		webServer, err := webserver.GetWebServer(webServerCode, map[string]string{})

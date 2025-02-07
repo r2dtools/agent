@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/agent/internal/modules/certificates/commondir"
 	"github.com/r2dtools/agent/internal/modules/certificates/deploy"
 	"github.com/r2dtools/agent/internal/pkg/certificate"
 	"github.com/r2dtools/agent/internal/pkg/logger"
@@ -38,21 +39,41 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 	serverName := certData.ServerName
 	var challengeType ChallengeType
 
-	wServer, err := webserver.GetWebServer(certData.WebServer, c.Config.ToMap())
+	options := c.Config.ToMap()
+	wServer, err := webserver.GetWebServer(certData.WebServer, options)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if certData.ChallengeType == "" {
-		return nil, errors.New("challenge type is not specified")
+	webServerReverter := &reverter.Reverter{
+		HostMng: wServer.GetVhostManager(),
+		Logger:  c.logger,
+	}
+	commonDirManager, err := commondir.GetCommonDirManager(wServer, webServerReverter, c.logger, options)
+
+	if err != nil {
+		return nil, err
+	}
+
+	vhost, err := wServer.GetVhostByName(serverName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	docRoot := vhost.DocRoot
+	commonDir := commonDirManager.GetCommonDirStatus(serverName)
+
+	if commonDir.Enabled {
+		docRoot = commonDir.Root
 	}
 
 	if certData.ChallengeType == HttpChallengeTypeCode {
 		challengeType = &HTTPChallengeType{
 			HTTPPort: httpPort,
 			TLSPort:  tlsPort,
-			WebRoot:  certData.DocRoot,
+			WebRoot:  docRoot,
 		}
 	} else if certData.ChallengeType == DnsChallengeTypeCode {
 		provider := certData.GetAdditionalParam("provider")

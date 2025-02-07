@@ -18,11 +18,15 @@ func TestNginxCommonDir(t *testing.T) {
 	manager, nginxWebServer, rv := getNginxCommonDirManager(t)
 	defer rv.Rollback()
 
-	assert.False(t, manager.IsCommonDirEnabled(host))
+	commonDir := manager.GetCommonDirStatus(host)
+	assert.False(t, commonDir.Enabled)
+	assert.Empty(t, commonDir.Root)
 
 	err := manager.EnableCommonDir(host)
 	assert.Nil(t, err)
-	assert.True(t, manager.IsCommonDirEnabled(host))
+	commonDir = manager.GetCommonDirStatus(host)
+	assert.True(t, commonDir.Enabled)
+	assert.Equal(t, "/var/www/html/", commonDir.Root)
 
 	blocks := nginxWebServer.Config.FindServerBlocksByServerName(host)
 	assert.Len(t, blocks, 1)
@@ -38,7 +42,9 @@ func TestNginxCommonDir(t *testing.T) {
 
 	err = manager.DisableCommonDir(host)
 	assert.Nil(t, err)
-	assert.False(t, manager.IsCommonDirEnabled(host))
+	commonDir = manager.GetCommonDirStatus(host)
+	assert.False(t, commonDir.Enabled)
+	assert.Empty(t, commonDir.Root)
 
 	locations = block.FindLocationBlocks()
 	assert.Len(t, locations, 1)

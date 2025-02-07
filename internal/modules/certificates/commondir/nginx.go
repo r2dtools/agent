@@ -3,6 +3,7 @@ package commondir
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/r2dtools/agent/internal/pkg/logger"
 	"github.com/r2dtools/agent/internal/pkg/webserver"
@@ -144,14 +145,30 @@ func (c *NginxCommonDirManager) DisableCommonDir(serverName string) error {
 	return nil
 }
 
-func (c *NginxCommonDirManager) IsCommonDirEnabled(serverName string) bool {
+func (c *NginxCommonDirManager) GetCommonDirStatus(serverName string) CommonDir {
+	var commonDir CommonDir
 	serverBlock := c.findServerBlock(serverName)
 
 	if serverBlock == nil {
-		return false
+		return commonDir
 	}
 
-	return c.findCommonDirBlock(serverBlock) != nil
+	commonDirBlock := c.findCommonDirBlock(serverBlock)
+
+	if commonDirBlock == nil {
+		return commonDir
+	}
+
+	directives := commonDirBlock.FindDirectives("root")
+
+	if len(directives) == 0 {
+		return commonDir
+	}
+
+	commonDir.Enabled = true
+	commonDir.Root = strings.Trim(directives[0].GetFirstValue(), " \"")
+
+	return commonDir
 }
 
 func (c *NginxCommonDirManager) findCommonDirBlock(serverBlock *config.ServerBlock) *config.LocationBlock {

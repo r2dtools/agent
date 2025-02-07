@@ -35,7 +35,7 @@ var HostsCmd = &cobra.Command{
 
 		if webServerCode != "" {
 			if !slices.Contains(supportedWebServerCodes, webServerCode) {
-				return fmt.Errorf("invalid webserver code %s", webServerCode)
+				return fmt.Errorf("invalid webserver %s", webServerCode)
 			}
 
 			webServerCodes = []string{webServerCode}

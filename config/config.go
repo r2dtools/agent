@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -91,6 +90,10 @@ func (c *Config) GetVarDirAbsPath() string {
 	return "/usr/local/r2dtools/var"
 }
 
+func (c *Config) GetPathInsideVarDir(path string) string {
+	return filepath.Join(c.GetVarDirAbsPath(), path)
+}
+
 // IsSet checks if key exists in config
 func (c *Config) IsSet(key string) bool {
 	return c.vConfig.IsSet(key)
@@ -104,11 +107,6 @@ func (c *Config) GetString(key string) string {
 // GetInt returns int value by key
 func (c *Config) GetInt(key string) int {
 	return c.vConfig.GetInt(key)
-}
-
-// GetModuleVarDir returns module var directiry absolute path
-func (c *Config) GetModuleVarAbsDir(id string) string {
-	return filepath.Join(c.GetVarDirAbsPath(), "modules", fmt.Sprintf("%s-module", id))
 }
 
 // ToMap returns all settings as map

@@ -26,20 +26,18 @@ const (
 	tlsPort  = 443
 )
 
-// CertificateManager manages certificates: issue, renew, ....
 type CertificateManager struct {
 	legoBinPath, dataPath string
 	CertStorage           *Storage
 	logger                logger.Logger
-	Config                *config.Config
+	config                *config.Config
 }
 
-// Issue issues a certificate
 func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueRequestData) (*agentintegration.Certificate, error) {
 	serverName := certData.ServerName
 	var challengeType ChallengeType
 
-	options := c.Config.ToMap()
+	options := c.config.ToMap()
 	wServer, err := webserver.GetWebServer(certData.WebServer, options)
 
 	if err != nil {
@@ -99,11 +97,16 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 
 	if err != nil {
 		c.logger.Debug("%v", err)
+
 		return nil, err
 	}
 
 	if certData.Assign {
-		certPath := c.CertStorage.GetVhostCertificatePath(serverName, "pem")
+		certPath, err := c.CertStorage.GetCertificatePath(serverName)
+
+		if err != nil {
+			return nil, err
+		}
 
 		return c.deployCertificate(wServer, serverName, certPath, certPath)
 	}
@@ -111,14 +114,13 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 	return c.CertStorage.GetCertificate(serverName)
 }
 
-// Assign assign certificate from the storage to a domain
 func (c *CertificateManager) Assign(certData agentintegration.CertificateAssignRequestData) (*agentintegration.Certificate, error) {
 	certPath, err := c.CertStorage.GetCertificatePath(certData.CertName)
 	if err != nil {
 		return nil, fmt.Errorf("could not assign certificate to the domain '%s': %v", certData.ServerName, err)
 	}
 
-	wServer, err := webserver.GetWebServer(certData.WebServer, c.Config.ToMap())
+	wServer, err := webserver.GetWebServer(certData.WebServer, c.config.ToMap())
 
 	if err != nil {
 		return nil, err
@@ -127,7 +129,6 @@ func (c *CertificateManager) Assign(certData agentintegration.CertificateAssignR
 	return c.deployCertificate(wServer, certData.ServerName, certPath, certPath)
 }
 
-// Upload deploys an existed certificate
 func (c *CertificateManager) Upload(certName, webServer, pemData string) (*agentintegration.Certificate, error) {
 	var certPath string
 	var err error
@@ -135,7 +136,7 @@ func (c *CertificateManager) Upload(certName, webServer, pemData string) (*agent
 		return nil, err
 	}
 
-	wServer, err := webserver.GetWebServer(webServer, c.Config.ToMap())
+	wServer, err := webserver.GetWebServer(webServer, c.config.ToMap())
 
 	if err != nil {
 		return nil, err
@@ -144,17 +145,14 @@ func (c *CertificateManager) Upload(certName, webServer, pemData string) (*agent
 	return c.deployCertificate(wServer, certName, certPath, certPath)
 }
 
-// GetStorageCertList returns names of all certificates in the storage
-func (c *CertificateManager) GetStorageCertList() ([]string, error) {
-	return c.CertStorage.GetCertificateNameList()
+func (c *CertificateManager) GetStorageCertificates() (map[string]*agentintegration.Certificate, error) {
+	return c.CertStorage.GetCertificates()
 }
 
-// GetStorageCertData returns certificate by name
 func (c *CertificateManager) GetStorageCertData(certName string) (*agentintegration.Certificate, error) {
 	return c.CertStorage.GetCertificate(certName)
 }
 
-// GetStorageCertData returns certificate by name
 func (c *CertificateManager) RemoveCertificate(certName string) error {
 	return c.CertStorage.RemoveCertificate(certName)
 }
@@ -240,25 +238,31 @@ func (c *CertificateManager) execCmd(command string, params []string) ([]byte, e
 }
 
 func (c *CertificateManager) getCAServer() string {
-	if !c.Config.IsSet("CAServer") {
+	if !c.config.IsSet("CAServer") {
 		return caServer
 	}
 
-	return c.Config.GetString("CAServer")
+	return c.config.GetString("CAServer")
 }
 
 func GetCertificateManager(config *config.Config, logger logger.Logger) (*CertificateManager, error) {
 	legoBinPath := filepath.Join(config.RootPath, "lego")
-	dataPath := config.GetModuleVarAbsDir("certificates")
+	dataPath := config.GetPathInsideVarDir("certificates")
 
 	if config.IsSet("LegoBinPath") {
 		legoBinPath = config.GetString("LegoBinPath")
 	}
 
+	storage, err := GetDefaultCertStorage(config, logger)
+
+	if err != nil {
+		return nil, err
+	}
+
 	certManager := &CertificateManager{
 		logger:      logger,
-		CertStorage: GetDefaultCertStorage(config),
-		Config:      config,
+		CertStorage: storage,
+		config:      config,
 		legoBinPath: legoBinPath,
 		dataPath:    dataPath,
 	}
@@ -266,7 +270,6 @@ func GetCertificateManager(config *config.Config, logger logger.Logger) (*Certif
 	return certManager, nil
 }
 
-// GetOutputError returns error message from the stdout
 func getOutputError(output string) string {
 	errIndex := strings.Index(output, "error: ")
 

@@ -30,8 +30,8 @@ func (h *Handler) Handle(request router.Request) (interface{}, error) {
 		response, err = h.issueCertificateToDomain(request.Data)
 	case "upload":
 		response, err = h.uploadCertificateToDomain(request.Data)
-	case "storagecertnamelist":
-		response, err = h.storageCertNameList()
+	case "storagecertificates":
+		response, err = h.storageCertificates()
 	case "storagecertdata":
 		response, err = h.storageCertData(request.Data)
 	case "storagecertupload":
@@ -79,15 +79,18 @@ func (h *Handler) uploadCertificateToDomain(data interface{}) (*agentintegration
 	return h.certificateManager.Upload(requestData.ServerName, requestData.WebServer, requestData.PemCertificate)
 }
 
-func (h *Handler) storageCertNameList() (*agentintegration.StorageCertificateNameList, error) {
-	certList, err := h.certificateManager.GetStorageCertList()
+func (h *Handler) storageCertificates() (*agentintegration.CertificatesResponseData, error) {
+	certsMap, err := h.certificateManager.GetStorageCertificates()
+
 	if err != nil {
 		return nil, err
 	}
-	certNameList := agentintegration.StorageCertificateNameList{
-		CertNameList: certList,
+
+	response := agentintegration.CertificatesResponseData{
+		Certificates: certsMap,
 	}
-	return &certNameList, nil
+
+	return &response, nil
 }
 
 func (h *Handler) storageCertData(data interface{}) (*agentintegration.Certificate, error) {
@@ -111,8 +114,14 @@ func (h *Handler) uploadCertToStorage(data interface{}) (*agentintegration.Certi
 		return nil, errors.New("certificate name is missed")
 	}
 
-	storage := GetDefaultCertStorage(h.config)
+	storage, err := GetDefaultCertStorage(h.config, h.logger)
+
+	if err != nil {
+		return nil, err
+	}
+
 	_, err = storage.AddPemCertificate(requestData.CertName, requestData.PemCertificate)
+
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +135,12 @@ func (h *Handler) removeCertFromStorage(data interface{}) error {
 		return errors.New("invalid certificate name data is provided")
 	}
 
-	storage := GetDefaultCertStorage(h.config)
+	storage, err := GetDefaultCertStorage(h.config, h.logger)
+
+	if err != nil {
+		return err
+	}
+
 	return storage.RemoveCertificate(certName)
 }
 
@@ -136,8 +150,14 @@ func (h *Handler) downloadCertFromStorage(data interface{}) (*agentintegration.C
 		return nil, errors.New("invalid certificate name data is provided")
 	}
 
-	storage := GetDefaultCertStorage(h.config)
+	storage, err := GetDefaultCertStorage(h.config, h.logger)
+
+	if err != nil {
+		return nil, err
+	}
+
 	certPath, certContent, err := storage.GetCertificateAsString(certName)
+
 	if err != nil {
 		return nil, err
 	}

@@ -45,8 +45,8 @@ github.com/pelletier/go-toml/v2 v2.2.3 h1:YmeHyLY8mFWbdkNWwpr+qIL2bEqT0o95WSdkNH
 github.com/pelletier/go-toml/v2 v2.2.3/go.mod h1:MfCQTFTvCcUyyvvwm1+G6H/jORL20Xlb6rzQu9GuUkc=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/r2dtools/agentintegration v1.4.3 h1:a6oQEB0GVpdNIzzhybfkYJhvGqmnYdbryYaiFsD1p48=
-github.com/r2dtools/agentintegration v1.4.3/go.mod h1:9QgQpDt5oIc75eG8mWHfLGnUhKrCd3xwi9A7v13DkhU=
+github.com/r2dtools/agentintegration v1.4.4 h1:xcWA6lXFYNuWdaoe0h4hOg2ojWr3bbhRtJEqmaayAUg=
+github.com/r2dtools/agentintegration v1.4.4/go.mod h1:9QgQpDt5oIc75eG8mWHfLGnUhKrCd3xwi9A7v13DkhU=
 github.com/r2dtools/gonginxconf v1.2.1 h1:ekn2o6XwcZ3KyGUX7dEOxrdR5vtB902QZHJPI1VGAzM=
 github.com/r2dtools/gonginxconf v1.2.1/go.mod h1:RquKILFm/m9Z8ze+8umV7/hs0I5z8ZxqOv2+0hUyaIY=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=

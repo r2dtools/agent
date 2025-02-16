@@ -160,7 +160,7 @@ func (s *Storage) getStorageCertNameMap() (map[string]struct{}, error) {
 }
 
 func GetDefaultCertStorage(config *config.Config, logger logger.Logger) (*Storage, error) {
-	dataPath := config.GetPathInsideVarDir("certificates")
+	dataPath := config.GetPathInsideVarDir("ssl", "certificates")
 
 	if !com.IsExist(dataPath) {
 		err := os.MkdirAll(dataPath, 0755)

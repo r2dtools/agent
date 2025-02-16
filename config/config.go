@@ -90,8 +90,11 @@ func (c *Config) GetVarDirAbsPath() string {
 	return "/usr/local/r2dtools/var"
 }
 
-func (c *Config) GetPathInsideVarDir(path string) string {
-	return filepath.Join(c.GetVarDirAbsPath(), path)
+func (c *Config) GetPathInsideVarDir(path ...string) string {
+	parts := []string{c.GetVarDirAbsPath()}
+	parts = append(parts, path...)
+
+	return filepath.Join(parts...)
 }
 
 // IsSet checks if key exists in config

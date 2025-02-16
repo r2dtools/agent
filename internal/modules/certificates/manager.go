@@ -247,7 +247,7 @@ func (c *CertificateManager) getCAServer() string {
 
 func GetCertificateManager(config *config.Config, logger logger.Logger) (*CertificateManager, error) {
 	legoBinPath := filepath.Join(config.RootPath, "lego")
-	dataPath := config.GetPathInsideVarDir("certificates")
+	dataPath := config.GetPathInsideVarDir("ssl")
 
 	if config.IsSet("LegoBinPath") {
 		legoBinPath = config.GetString("LegoBinPath")

@@ -10,7 +10,7 @@ import (
 
 var VersionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Show agent version",
+	Short: "Show SSLBot version",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config, err := config.GetConfig()
 

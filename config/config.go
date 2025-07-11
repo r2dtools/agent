@@ -13,7 +13,6 @@ const (
 	port    = 60150
 )
 
-// Config stores agent configuration params
 type Config struct {
 	LogFile,
 	RootPath,
@@ -24,7 +23,6 @@ type Config struct {
 	vConfig   *viper.Viper
 }
 
-// GetConfig returns agent config
 func GetConfig() (*Config, error) {
 	env := os.Getenv("R2DTOOLS_AGENT_MODE")
 	isDevMode := env == devMode

@@ -1,4 +1,4 @@
-# R2DTools agent
+# R2DTools SSLBot
 Simplify the maintenance of your websites
 
 ## Secure your website with SSL/TLS certificate
@@ -14,7 +14,7 @@ If you have an already issued certificate ( with .pem extension ) you can just u
 ## How to install
 
 * Connect to the server via ssh
-* Download the latest version of the agent installer:
+* Download the latest version of the SSLBot installer:
   ```bash 
   wget https://github.com/r2dtools/installer/releases/latest/download/installer
   ```
@@ -22,11 +22,11 @@ If you have an already issued certificate ( with .pem extension ) you can just u
   ```bash
   chmod +x /tmp/installer
   ```
-* Install the agent:
+* Install SSLBot:
   ```bash
   /tmp/installer install
   ```
-* The agent will be installed in the <strong>/opt/r2dtools</strong> directory
+* The SSLBot will be installed in the <strong>/opt/r2dtools</strong> directory
 
 ## How to use
 

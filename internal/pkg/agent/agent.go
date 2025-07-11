@@ -20,7 +20,7 @@ func GetAgentVersion(config *config.Config) (string, error) {
 	output, err := os.ReadFile(path)
 
 	if err != nil {
-		return "", fmt.Errorf("could not detect agent version: %v", err)
+		return "", fmt.Errorf("could not detect sslbot version: %v", err)
 	}
 
 	return strings.Trim(string(output), " \n"), nil

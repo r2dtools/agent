@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
-	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
 	"github.com/r2dtools/gonginxconf/config"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver/reverter"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/slices"
 )

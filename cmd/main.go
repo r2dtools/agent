@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/r2dtools/agent/cmd/server"
+	"github.com/r2dtools/sslbot/cmd/server"
 )
 
 func main() {

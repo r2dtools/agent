@@ -1,11 +1,11 @@
 package server
 
 import (
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/modules/certificates"
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/router"
-	"github.com/r2dtools/agent/internal/server"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/modules/certificates"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/router"
+	"github.com/r2dtools/sslbot/internal/server"
 	"github.com/spf13/cobra"
 )
 

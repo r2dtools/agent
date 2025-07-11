@@ -7,45 +7,44 @@ jobs:
     env:
       BUILD_ARCHIVE_NAME: "r2dtools-agent.tar.gz"
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.24
+        id: go
 
-    - name: Set up Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.23
-      id: go
-      
-    - name: Check out code
-      uses: actions/checkout@v2
+      - name: Check out code
+        uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: go install ./...
+      - name: Install dependencies
+        run: go install ./...
 
-    - name: Build image for tests
-      run: make build_test
+      - name: Build image for tests
+        run: make build_test
 
-    - name: Run tests
-      run: make test
+      - name: Run tests
+        run: make test
 
-    - name: Build agent
-      if: startsWith(github.ref, 'refs/tags/')
-      run: make build
-        
-    - name: Prepare build directory
-      if: startsWith(github.ref, 'refs/tags/')
-      run: rm -rf build/.gitkeep
+      - name: Build agent
+        if: startsWith(github.ref, 'refs/tags/')
+        run: make build
 
-    - name: Add build version
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        touch build/.version
-        echo "${{  github.ref_name }}" >> build/.version
+      - name: Prepare build directory
+        if: startsWith(github.ref, 'refs/tags/')
+        run: rm -rf build/.gitkeep
 
-    - name: Create build archive
-      if: startsWith(github.ref, 'refs/tags/')
-      run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
+      - name: Add build version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          touch build/.version
+          echo "${{  github.ref_name }}" >> build/.version
 
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: r2dtools-agent.tar.gz
+      - name: Create build archive
+        if: startsWith(github.ref, 'refs/tags/')
+        run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: r2dtools-agent.tar.gz

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/unknwon/com"
 )

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agentintegration"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"

@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/r2dtools/agent/internal/pkg/certificate"
-	"github.com/r2dtools/agent/internal/pkg/webserver/hostmng"
-	"github.com/r2dtools/agent/internal/pkg/webserver/processmng"
 	"github.com/r2dtools/agentintegration"
 	nginxConfig "github.com/r2dtools/gonginxconf/config"
+	"github.com/r2dtools/sslbot/internal/pkg/certificate"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver/hostmng"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver/processmng"
 )
 
 const (

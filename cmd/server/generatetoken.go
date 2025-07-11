@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/sslbot/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 

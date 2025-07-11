@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/r2dtools/agent/internal/pkg/utils"
+	"github.com/r2dtools/sslbot/internal/pkg/utils"
 )
 
 type NginxHostManager struct {

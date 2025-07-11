@@ -7,13 +7,13 @@ import (
 	"os"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/pkg/agent"
-	"github.com/r2dtools/agent/internal/pkg/certificate"
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/router"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agentintegration"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/pkg/agent"
+	"github.com/r2dtools/sslbot/internal/pkg/certificate"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/router"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver"
 	"github.com/shirou/gopsutil/host"
 )
 

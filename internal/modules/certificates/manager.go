@@ -9,14 +9,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/modules/certificates/commondir"
-	"github.com/r2dtools/agent/internal/modules/certificates/deploy"
-	"github.com/r2dtools/agent/internal/pkg/certificate"
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
-	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
 	"github.com/r2dtools/agentintegration"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/modules/certificates/commondir"
+	"github.com/r2dtools/sslbot/internal/modules/certificates/deploy"
+	"github.com/r2dtools/sslbot/internal/pkg/certificate"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver/reverter"
 	"github.com/unknwon/com"
 )
 

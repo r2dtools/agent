@@ -8,9 +8,9 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/router"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/router"
 )
 
 const headerDataLength = 4 // bytes

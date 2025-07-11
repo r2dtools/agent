@@ -3,10 +3,10 @@ package deploy
 import (
 	"testing"
 
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
-	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
 	"github.com/r2dtools/agentintegration"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver/reverter"
 	"github.com/stretchr/testify/assert"
 )
 

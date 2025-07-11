@@ -3,9 +3,9 @@ package commondir
 import (
 	"fmt"
 
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
-	"github.com/r2dtools/agent/internal/pkg/webserver/reverter"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver/reverter"
 )
 
 type CommonDir struct {

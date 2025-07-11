@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/sslbot/config"
 )
 
 func GetAgentVersion(config *config.Config) (string, error) {

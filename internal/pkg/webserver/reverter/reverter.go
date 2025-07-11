@@ -5,7 +5,7 @@ import (
 	"os"
 	"slices"
 
-	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/unknwon/com"
 )
 

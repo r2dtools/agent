@@ -1,4 +1,4 @@
-legoVersion=4.18.0
+legoVersion=4.24.0
 legoArchive=lego.tar.gz
 
 test:

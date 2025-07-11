@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/stretchr/testify/assert"
 )
 

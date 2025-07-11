@@ -3,8 +3,8 @@ package server
 import (
 	"fmt"
 
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/pkg/agent"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/pkg/agent"
 	"github.com/spf13/cobra"
 )
 

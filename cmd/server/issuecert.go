@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/r2dtools/agent/config"
-	"github.com/r2dtools/agent/internal/modules/certificates"
-	"github.com/r2dtools/agent/internal/pkg/logger"
-	"github.com/r2dtools/agent/internal/pkg/webserver"
 	"github.com/r2dtools/agentintegration"
+	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/modules/certificates"
+	"github.com/r2dtools/sslbot/internal/pkg/logger"
+	"github.com/r2dtools/sslbot/internal/pkg/webserver"
 	"github.com/spf13/cobra"
 )
 

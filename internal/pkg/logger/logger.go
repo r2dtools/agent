@@ -5,7 +5,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/r2dtools/agent/config"
+	"github.com/r2dtools/sslbot/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

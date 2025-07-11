@@ -60,6 +60,10 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		return nil, err
 	}
 
+	if vhost == nil {
+		return nil, fmt.Errorf("host %s not found", serverName)
+	}
+
 	docRoot := vhost.DocRoot
 	commonDir := commonDirManager.GetCommonDirStatus(serverName)
 
@@ -67,20 +71,21 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		docRoot = commonDir.Root
 	}
 
-	if certData.ChallengeType == HttpChallengeTypeCode {
+	switch certData.ChallengeType {
+	case HttpChallengeTypeCode:
 		challengeType = &HTTPChallengeType{
 			HTTPPort: httpPort,
 			TLSPort:  tlsPort,
 			WebRoot:  docRoot,
 		}
-	} else if certData.ChallengeType == DnsChallengeTypeCode {
+	case DnsChallengeTypeCode:
 		provider := certData.GetAdditionalParam("provider")
 		if provider == "" {
 			return nil, errors.New("dns provider is not specified")
 		}
 
 		challengeType = &DNSChallengeType{provider}
-	} else {
+	default:
 		return nil, fmt.Errorf("unsupported challenge type: %s", certData.ChallengeType)
 	}
 

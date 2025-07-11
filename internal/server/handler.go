@@ -17,13 +17,11 @@ import (
 	"github.com/shirou/gopsutil/host"
 )
 
-// MainHandler handles common agent requests
 type MainHandler struct {
 	Config *config.Config
 	Logger logger.Logger
 }
 
-// Handle handles request
 func (h *MainHandler) Handle(request router.Request) (interface{}, error) {
 	var response interface{}
 	var err error

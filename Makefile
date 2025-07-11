@@ -2,10 +2,10 @@ legoVersion=4.24.0
 legoArchive=lego.tar.gz
 
 test:
-	docker run --volume="$(shell pwd):/opt/r2dtools" agent-tests
+	docker run --volume="$(shell pwd):/opt/r2dtools" sslbot-tests
 
 build_agent:
-	go build -o ./build/r2dtools -v cmd/main.go
+	go build -o ./build/sslbot -v cmd/main.go
 
 build_lego:
 	wget "https://github.com/go-acme/lego/releases/download/v${legoVersion}/lego_v$(legoVersion)_linux_amd64.tar.gz" -O $(legoArchive); \
@@ -18,11 +18,11 @@ build: build_agent build_lego
     cp config/params.yaml build/config/
 
 build_test:
-	docker build -t agent-tests . 
+	docker build -t sslbot-tests . 
 clean:
 	cd build; \
 	rm -rf config; \
-	rm -f lego r2dtools LICENSE .version
+	rm -f lego sslbot LICENSE .version
 
 serve:
 	go run cmd/main.go serve

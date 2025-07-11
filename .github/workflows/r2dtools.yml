@@ -5,7 +5,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     env:
-      BUILD_ARCHIVE_NAME: "r2dtools-agent.tar.gz"
+      BUILD_ARCHIVE_NAME: "r2dtools-sslbot.tar.gz"
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
@@ -25,7 +25,7 @@ jobs:
       - name: Run tests
         run: make test
 
-      - name: Build agent
+      - name: Build bot
         if: startsWith(github.ref, 'refs/tags/')
         run: make build
 
@@ -47,4 +47,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: r2dtools-agent.tar.gz
+          files: r2dtools-sslbot.tar.gz

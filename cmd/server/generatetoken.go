@@ -55,7 +55,7 @@ var GenerateTokenCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Token: %s\n", token)
-		fmt.Println("Please restart agent service")
+		fmt.Println("Please restart sslbot service")
 
 		return nil
 	},

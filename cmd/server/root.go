@@ -23,6 +23,7 @@ func init() {
 	RootCmd.AddCommand(IssueCertificateCmd)
 	RootCmd.AddCommand(GenerateTokenCmd)
 	RootCmd.AddCommand(CommonDirCmd)
+	RootCmd.AddCommand(ShowTokenCmd)
 }
 
 func writeOutput(cmd *cobra.Command, output string) error {

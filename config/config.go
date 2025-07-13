@@ -24,7 +24,7 @@ type Config struct {
 }
 
 func GetConfig() (*Config, error) {
-	env := os.Getenv("R2DTOOLS_AGENT_MODE")
+	env := os.Getenv("SSLBOT_MODE")
 	isDevMode := env == devMode
 
 	var rootPath string
@@ -69,7 +69,7 @@ func GetConfig() (*Config, error) {
 
 	return &Config{
 		Port:           vConfig.GetInt("Port"),
-		LogFile:        filepath.Join(rootPath, "r2dtools.log"),
+		LogFile:        filepath.Join(rootPath, "sslbot.log"),
 		Token:          vConfig.GetString("Token"),
 		RootPath:       rootPath,
 		ConfigFilePath: configFilePath,

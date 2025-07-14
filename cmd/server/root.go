@@ -5,7 +5,7 @@ import (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "r2dtools",
+	Use:   "sslbot",
 	Short: "R2DTools SSLBot",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Usage()

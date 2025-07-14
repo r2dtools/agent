@@ -11,7 +11,7 @@ import (
 
 var ShowTokenCmd = &cobra.Command{
 	Use:   "show-token",
-	Short: "Show current sslbot token",
+	Short: "Show SSLBot current token",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		conf, err := config.GetConfig()
 

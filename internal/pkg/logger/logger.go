@@ -49,12 +49,13 @@ func NewLogger(config *config.Config) (Logger, error) {
 	}
 
 	var loggerConfig zap.Config
-	outputPaths := []string{config.LogFile}
+	outputPaths := []string{}
 
 	if config.IsDevMode {
 		loggerConfig = zap.NewDevelopmentConfig()
 		outputPaths = append(outputPaths, "stderr")
 	} else {
+		outputPaths = append(outputPaths, config.LogFile)
 		loggerConfig = zap.NewProductionConfig()
 	}
 

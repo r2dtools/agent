@@ -1,4 +1,4 @@
-name: r2dtools
+name: sslbot
 on: [push]
 jobs:
   build:

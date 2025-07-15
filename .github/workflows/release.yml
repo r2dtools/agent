@@ -1,5 +1,9 @@
-name: sslbot
-on: [push]
+name: release
+on:
+  release:
+    types: [released]
+env:
+  IMAGE_VERSION: ${{ github.event.release.tag_name }}
 jobs:
   build:
     name: Build
@@ -19,26 +23,15 @@ jobs:
       - name: Install dependencies
         run: go install ./...
 
-      - name: Build image for tests
-        run: make build_test
-
-      - name: Run tests
-        run: make test
-
       - name: Build bot
-        if: startsWith(github.ref, 'refs/tags/')
-        run: make build version=${{  github.ref_name }}
-
-      - name: Prepare build directory
-        if: startsWith(github.ref, 'refs/tags/')
-        run: rm -rf build/.gitkeep
+        run: |
+          make build version=${{ env.IMAGE_VERSION }}
+          rm -rf build/.gitkeep
 
       - name: Create build archive
-        if: startsWith(github.ref, 'refs/tags/')
         run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: r2dtools-sslbot.tar.gz

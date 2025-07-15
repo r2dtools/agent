@@ -27,17 +27,11 @@ jobs:
 
       - name: Build bot
         if: startsWith(github.ref, 'refs/tags/')
-        run: make build
+        run: make build version=${{  github.ref_name }}
 
       - name: Prepare build directory
         if: startsWith(github.ref, 'refs/tags/')
         run: rm -rf build/.gitkeep
-
-      - name: Add build version
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          touch build/.version
-          echo "${{  github.ref_name }}" >> build/.version
 
       - name: Create build archive
         if: startsWith(github.ref, 'refs/tags/')

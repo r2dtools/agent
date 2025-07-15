@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/r2dtools/sslbot/config"
-	"github.com/r2dtools/sslbot/internal/pkg/agent"
 	"github.com/spf13/cobra"
 )
 
@@ -18,13 +17,7 @@ var VersionCmd = &cobra.Command{
 			return err
 		}
 
-		version, err := agent.GetAgentVersion(config)
-
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(version)
+		fmt.Println(config.Version)
 
 		return nil
 	},

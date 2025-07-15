@@ -2,10 +2,15 @@ package main
 
 import (
 	"github.com/r2dtools/sslbot/cmd/server"
+	"github.com/r2dtools/sslbot/config"
 )
 
+var Version string
+
 func main() {
-	if err := server.RootCmd.Execute(); err != nil {
+	config.Version = Version
+
+	if err := server.CreateCli().Execute(); err != nil {
 		panic(err)
 	}
 }

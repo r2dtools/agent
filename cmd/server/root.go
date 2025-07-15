@@ -4,26 +4,32 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var RootCmd = &cobra.Command{
-	Use:   "sslbot",
-	Short: "R2DTools SSLBot",
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Usage()
-	},
-}
-
 var isJson bool
 
-func init() {
-	RootCmd.PersistentFlags().BoolVarP(&isJson, "json", "j", false, "show result in json format")
-	RootCmd.AddCommand(ServeCmd)
-	RootCmd.AddCommand(VersionCmd)
-	RootCmd.AddCommand(HostsCmd)
-	RootCmd.AddCommand(DeployCertificateCmd)
-	RootCmd.AddCommand(IssueCertificateCmd)
-	RootCmd.AddCommand(GenerateTokenCmd)
-	RootCmd.AddCommand(CommonDirCmd)
-	RootCmd.AddCommand(ShowTokenCmd)
+var webServerCode string
+var serverName string
+
+func CreateCli() *cobra.Command {
+	cli := &cobra.Command{
+		Use:   "sslbot",
+		Short: "R2DTools SSLBot",
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.Usage()
+		},
+	}
+
+	cli.PersistentFlags().BoolVarP(&isJson, "json", "j", false, "show result in json format")
+	cli.AddCommand(ServeCmd)
+	cli.AddCommand(VersionCmd)
+	cli.AddCommand(HostsCmd)
+	cli.AddCommand(DeployCertificateCmd)
+	cli.AddCommand(IssueCertificateCmd)
+	cli.AddCommand(GenerateTokenCmd)
+	cli.AddCommand(CommonDirCmd)
+	cli.AddCommand(ShowTokenCmd)
+	cli.PersistentFlags().StringVarP(&webServerCode, "webserver", "w", "", "webserver (nginx|apache)")
+
+	return cli
 }
 
 func writeOutput(cmd *cobra.Command, output string) error {
@@ -34,11 +40,4 @@ func writeOutput(cmd *cobra.Command, output string) error {
 	}
 
 	return nil
-}
-
-var webServerCode string
-var serverName string
-
-func init() {
-	RootCmd.PersistentFlags().StringVarP(&webServerCode, "webserver", "w", "", "webserver (nginx|apache)")
 }

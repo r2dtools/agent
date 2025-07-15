@@ -13,6 +13,7 @@ const (
 )
 
 var isDevMode = true
+var Version string
 
 type Config struct {
 	LogFile,
@@ -21,6 +22,7 @@ type Config struct {
 	Token string
 	Port      int
 	IsDevMode bool
+	Version   string
 	vConfig   *viper.Viper
 }
 
@@ -65,6 +67,10 @@ func GetConfig() (*Config, error) {
 		}
 	}
 
+	if Version == "" {
+		Version = "dev"
+	}
+
 	return &Config{
 		Port:           vConfig.GetInt("Port"),
 		LogFile:        filepath.Join(rootPath, "sslbot.log"),
@@ -73,6 +79,7 @@ func GetConfig() (*Config, error) {
 		ConfigFilePath: configFilePath,
 		IsDevMode:      isDevMode,
 		vConfig:        vConfig,
+		Version:        Version,
 	}, nil
 }
 

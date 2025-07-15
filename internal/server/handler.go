@@ -9,7 +9,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/r2dtools/agentintegration"
 	"github.com/r2dtools/sslbot/config"
-	"github.com/r2dtools/sslbot/internal/pkg/agent"
 	"github.com/r2dtools/sslbot/internal/pkg/certificate"
 	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/r2dtools/sslbot/internal/pkg/router"
@@ -22,7 +21,7 @@ type MainHandler struct {
 	Logger logger.Logger
 }
 
-func (h *MainHandler) Handle(request router.Request) (interface{}, error) {
+func (h *MainHandler) Handle(request router.Request) (any, error) {
 	var response interface{}
 	var err error
 
@@ -58,11 +57,7 @@ func (h *MainHandler) refresh() (*agentintegration.ServerData, error) {
 	serverData.PlatformVersion = info.PlatformVersion
 	serverData.Os = info.OS
 
-	version, err := agent.GetAgentVersion(h.Config)
-	if err != nil {
-		return nil, err
-	}
-	serverData.AgentVersion = version
+	serverData.AgentVersion = h.Config.Version
 
 	return &serverData, nil
 }

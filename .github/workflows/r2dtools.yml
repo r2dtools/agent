@@ -4,8 +4,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    env:
-      BUILD_ARCHIVE_NAME: "r2dtools-sslbot.tar.gz"
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
@@ -27,18 +25,12 @@ jobs:
 
       - name: Build bot
         if: startsWith(github.ref, 'refs/tags/')
-        run: make build version=${{  github.ref_name }}
-
-      - name: Prepare build directory
-        if: startsWith(github.ref, 'refs/tags/')
-        run: rm -rf build/.gitkeep
-
-      - name: Create build archive
-        if: startsWith(github.ref, 'refs/tags/')
-        run: tar -czvf $BUILD_ARCHIVE_NAME -C build/ .
+        run: |
+          make build version=${{  github.ref_name }}
+          rm -rf build/.gitkeep
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: r2dtools-sslbot.tar.gz
+          files: build/sslbot

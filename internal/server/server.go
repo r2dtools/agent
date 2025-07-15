@@ -23,7 +23,6 @@ type Server struct {
 	listener net.Listener
 }
 
-// Serve starts TCP server
 func (s *Server) Serve() error {
 	port := strconv.Itoa(s.Port)
 	s.Logger.Info("starting TCP server on port %s ...", port)
@@ -52,7 +51,7 @@ func (s *Server) Serve() error {
 	}
 }
 
-func prepareResponse(data interface{}, err error) router.Response {
+func (s *Server) prepareResponse(data interface{}, err error) router.Response {
 	var response router.Response
 
 	if err != nil {
@@ -63,6 +62,8 @@ func prepareResponse(data interface{}, err error) router.Response {
 		response.Data = data
 	}
 
+	s.Logger.Debug("send response: %v", response)
+
 	return response
 }
 
@@ -70,7 +71,7 @@ func (s *Server) getResponse(reader io.Reader) router.Response {
 	dataLen, err := s.readDataLen(reader)
 
 	if err != nil {
-		return prepareResponse(nil, err)
+		return s.prepareResponse(nil, err)
 	}
 
 	var data []byte
@@ -85,7 +86,7 @@ func (s *Server) getResponse(reader io.Reader) router.Response {
 				break
 			}
 
-			return prepareResponse(nil, err)
+			return s.prepareResponse(nil, err)
 		}
 
 		data = append(data, buffer[:len]...)
@@ -96,10 +97,10 @@ func (s *Server) getResponse(reader io.Reader) router.Response {
 		}
 	}
 
-	s.Logger.Info("received data: %v", string(data))
+	s.Logger.Debug("received data: %v", string(data))
 	responseData, err := s.handleRequest(data)
 
-	return prepareResponse(responseData, err)
+	return s.prepareResponse(responseData, err)
 }
 
 func (s *Server) handleConn(conn net.Conn) {
@@ -114,7 +115,7 @@ func (s *Server) handleConn(conn net.Conn) {
 
 	responseByte, err := json.Marshal(response)
 	if err != nil {
-		response = prepareResponse(nil, fmt.Errorf("could not encode response data: %v", err))
+		response = s.prepareResponse(nil, fmt.Errorf("could not encode response data: %v", err))
 		responseByte, _ = json.Marshal(response)
 		s.Logger.Error(response.Error)
 	}
@@ -127,7 +128,6 @@ func (s *Server) handleConn(conn net.Conn) {
 	s.Logger.Info("Connection successfully handled")
 }
 
-// handleRequest handles requests from the main server
 func (s *Server) handleRequest(data []byte) (interface{}, error) {
 	var request router.Request
 	err := json.Unmarshal(data, &request)

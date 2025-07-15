@@ -21,43 +21,48 @@
 
 ## 🚀 Installation
 
-1. **Connect to your server via SSH.**
+1. **Connect to your server via SSH**
 
-2. **Download the latest SSLBot installer:**
+2. **Download and unpack the latest SSLBot archive:**
    ```bash
-   wget https://github.com/r2dtools/installer/releases/latest/download/installer -O /tmp/installer
+   wget -O sslbot.tar.gz https://github.com/r2dtools/sslbot/releases/latest/download/r2dtools-sslbot.tar.gz \
+   && mkdir -p /opt/r2dtools \
+   && tar -xzf sslbot.tar.gz -C /opt/r2dtools
    ```
-
-3. **Make the installer executable:**
+3. **Add the SSLBot service to systemd:**
    ```bash
-   chmod +x /tmp/installer
+   cat >/etc/systemd/system/sslbot.service <<'EOT'
+   [Unit]
+   Description=R2DTools SSLBot
+   
+   [Service]
+   Type=simple
+   Restart=always
+   ExecStart=/opt/r2dtools/sslbot serve
+   
+   [Install]
+   WantedBy=multi-user.target
+   EOT
    ```
-
-4. **Run the installer:**
+4. **Run the SSLBot service:**
    ```bash
-   /tmp/installer install
+   systemctl daemon-reload \
+   && systemctl start sslbot.service \
+   && systemctl enable sslbot.service
    ```
-
-5. **SSLBot will be installed in:**
-   ```
-   /opt/r2dtools
-   ```
-
-6. **Check if the SSLBot service is running:**
+5. **Check if the SSLBot service is running:**
    ```bash
    systemctl status sslbot.service
    ```
-
-7. **Ensure port `60150` is open (default):**
+6. **Ensure port `60150` is open (default):**
    - This is required for communication with SSLPanel.
-   - You can change the port in:
+   - You can change the port via environment variable SSLBOT_PORT:
      ```
-     /opt/r2dtools/config/params.yaml
+     export SSLBOT_PORT=<port>
      ```
    - Restart the service after changing the port:
      ```bash
      systemctl restart sslbot.service
-     ```
 
 ---
 
@@ -72,12 +77,6 @@ To view the token:
 ```bash
 /opt/r2dtools/sslbot show-token
 ```
-
-> 🔍 The token is also stored in:
-> ```
-> /opt/r2dtools/config/params.yaml
-> ```
-
 ---
 
 ## ⚙️ SSLBot CLI Usage
@@ -92,14 +91,6 @@ To view the token:
 | **Manage ACME challenge directory** | <pre>/opt/r2dtools/sslbot common-dir \<br>  --domain example.com \<br>  --enable \<br>  --webserver apache</pre> |
 | **Run SSLBot service manually** | ```/opt/r2dtools/sslbot serve``` |
 | **Show help for all commands** | ```/opt/r2dtools/sslbot --help``` |
-
----
-
-## 📂 Default Installation Path
-
-```
-/opt/r2dtools
-```
 
 ---
 

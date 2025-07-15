@@ -1,6 +1,7 @@
 package config
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 
@@ -19,6 +20,7 @@ var Version string
 type Config struct {
 	LogFile   string
 	Port      int
+	Token     string
 	IsDevMode bool
 	Version   string
 	rootPath  string
@@ -62,9 +64,25 @@ func GetConfig() (*Config, error) {
 		port = defaultPort
 	}
 
+	tokenPath := filepath.Join(rootPath, "token")
+	tokenFile, err := os.OpenFile(tokenPath, os.O_RDONLY|os.O_CREATE, 0644)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer tokenFile.Close()
+
+	token, err := io.ReadAll(tokenFile)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
 		Port:      port,
 		LogFile:   filepath.Join(rootPath, "sslbot.log"),
+		Token:     string(token),
 		rootPath:  rootPath,
 		IsDevMode: isDevMode,
 		Version:   Version,
@@ -85,8 +103,8 @@ func (c *Config) GetLegoBinPath() string {
 	return filepath.Join(c.rootPath, "lego")
 }
 
-func (c *Config) GetToken() string {
-	return viper.GetString("token")
+func (c *Config) GetTokenPath() string {
+	return filepath.Join(c.rootPath, "token")
 }
 
 func (c *Config) GetPathInsideVarDir(path ...string) string {

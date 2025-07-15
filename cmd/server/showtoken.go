@@ -17,10 +17,8 @@ var ShowTokenCmd = &cobra.Command{
 			return err
 		}
 
-		token := conf.GetToken()
-
-		if token != "" {
-			fmt.Printf("Token: %s\n", token)
+		if conf.Token != "" {
+			fmt.Printf("Token: %s\n", conf.Token)
 
 			return nil
 		}

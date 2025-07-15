@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	caServer = "https://acme-v02.api.letsencrypt.org/directory"
 	httpPort = 80
 	tlsPort  = 443
 )
@@ -225,7 +224,7 @@ func (c *CertificateManager) deployCertificate(wServer webserver.WebServer, serv
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {
 	c.ensureDataPathExists()
-	aParams := []string{"--server=" + c.getCAServer(), "--accept-tos", "--path=" + c.dataPath, "--pem"}
+	aParams := []string{"--server=" + c.config.GetCaServer(), "--accept-tos", "--path=" + c.dataPath, "--pem"}
 	params = append(params, aParams...)
 	params = append(params, command)
 	cmd := exec.Command(c.legoBinPath, params...)
@@ -242,22 +241,9 @@ func (c *CertificateManager) execCmd(command string, params []string) ([]byte, e
 	return output, nil
 }
 
-func (c *CertificateManager) getCAServer() string {
-	if !c.config.IsSet("CAServer") {
-		return caServer
-	}
-
-	return c.config.GetString("CAServer")
-}
-
 func GetCertificateManager(config *config.Config, logger logger.Logger) (*CertificateManager, error) {
-	legoBinPath := filepath.Join(config.RootPath, "lego")
+	legoBinPath := config.GetLegoBinPath()
 	dataPath := config.GetPathInsideVarDir("ssl")
-
-	if config.IsSet("LegoBinPath") {
-		legoBinPath = config.GetString("LegoBinPath")
-	}
-
 	storage, err := GetDefaultCertStorage(config, logger)
 
 	if err != nil {

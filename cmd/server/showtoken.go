@@ -2,11 +2,9 @@ package server
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/r2dtools/sslbot/config"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 var ShowTokenCmd = &cobra.Command{
@@ -19,22 +17,9 @@ var ShowTokenCmd = &cobra.Command{
 			return err
 		}
 
-		data, err := os.ReadFile(conf.ConfigFilePath)
+		token := conf.GetToken()
 
-		if err != nil {
-			return err
-		}
-
-		confMap := make(map[string]any)
-		err = yaml.Unmarshal(data, confMap)
-
-		if err != nil {
-			return err
-		}
-
-		token, ok := confMap["Token"]
-
-		if ok {
+		if token != "" {
 			fmt.Printf("Token: %s\n", token)
 
 			return nil

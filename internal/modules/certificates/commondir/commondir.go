@@ -20,7 +20,7 @@ type CommonDirManager interface {
 }
 
 func GetCommonDirManager(webServer webserver.WebServer, reverter *reverter.Reverter, logger logger.Logger, options map[string]string) (CommonDirManager, error) {
-	nginxCommonDir := options["NginxAcmeCommonDir"]
+	nginxCommonDir := options["nginx_acme_common_dir"]
 
 	switch w := webServer.(type) {
 	case *webserver.NginxWebServer:

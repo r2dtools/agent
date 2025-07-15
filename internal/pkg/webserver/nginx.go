@@ -111,7 +111,7 @@ func GetNginxWebServer(options map[string]string) (*NginxWebServer, error) {
 }
 
 func getNginxRoot(options map[string]string) string {
-	root, ok := options["NginxRoot"]
+	root, ok := options["nginx_root"]
 
 	if !ok {
 		root = defaultNginxRoot

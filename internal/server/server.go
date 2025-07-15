@@ -136,7 +136,7 @@ func (s *Server) handleRequest(data []byte) (interface{}, error) {
 		return nil, fmt.Errorf("could not decode request data: %v", err)
 	}
 
-	if request.Token == "" || request.Token != s.Config.Token {
+	if request.Token == "" || request.Token != s.Config.GetToken() {
 		return nil, fmt.Errorf("invalid request token is specified: %s", request.Token)
 	}
 

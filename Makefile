@@ -13,16 +13,14 @@ build_lego:
 	rm $(legoArchive)
 
 build: build_agent build_lego
-	mkdir -p build/config; \
-    cp .version LICENSE build/; \
-    cp config/params.yaml build/config/
+	cp LICENSE build/
 
 build_test:
 	docker build -t sslbot-tests . 
 clean:
 	cd build; \
 	rm -rf config; \
-	rm -f lego sslbot LICENSE .version
+	rm -f lego sslbot LICENSE
 
 serve:
 	go run cmd/main.go serve

@@ -1,4 +1,4 @@
-package certificates
+package lego
 
 import (
 	"fmt"
@@ -15,13 +15,13 @@ import (
 
 const certExtension = "pem"
 
-type Storage struct {
+type CertStorage struct {
 	path   string
 	logger logger.Logger
 }
 
-func (s *Storage) AddPemCertificate(certName, pemData string) (string, error) {
-	certPath := s.getFilePathByNameWithExt(certName, certExtension)
+func (s CertStorage) AddPemCertificate(certName, pemData string) (certPath string, err error) {
+	certPath = s.getFilePathByNameWithExt(certName, certExtension)
 
 	if err := os.WriteFile(certPath, []byte(pemData), 0644); err != nil {
 		return "", fmt.Errorf("could not save certificate data to the storage: %v", err)
@@ -30,7 +30,7 @@ func (s *Storage) AddPemCertificate(certName, pemData string) (string, error) {
 	return certPath, nil
 }
 
-func (s *Storage) RemoveCertificate(certName string) error {
+func (s CertStorage) RemoveCertificate(certName string) error {
 	certPemPath := s.getFilePathByNameWithExt(certName, certExtension)
 	certCrtPath := s.getFilePathByNameWithExt(certName, "crt")
 	certIssuerCrtPath := s.getFilePathByNameWithExt(certName, "issuer.crt")
@@ -56,7 +56,7 @@ func (s *Storage) RemoveCertificate(certName string) error {
 	return nil
 }
 
-func (s *Storage) GetCertificate(certName string) (*agentintegration.Certificate, error) {
+func (s CertStorage) GetCertificate(certName string) (*agentintegration.Certificate, error) {
 	certPath, err := s.GetCertificatePath(certName)
 
 	if err != nil {
@@ -66,23 +66,23 @@ func (s *Storage) GetCertificate(certName string) (*agentintegration.Certificate
 	return certificate.GetCertificateFromFile(certPath)
 }
 
-func (s *Storage) GetCertificateAsString(certName string) (string, string, error) {
-	certPath, err := s.GetCertificatePath(certName)
+func (s CertStorage) GetCertificateAsString(certName string) (certPath string, certContent string, err error) {
+	certPath, err = s.GetCertificatePath(certName)
 
 	if err != nil {
 		return "", "", err
 	}
 
-	certContent, err := os.ReadFile(certPath)
+	certContentBytes, err := os.ReadFile(certPath)
 
 	if err != nil {
 		return "", "", fmt.Errorf("could not read certificate content: %v", err)
 	}
 
-	return certPath, string(certContent), nil
+	return certPath, string(certContentBytes), nil
 }
 
-func (s *Storage) GetCertificates() (map[string]*agentintegration.Certificate, error) {
+func (s CertStorage) GetCertificates() (map[string]*agentintegration.Certificate, error) {
 	certNameMap, err := s.getStorageCertNameMap()
 
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *Storage) GetCertificates() (map[string]*agentintegration.Certificate, e
 	return certsMap, nil
 }
 
-func (s *Storage) GetCertificatePath(certName string) (string, error) {
+func (s CertStorage) GetCertificatePath(certName string) (certPath string, err error) {
 	certNameMap, err := s.getStorageCertNameMap()
 
 	if err != nil {
@@ -120,20 +120,20 @@ func (s *Storage) GetCertificatePath(certName string) (string, error) {
 		return "", fmt.Errorf("could not find certificate '%s'", certName)
 	}
 
-	certPath := s.getFilePathByNameWithExt(certName, certExtension)
+	certPath = s.getFilePathByNameWithExt(certName, certExtension)
 
 	return certPath, nil
 }
 
-func (s *Storage) getFilePathByNameWithExt(fileName, extension string) string {
+func (s CertStorage) getFilePathByNameWithExt(fileName, extension string) string {
 	return filepath.Join(s.path, fileName+"."+extension)
 }
 
-func (s *Storage) getCertificateKeyPath(certName string) string {
+func (s CertStorage) getCertificateKeyPath(certName string) string {
 	return s.getFilePathByNameWithExt(certName, "key")
 }
 
-func (s *Storage) getStorageCertNameMap() (map[string]struct{}, error) {
+func (s CertStorage) getStorageCertNameMap() (map[string]struct{}, error) {
 	certNameMap := make(map[string]struct{})
 	entries, err := os.ReadDir(s.path)
 
@@ -159,16 +159,16 @@ func (s *Storage) getStorageCertNameMap() (map[string]struct{}, error) {
 	return certNameMap, nil
 }
 
-func GetDefaultCertStorage(config *config.Config, logger logger.Logger) (*Storage, error) {
+func CreateCertStorage(config *config.Config, logger logger.Logger) (CertStorage, error) {
 	dataPath := config.GetPathInsideVarDir("ssl", "certificates")
 
 	if !com.IsExist(dataPath) {
 		err := os.MkdirAll(dataPath, 0755)
 
 		if err != nil {
-			return nil, err
+			return CertStorage{}, err
 		}
 	}
 
-	return &Storage{path: dataPath, logger: logger}, nil
+	return CertStorage{path: dataPath, logger: logger}, nil
 }

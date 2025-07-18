@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/r2dtools/agentintegration"
 	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/modules/certificates/acme/client"
 	"github.com/r2dtools/sslbot/internal/modules/certificates/commondir"
 	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/r2dtools/sslbot/internal/pkg/router"
@@ -22,7 +23,7 @@ type Handler struct {
 }
 
 func (h *Handler) Handle(request router.Request) (interface{}, error) {
-	var response interface{}
+	var response any
 	var err error
 
 	switch action := request.GetAction(); action {
@@ -114,7 +115,7 @@ func (h *Handler) uploadCertToStorage(data interface{}) (*agentintegration.Certi
 		return nil, errors.New("certificate name is missed")
 	}
 
-	storage, err := GetDefaultCertStorage(h.config, h.logger)
+	storage, err := client.CreateCertStorage(h.config, h.logger)
 
 	if err != nil {
 		return nil, err
@@ -135,7 +136,7 @@ func (h *Handler) removeCertFromStorage(data interface{}) error {
 		return errors.New("invalid certificate name data is provided")
 	}
 
-	storage, err := GetDefaultCertStorage(h.config, h.logger)
+	storage, err := client.CreateCertStorage(h.config, h.logger)
 
 	if err != nil {
 		return err
@@ -150,7 +151,7 @@ func (h *Handler) downloadCertFromStorage(data interface{}) (*agentintegration.C
 		return nil, errors.New("invalid certificate name data is provided")
 	}
 
-	storage, err := GetDefaultCertStorage(h.config, h.logger)
+	storage, err := client.CreateCertStorage(h.config, h.logger)
 
 	if err != nil {
 		return nil, err

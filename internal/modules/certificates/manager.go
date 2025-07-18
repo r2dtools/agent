@@ -1,40 +1,29 @@
 package certificates
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"github.com/r2dtools/agentintegration"
 	"github.com/r2dtools/sslbot/config"
+	"github.com/r2dtools/sslbot/internal/modules/certificates/acme/client"
 	"github.com/r2dtools/sslbot/internal/modules/certificates/commondir"
 	"github.com/r2dtools/sslbot/internal/modules/certificates/deploy"
 	"github.com/r2dtools/sslbot/internal/pkg/certificate"
 	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/r2dtools/sslbot/internal/pkg/webserver"
 	"github.com/r2dtools/sslbot/internal/pkg/webserver/reverter"
-	"github.com/unknwon/com"
-)
-
-const (
-	httpPort = 80
-	tlsPort  = 443
 )
 
 type CertificateManager struct {
-	dataPath    string
-	CertStorage *Storage
+	CertStorage client.CertStorage
+	acmeClient  client.AcmeClient
 	logger      logger.Logger
 	config      *config.Config
 }
 
 func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueRequestData) (*agentintegration.Certificate, error) {
 	serverName := certData.ServerName
-	var challengeType ChallengeType
 
 	options := c.config.ToMap()
 	wServer, err := webserver.GetWebServer(certData.WebServer, options)
@@ -70,34 +59,7 @@ func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueReq
 		docRoot = commonDir.Root
 	}
 
-	switch certData.ChallengeType {
-	case HttpChallengeTypeCode:
-		challengeType = &HTTPChallengeType{
-			HTTPPort: httpPort,
-			TLSPort:  tlsPort,
-			WebRoot:  docRoot,
-		}
-	case DnsChallengeTypeCode:
-		provider := certData.GetAdditionalParam("provider")
-		if provider == "" {
-			return nil, errors.New("dns provider is not specified")
-		}
-
-		challengeType = &DNSChallengeType{provider}
-	default:
-		return nil, fmt.Errorf("unsupported challenge type: %s", certData.ChallengeType)
-	}
-
-	params := []string{"--email=" + certData.Email, "--domains=" + serverName}
-
-	for _, subject := range certData.Subjects {
-		if subject != serverName {
-			params = append(params, "--domains="+subject)
-		}
-	}
-
-	params = append(params, challengeType.GetParams()...)
-	_, err = c.execCmd("run", params)
+	err = c.acmeClient.Issue(docRoot, certData)
 
 	if err != nil {
 		c.logger.Debug("%v", err)
@@ -222,28 +184,14 @@ func (c *CertificateManager) deployCertificate(wServer webserver.WebServer, serv
 	return certificate.GetCertificateFromFile(certPath)
 }
 
-func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {
-	c.ensureDataPathExists()
-	aParams := []string{"--server=" + c.config.CaServer, "--accept-tos", "--path=" + c.dataPath, "--pem"}
-	params = append(params, aParams...)
-	params = append(params, command)
-	cmd := exec.Command(c.config.LegoBinPath, params...)
-	output, err := cmd.CombinedOutput()
+func GetCertificateManager(config *config.Config, logger logger.Logger) (*CertificateManager, error) {
+	storage, err := client.CreateCertStorage(config, logger)
 
 	if err != nil {
-		if len(output) == 0 {
-			return nil, err
-		}
-
-		return nil, errors.New(getOutputError(string(output)))
+		return nil, err
 	}
 
-	return output, nil
-}
-
-func GetCertificateManager(config *config.Config, logger logger.Logger) (*CertificateManager, error) {
-	dataPath := config.GetPathInsideVarDir("ssl")
-	storage, err := GetDefaultCertStorage(config, logger)
+	acmeClient, err := client.CreateAcmeClient(config)
 
 	if err != nil {
 		return nil, err
@@ -253,61 +201,8 @@ func GetCertificateManager(config *config.Config, logger logger.Logger) (*Certif
 		logger:      logger,
 		CertStorage: storage,
 		config:      config,
-		dataPath:    dataPath,
+		acmeClient:  acmeClient,
 	}
 
 	return certManager, nil
-}
-
-func getOutputError(output string) string {
-	errIndex := strings.Index(output, "error: ")
-
-	if errIndex != -1 {
-		output = output[errIndex:]
-	}
-
-	output = strings.ReplaceAll(output, "error: ", "")
-	parts := strings.Split(output, "\n")
-	var errorParts []string
-
-	for _, part := range parts {
-		if strings.Contains(part, "[INFO]") || strings.Contains(part, "[WARN]") {
-			continue
-		}
-
-		// Skip log time: xxxx/xx/xx xx:xx:xx
-		part = removeRegexString(part, `^[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} (.*)`)
-
-		if part == "" {
-			continue
-		}
-
-		errorParts = append(errorParts, part)
-	}
-
-	output = strings.Join(errorParts, "\n")
-
-	// Skip ", url:" string. Seems it is a bug in lego library
-	// https://github.com/go-acme/lego/blob/master/acme/errors.go#L47
-	return removeRegexString(output, `(?s)(.*), url:$`)
-}
-
-func removeRegexString(str string, regex string) string {
-	re, err := regexp.Compile(regex)
-
-	if err == nil {
-		rParts := re.FindStringSubmatch(str)
-
-		if len(rParts) > 1 {
-			str = rParts[1]
-		}
-	}
-
-	return strings.TrimSpace(str)
-}
-
-func (c *CertificateManager) ensureDataPathExists() {
-	if !com.IsExist(c.dataPath) {
-		os.MkdirAll(c.dataPath, 0755)
-	}
 }

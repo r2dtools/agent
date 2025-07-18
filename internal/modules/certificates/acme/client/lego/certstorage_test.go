@@ -1,10 +1,9 @@
-package certificates
+package lego
 
 import (
 	"path/filepath"
 	"testing"
 
-	"github.com/r2dtools/sslbot/config"
 	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/stretchr/testify/assert"
 )
@@ -59,11 +58,9 @@ func TestAddRemoveCertificate(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func getStorage() Storage {
-	config := config.Config{}
-
-	return Storage{
-		path:   config.GetPathInsideVarDir("certificates"),
+func getStorage() CertStorage {
+	return CertStorage{
+		path:   "/usr/local/r2dtools/var/certificates",
 		logger: &logger.NilLogger{},
 	}
 }

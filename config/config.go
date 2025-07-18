@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	defaultPort       = 60150
-	defaultCaServer   = "https://acme-v02.api.letsencrypt.org/directory"
-	defaultVarDirPath = "/usr/local/r2dtools/sslbot/var"
+	defaultPort           = 60150
+	defaultCaServer       = "https://acme-v02.api.letsencrypt.org/directory"
+	defaultVarDir         = "/usr/local/r2dtools/sslbot/var"
+	defaultCertBotDataDir = "/etc/letsencrypt/live"
 )
 
 var isDevMode = true
@@ -23,10 +24,13 @@ type Config struct {
 	Token          string
 	IsDevMode      bool
 	Version        string
-	LegoBinPath    string
+	LegoBin        string
 	CaServer       string
 	ConfigFilePath string
-	VarDirPath     string
+	VarDir         string
+	CertBotEnabled bool
+	CertBotBin     string
+	CertBotWokrDir string
 	rootPath       string
 }
 
@@ -73,7 +77,8 @@ func GetConfig() (*Config, error) {
 
 	viper.SetDefault("port", defaultPort)
 	viper.SetDefault("ca_server", defaultCaServer)
-	viper.SetDefault("var_dir_path", defaultVarDirPath)
+	viper.SetDefault("var_dir", defaultVarDir)
+	viper.SetDefault("cert_bot_work_dir", defaultCertBotDataDir)
 
 	if err := viper.ReadConfig(configFile); err != nil {
 		panic(err)
@@ -89,7 +94,7 @@ func GetConfig() (*Config, error) {
 
 	config := &Config{
 		LogFile:        filepath.Join(rootPath, "sslbot.log"),
-		LegoBinPath:    filepath.Join(rootPath, "lego"),
+		LegoBin:        filepath.Join(rootPath, "lego"),
 		ConfigFilePath: configFilePath,
 		rootPath:       rootPath,
 		IsDevMode:      isDevMode,
@@ -106,7 +111,7 @@ func GetConfig() (*Config, error) {
 }
 
 func (c *Config) GetPathInsideVarDir(path ...string) string {
-	parts := []string{c.VarDirPath}
+	parts := []string{c.VarDir}
 	parts = append(parts, path...)
 
 	return filepath.Join(parts...)
@@ -129,5 +134,8 @@ func setDynamicParams(c *Config) {
 	c.Port = viper.GetInt("port")
 	c.Token = viper.GetString("token")
 	c.CaServer = viper.GetString("ca_server")
-	c.VarDirPath = viper.GetString("var_dir_path")
+	c.VarDir = viper.GetString("var_dir")
+	c.CertBotEnabled = viper.GetBool("cert_bot_enabled")
+	c.CertBotBin = viper.GetString("cert_bot_bin")
+	c.CertBotWokrDir = viper.GetString("cert_bot_work_dir")
 }

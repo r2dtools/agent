@@ -8,6 +8,7 @@ import (
 	"github.com/r2dtools/agentintegration"
 	"github.com/r2dtools/sslbot/config"
 	"github.com/r2dtools/sslbot/internal/modules/certificates"
+	"github.com/r2dtools/sslbot/internal/modules/certificates/acme"
 	"github.com/r2dtools/sslbot/internal/pkg/logger"
 	"github.com/r2dtools/sslbot/internal/pkg/webserver"
 	"github.com/spf13/cobra"
@@ -57,7 +58,7 @@ var IssueCertificateCmd = &cobra.Command{
 			Email:         email,
 			ServerName:    serverName,
 			WebServer:     webServerCode,
-			ChallengeType: certificates.HttpChallengeTypeCode,
+			ChallengeType: acme.HttpChallengeTypeCode,
 			Subjects:      aliases,
 			Assign:        assign,
 		}

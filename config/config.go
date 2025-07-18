@@ -4,13 +4,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
 const (
-	defaultPort     = 60150
-	defaultCaServer = "https://acme-v02.api.letsencrypt.org/directory"
-	varDirPath      = "/usr/local/r2dtools/sslbot/var"
+	defaultPort       = 60150
+	defaultCaServer   = "https://acme-v02.api.letsencrypt.org/directory"
+	defaultVarDirPath = "/usr/local/r2dtools/sslbot/var"
 )
 
 var isDevMode = true
@@ -25,8 +26,8 @@ type Config struct {
 	LegoBinPath    string
 	CaServer       string
 	ConfigFilePath string
+	VarDirPath     string
 	rootPath       string
-	viper          *viper.Viper
 }
 
 func GetConfig() (*Config, error) {
@@ -54,7 +55,6 @@ func GetConfig() (*Config, error) {
 		rootPath = filepath.Dir(executable)
 	}
 
-	vConfig := viper.New()
 	configFilePath := filepath.Join(rootPath, "config.yaml")
 	configFile, err := os.OpenFile(configFilePath, os.O_RDONLY|os.O_CREATE, 0644)
 
@@ -64,40 +64,49 @@ func GetConfig() (*Config, error) {
 
 	defer configFile.Close()
 
-	vConfig.AddConfigPath(configFilePath)
-	vConfig.SetConfigType("yaml")
-	vConfig.SetConfigName("params")
+	viper.AddConfigPath(filepath.Dir(configFilePath))
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
 
-	if err := vConfig.ReadConfig(configFile); err != nil {
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("sslbot")
+
+	viper.SetDefault("port", defaultPort)
+	viper.SetDefault("ca_server", defaultCaServer)
+	viper.SetDefault("var_dir_path", defaultVarDirPath)
+
+	if err := viper.ReadConfig(configFile); err != nil {
 		panic(err)
 	}
-
-	vConfig.AutomaticEnv()
-	vConfig.SetEnvPrefix("sslbot")
-
-	vConfig.SetDefault("port", defaultPort)
-	vConfig.SetDefault("ca_server", defaultCaServer)
 
 	if Version == "" {
 		Version = "dev"
 	}
 
-	return &Config{
-		Port:           vConfig.GetInt("port"),
+	if isDevMode {
+		viper.Set("var_dir_path", filepath.Join(rootPath, "var"))
+	}
+
+	config := &Config{
 		LogFile:        filepath.Join(rootPath, "sslbot.log"),
-		Token:          vConfig.GetString("token"),
 		LegoBinPath:    filepath.Join(rootPath, "lego"),
-		CaServer:       vConfig.GetString("ca_server"),
 		ConfigFilePath: configFilePath,
 		rootPath:       rootPath,
 		IsDevMode:      isDevMode,
 		Version:        Version,
-		viper:          vConfig,
-	}, nil
+	}
+	setDynamicParams(config)
+
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		setDynamicParams(config)
+	})
+
+	return config, nil
 }
 
 func (c *Config) GetPathInsideVarDir(path ...string) string {
-	parts := []string{varDirPath}
+	parts := []string{c.VarDirPath}
 	parts = append(parts, path...)
 
 	return filepath.Join(parts...)
@@ -114,4 +123,11 @@ func (c *Config) ToMap() map[string]string {
 	}
 
 	return options
+}
+
+func setDynamicParams(c *Config) {
+	c.Port = viper.GetInt("port")
+	c.Token = viper.GetString("token")
+	c.CaServer = viper.GetString("ca_server")
+	c.VarDirPath = viper.GetString("var_dir_path")
 }

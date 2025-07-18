@@ -26,10 +26,10 @@ const (
 )
 
 type CertificateManager struct {
-	legoBinPath, dataPath string
-	CertStorage           *Storage
-	logger                logger.Logger
-	config                *config.Config
+	dataPath    string
+	CertStorage *Storage
+	logger      logger.Logger
+	config      *config.Config
 }
 
 func (c *CertificateManager) Issue(certData agentintegration.CertificateIssueRequestData) (*agentintegration.Certificate, error) {
@@ -224,10 +224,10 @@ func (c *CertificateManager) deployCertificate(wServer webserver.WebServer, serv
 
 func (c *CertificateManager) execCmd(command string, params []string) ([]byte, error) {
 	c.ensureDataPathExists()
-	aParams := []string{"--server=" + c.config.GetCaServer(), "--accept-tos", "--path=" + c.dataPath, "--pem"}
+	aParams := []string{"--server=" + c.config.CaServer, "--accept-tos", "--path=" + c.dataPath, "--pem"}
 	params = append(params, aParams...)
 	params = append(params, command)
-	cmd := exec.Command(c.legoBinPath, params...)
+	cmd := exec.Command(c.config.LegoBinPath, params...)
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -242,7 +242,6 @@ func (c *CertificateManager) execCmd(command string, params []string) ([]byte, e
 }
 
 func GetCertificateManager(config *config.Config, logger logger.Logger) (*CertificateManager, error) {
-	legoBinPath := config.GetLegoBinPath()
 	dataPath := config.GetPathInsideVarDir("ssl")
 	storage, err := GetDefaultCertStorage(config, logger)
 
@@ -254,7 +253,6 @@ func GetCertificateManager(config *config.Config, logger logger.Logger) (*Certif
 		logger:      logger,
 		CertStorage: storage,
 		config:      config,
-		legoBinPath: legoBinPath,
 		dataPath:    dataPath,
 	}
 

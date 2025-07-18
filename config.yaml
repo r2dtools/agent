@@ -1,0 +1,3 @@
+ca_server: https://acme-v02.api.letsencrypt.org/directory
+port: 60150
+token: ff1c826e-3bb1-47dd-8e1a-677a81b32883
